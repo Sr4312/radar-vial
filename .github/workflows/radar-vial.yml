@@ -156,15 +156,6 @@ jobs:
                   print(f"- {k}: {v}")
           PY
 
-      # El tablero completo como archivo descargable (para verlo sin GitHub Pages: ver README)
-      - name: Subir el tablero
-        if: steps.guardar.outputs.publicado == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tablero-${{ github.run_id }}
-          path: docs/
-          retention-days: 14
-
       - name: Subir vista previa y reportes
         if: always() && steps.hoy.outputs.ya != 'true'
         uses: actions/upload-artifact@v4
@@ -187,7 +178,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.despliegue.outputs.page_url }}
+      url: ${{ steps.despliegue.outputs.page_url || steps.despliegue2.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -196,5 +187,14 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
+      # El artefacto recién subido a veces tarda en aparecer en la lista de la corrida y el despliegue falla
+      # con "No artifacts named github-pages" (pasó el 20-11-2026): se espera y se reintenta una vez.
       - id: despliegue
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Esperar antes de reintentar
+        if: steps.despliegue.outcome == 'failure'
+        run: sleep 30
+      - id: despliegue2
+        if: steps.despliegue.outcome == 'failure'
         uses: actions/deploy-pages@v4

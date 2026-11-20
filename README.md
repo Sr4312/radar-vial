@@ -104,6 +104,20 @@ Para dejar de publicar sin tocar el workflow, cambiar esa variable a `false`.
 GitHub Pages es gratis solo en repositorios públicos: si el repositorio vuelve a privado, la publicación se
 corta (con un plan pago se puede, pero el sitio igual es público).
 
+### 6 bis. Publicar en Vercel (opcional, en lugar de GitHub Pages o además)
+
+El repositorio ya trae `vercel.json`: Vercel sirve la carpeta `docs/` tal cual (sin instalar ni compilar) y
+vuelve a publicar solo cuando una corrida cambia el tablero.
+
+1. Entrar a [vercel.com](https://vercel.com) con la cuenta de GitHub del Observatorio.
+2. **Add New > Project**, elegir `Sr4312/radar-vial` e **Import** (no hay que cambiar ninguna opción: las toma
+   de `vercel.json`). Vercel pide permiso para leer el repositorio.
+3. **Deploy**. El tablero queda en `https://<nombre-del-proyecto>.vercel.app` y se actualiza solo con cada
+   corrida diaria.
+4. Opcional: **Settings > Domains** para usar un dominio propio (por ejemplo, un subdominio de cruzroja.org.ar).
+
+Si se usa solo Vercel, se puede apagar GitHub Pages cambiando la variable `PUBLICAR_PAGES` a `false`.
+
 ### 7. Ver el tablero sin GitHub Pages
 
 - **Desde la computadora**: traer lo último (`git pull`) y servir la carpeta `docs`:
@@ -113,8 +127,7 @@ corta (con un plan pago se puede, pero el sitio igual es público).
 ```
 
   y abrir <http://localhost:8000>.
-- **Desde GitHub**: en cada corrida, **Actions > (la corrida) > Artifacts > tablero-…** baja el tablero en un
-  zip. Descomprimirlo y servirlo igual que arriba (con doble clic sobre `index.html` no carga los datos).
+- Con doble clic sobre `index.html` no carga los datos: hay que servirlo por http como arriba.
 
 ---
 

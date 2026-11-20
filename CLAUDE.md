@@ -131,11 +131,15 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   con reintentos de push -> resumen de costos en la página de la corrida -> artefacto `salida/` (14 días) ->
   job `publicar` (Pages desde Actions: Settings > Pages > Source: GitHub Actions) solo si cambió `docs/data`.
 - Secreto: `ANTHROPIC_API_KEY` (Settings > Secrets and variables > Actions). Nunca en el código ni en `.env.ejemplo`.
+- Vercel (opcional): `vercel.json` sirve `docs/` sin instalar ni compilar; `ignoreCommand` evita redesplegar si
+  el commit no cambió `docs/` ni `vercel.json`. El proyecto en Vercel lo crea el equipo (Import del repositorio).
 - Repositorio: `Sr4312/radar-vial`, **público** desde el 20-11-2026 (se creó privado; con el plan gratuito GitHub
   no permite Pages en privados y se pasó a público para publicar). Tablero: https://sr4312.github.io/radar-vial/.
   El job `publicar` corre si la variable del repositorio `PUBLICAR_PAGES` vale "true" (ya configurada) y la
-  corrida publicó, o con el disparo manual `solo_publicar` (publica `docs/` sin correr el radar). Cada corrida
-  que publica también sube `docs/` como artefacto `tablero-*`.
+  corrida publicó, o con el disparo manual `solo_publicar` (publica `docs/` sin correr el radar). No subir otros
+  artefactos con `docs/` en la misma corrida: el 20-11-2026 `deploy-pages` falló con "No artifacts named
+  github-pages" (el artefacto recién subido tardó en aparecer en la lista); el job reintenta una vez a los 30 s.
+  No usar "Re-run failed jobs" en ese job: deja dos artefactos github-pages y falla; disparar `solo_publicar`.
 - Los textos de las notas no migran: los que se bajan en Actions viven solo en la caché de Actions, y los de esta
   computadora solo acá. `reprocesar` corrido localmente solo rehace las notas procesadas en la misma máquina;
   para rehacer lo procesado en Actions, correrlo desde un workflow (o esperar a la corrida diaria).
