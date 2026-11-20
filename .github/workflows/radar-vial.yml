@@ -1,0 +1,179 @@
+name: Radar Vial
+
+on:
+  schedule:
+    # Hora de GitHub = UTC. 09:17 UTC = 06:17 en Argentina. Los horarios programados de GitHub no son
+    # puntuales (en el Radar Humanitario llegaban horas tarde, y algunos nunca), así que se intenta cada dos
+    # horas hasta las 18:17 de Argentina; cada intento corre solo si hoy todavía no hubo una corrida publicada.
+    - cron: "17 9-21/2 * * *"
+  workflow_dispatch:
+    inputs:
+      sin_publicar:
+        description: "Generar todo pero no actualizar el tablero (la vista previa queda como artefacto de la corrida)"
+        type: boolean
+        default: false
+      tope:
+        description: "Tope de notas a extraer en esta corrida (vacío = el de config/config.yaml)"
+        type: string
+        default: ""
+
+# Permisos mínimos: el job que corre el radar (lee contenido de terceros con la clave presente) solo puede
+# escribir el repositorio; los permisos de Pages los tiene solo el job que publica.
+permissions:
+  contents: read
+
+concurrency:
+  group: radar-vial
+  cancel-in-progress: false
+
+jobs:
+  correr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    outputs:
+      publicado: ${{ steps.guardar.outputs.publicado }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # La punta de la rama al arrancar: una corrida que esperó en la cola ve lo que dejó la anterior.
+          ref: ${{ github.ref }}
+
+      # Los reintentos programados cortan acá si hoy ya hubo una corrida publicada: en un repositorio privado
+      # los minutos de Actions son limitados y así no se gastan en instalar y probar para nada.
+      - name: ¿Ya corrió hoy?
+        id: hoy
+        env:
+          EVENTO: ${{ github.event_name }}
+        run: |
+          HOY=$(TZ=America/Argentina/Buenos_Aires date +%F)
+          ULTIMO=$(python3 -c "import json; print(json.load(open('data/estado.json')).get('ultimo_diario', ''))" 2>/dev/null || echo "")
+          if [ "$EVENTO" = "schedule" ] && [ "$ULTIMO" = "$HOY" ]; then
+            echo "La corrida de hoy ($HOY) ya se hizo."
+            echo "ya=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ya=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.hoy.outputs.ya != 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        if: steps.hoy.outputs.ya != 'true'
+        run: pip install -r requirements.txt
+
+      - name: Pruebas (sin red ni clave)
+        if: steps.hoy.outputs.ya != 'true'
+        run: python -m pytest -q
+
+      # Texto completo de las notas y cola de pendientes: traen nombres de personas, así que nunca van al
+      # repositorio. Se conservan entre corridas en la caché de Actions (se poda sola a los 14 días).
+      - name: Recuperar la caché de textos
+        if: steps.hoy.outputs.ya != 'true'
+        uses: actions/cache@v4
+        with:
+          path: data/cache/textos
+          key: textos-${{ github.run_id }}
+          restore-keys: textos-
+
+      - name: Corrida diaria
+        id: corrida
+        if: steps.hoy.outputs.ya != 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVENTO: ${{ github.event_name }}
+          SIN_PUBLICAR: ${{ inputs.sin_publicar }}
+          TOPE: ${{ inputs.tope }}
+        # Lo que se escribe al disparar a mano entra como variable de entorno, no pegado en el script.
+        run: |
+          ARGS=""
+          if [ "$EVENTO" = "schedule" ]; then ARGS="--si-no-corrio-hoy"; fi
+          if [ "$SIN_PUBLICAR" = "true" ]; then ARGS="$ARGS --sin-publicar"; fi
+          if [ -n "$TOPE" ]; then
+            case "$TOPE" in (*[!0-9]*) echo "::error::El tope tiene que ser un número"; exit 1;; esac
+            ARGS="$ARGS --tope $TOPE"
+          fi
+          python -m radar_vial diario $ARGS
+
+      - name: Guardar historial y tablero
+        id: guardar
+        if: always() && steps.corrida.outcome != 'skipped'
+        env:
+          SIN_PUBLICAR: ${{ inputs.sin_publicar }}
+        run: |
+          git config user.name "radar-vial-bot"
+          git config user.email "radar-vial-bot@users.noreply.github.com"
+          # De a uno y solo si existen: un `git add` con un archivo que falta no agrega ninguno.
+          for f in data/historial.jsonl data/notas.jsonl data/eventos.jsonl data/costos.jsonl data/estado.json \
+                   data/cache/dominios.json data/cache/georef.json data/cache/decisiones_eventos.json; do
+            if [ -e "$f" ]; then git add "$f"; fi
+          done
+          if [ "$SIN_PUBLICAR" != "true" ] && [ -d docs/data ]; then git add docs/data; fi
+          PUBLICADO=false
+          if git diff --cached --quiet -- docs/data; then :; else PUBLICADO=true; fi
+          if git diff --cached --quiet; then
+            echo "Nada nuevo para guardar."
+          else
+            git commit -m "Corrida diaria $(TZ=America/Argentina/Buenos_Aires date +%F)"
+            # Si alguien subió un cambio mientras corría, el push se rechaza: se reacomoda encima y se reintenta.
+            for intento in 1 2 3; do
+              if git push; then break; fi
+              if [ "$intento" = 3 ]; then
+                echo "::error::No se pudo guardar el historial en el repositorio: la próxima corrida repetiría trabajo."
+                exit 1
+              fi
+              git pull --rebase || git rebase --abort || true
+              sleep 5
+            done
+          fi
+          echo "publicado=$PUBLICADO" >> "$GITHUB_OUTPUT"
+
+      - name: Resumen de la corrida
+        if: always() && steps.hoy.outputs.ya != 'true'
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY" || true
+          import json, pathlib
+          p = pathlib.Path("data/costos.jsonl")
+          if p.exists() and p.read_text(encoding="utf-8").strip():
+              c = json.loads(p.read_text(encoding="utf-8").strip().splitlines()[-1])
+              print(f"### Radar Vial - {c['fecha'][:16]} UTC")
+              print(f"Costo estimado: USD {c['costo_total_usd']:.2f}")
+              for k, v in (c.get("notas") or {}).items():
+                  print(f"- {k}: {v}")
+          PY
+
+      - name: Subir vista previa y reportes
+        if: always() && steps.hoy.outputs.ya != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: salida-${{ github.run_id }}
+          path: salida/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Publica docs/ en GitHub Pages (en la configuración del repositorio: Pages > Source: GitHub Actions)
+  publicar:
+    needs: correr
+    if: needs.correr.outputs.publicado == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: despliegue
+        uses: actions/deploy-pages@v4

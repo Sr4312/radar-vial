@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Radar Vial · Observatorio Humanitario</title>
+  <meta name="description" content="Siniestros viales reportados en medios de Argentina. Observatorio Humanitario de Cruz Roja Argentina.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+        integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
+  <link rel="stylesheet" href="assets/estilos.css">
+</head>
+<body>
+  <div id="aviso-demo" class="aviso-demo" hidden>DATOS DE EJEMPLO (modo demo): no son siniestros reales.</div>
+
+  <header class="cabecera">
+    <div class="contenedor">
+      <img src="assets/logo-observatorio-humanitario.png" alt="Cruz Roja Argentina · Observatorio Humanitario · IFRC · RC3">
+      <p class="actualizado" id="actualizado">Cargando datos…</p>
+    </div>
+  </header>
+
+  <div class="contenedor">
+    <section class="titulo">
+      <p class="antetitulo">Laboratorio de Innovación · Observatorio Humanitario</p>
+      <h1>radar vial</h1>
+      <p class="bajada">Siniestros viales reportados en medios de prensa de todo el país, contados como hechos y no como notas: diez notas sobre el mismo choque son un solo siniestro.</p>
+    </section>
+
+    <nav class="pestanas" role="tablist" aria-label="Vistas del tablero">
+      <button role="tab" id="tab-semana" aria-controls="vista-semana" aria-selected="true">Esta semana</button>
+      <button role="tab" id="tab-historico" aria-controls="vista-historico" aria-selected="false">Histórico</button>
+      <button role="tab" id="tab-metodologia" aria-controls="vista-metodologia" aria-selected="false">Metodología</button>
+    </nav>
+  </div>
+
+  <main class="contenedor">
+    <!-- ===================== Esta semana ===================== -->
+    <section id="vista-semana" role="tabpanel" aria-labelledby="tab-semana">
+      <div class="filtros" aria-label="Filtros">
+        <label class="campo">Período
+          <select id="rango">
+            <option value="7">Últimos 7 días</option>
+            <option value="14">Últimos 14 días</option>
+            <option value="30">Últimos 30 días</option>
+            <option value="personalizado">Elegir fechas</option>
+          </select>
+        </label>
+        <label class="campo" id="campo-desde" hidden>Desde <input type="date" id="desde"></label>
+        <label class="campo" id="campo-hasta" hidden>Hasta <input type="date" id="hasta"></label>
+        <label class="casilla"><input type="checkbox" id="incluir-titulos" checked> Incluir siniestros conocidos solo por titulares</label>
+      </div>
+
+      <div class="grilla-kpi" id="kpis" aria-live="polite"></div>
+      <p class="aviso-carga" id="aviso-carga"></p>
+
+      <div class="seccion grilla-2">
+        <article class="tarjeta">
+          <h2>dónde ocurren</h2>
+          <p class="sub">Siniestros cada 100.000 habitantes por provincia (población del Censo 2022) y lugar de cada siniestro.</p>
+          <div id="mapa" role="region" aria-label="Mapa de siniestros por provincia"></div>
+          <div class="escala" id="escala-mapa" aria-hidden="true"></div>
+          <div class="leyenda" aria-hidden="true">
+            <span><span class="punto" style="background:#C11F2A"></span>Con personas fallecidas</span>
+            <span><span class="punto" style="background:#fff;border:2px solid #E73743"></span>Sin personas fallecidas</span>
+          </div>
+          <p class="nota">La provincia de Tierra del Fuego, Antártida e Islas del Atlántico Sur incluye el sector antártico, que la proyección del mapa web no puede mostrar. Los puntos marcan la localidad o el departamento; los siniestros sin ese dato no se dibujan.</p>
+          <details class="datos"><summary>Ver datos por provincia</summary><div class="tabla-envoltura" id="tabla-mapa"></div></details>
+        </article>
+        <div style="display:grid;gap:16px;min-width:0">
+          <article class="tarjeta">
+            <h2>siniestros por día</h2>
+            <p class="sub">Según la fecha del hecho.</p>
+            <div class="lienzo alto-s"><canvas id="g-siniestros-dia" role="img" aria-label="Siniestros por día"></canvas></div>
+            <div class="leyenda" aria-hidden="true"><span><span class="muestra" style="background:#F6ACB1;border:2px solid #E73743"></span>Días que todavía se están completando</span><span><span class="muestra" style="background:#8A9399"></span>Antes del inicio del registro</span></div>
+          </article>
+          <article class="tarjeta">
+            <h2>personas fallecidas por día</h2>
+            <p class="sub">Las cifras de víctimas pueden subir con los días.</p>
+            <div class="lienzo alto-s"><canvas id="g-fallecidos-dia" role="img" aria-label="Personas fallecidas por día"></canvas></div>
+            <details class="datos"><summary>Ver datos por día</summary><div class="tabla-envoltura" id="tabla-dias"></div></details>
+          </article>
+        </div>
+      </div>
+
+      <section class="seccion">
+        <h2>cómo ocurren</h2>
+        <div class="grilla-3" id="distribuciones"></div>
+      </section>
+
+      <section class="seccion grilla-2">
+        <article class="tarjeta">
+          <h2>provincias con más siniestros</h2>
+          <p class="sub">En el período elegido.</p>
+          <div class="tabla-envoltura" id="ranking-provincias"></div>
+        </article>
+        <article class="tarjeta">
+          <h2>rutas con más siniestros</h2>
+          <p class="sub">Rutas nacionales y provinciales nombradas en las notas.</p>
+          <div class="tabla-envoltura" id="ranking-rutas"></div>
+        </article>
+      </section>
+
+      <section class="seccion">
+        <h2>siniestros reportados</h2>
+        <article class="tarjeta">
+          <div class="filtros" aria-label="Filtros de la tabla">
+            <label class="campo">Provincia <select id="f-provincia"><option value="">Todas</option></select></label>
+            <label class="campo">Tipo <select id="f-tipo"><option value="">Todos</option></select></label>
+            <label class="campo">Vehículo <select id="f-vehiculo"><option value="">Todos</option></select></label>
+            <label class="campo">Víctimas fatales <select id="f-fatales"><option value="">Todos</option><option value="con">Con personas fallecidas</option><option value="sin">Sin personas fallecidas informadas</option></select></label>
+          </div>
+          <div class="tabla-envoltura" id="tabla-eventos"></div>
+          <div class="paginacion" id="paginacion"></div>
+        </article>
+      </section>
+
+      <section class="seccion">
+        <h2>contexto vial</h2>
+        <article class="tarjeta contexto">
+          <p class="sub">Controles, normas, estadísticas oficiales, estado de rutas y campañas. No se suman a los conteos de siniestros.</p>
+          <ul id="lista-contexto"></ul>
+        </article>
+      </section>
+
+      <div class="caja">
+        <p class="antetitulo">Cómo leer estos datos</p>
+        <p>Son siniestros <strong>reportados en medios</strong>, no estadística oficial. Subestiman los siniestros sin víctimas y las zonas con poca prensa local, y las cifras de víctimas pueden cambiar con los días. Más detalle en la pestaña Metodología.</p>
+      </div>
+    </section>
+
+    <!-- ===================== Histórico ===================== -->
+    <section id="vista-historico" role="tabpanel" aria-labelledby="tab-historico" hidden>
+      <div class="seccion">
+        <article class="tarjeta">
+          <h2>siniestros por semana</h2>
+          <p class="sub">Semanas de lunes a domingo, según la fecha del hecho. La semana en curso todavía se está completando.</p>
+          <div class="lienzo alto-l"><canvas id="g-semanas" role="img" aria-label="Siniestros por semana"></canvas></div>
+          <div class="leyenda" aria-hidden="true"><span><span class="muestra" style="background:#F6ACB1;border:2px solid #E73743"></span>Semana en curso</span><span><span class="muestra" style="background:#8A9399"></span>Semana en la que empezó el registro</span></div>
+        </article>
+      </div>
+      <div class="seccion">
+        <article class="tarjeta">
+          <h2>semana por semana</h2>
+          <p class="sub">La comparación con la misma semana del año anterior aparece cuando haya datos de ese período.</p>
+          <div class="tabla-envoltura" id="tabla-semanas"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== Metodología ===================== -->
+    <section id="vista-metodologia" role="tabpanel" aria-labelledby="tab-metodologia" hidden>
+      <div class="seccion texto">
+        <h2>metodología</h2>
+        <div class="caja">
+          <p class="antetitulo">Qué mide y qué no</p>
+          <p>El Radar Vial cuenta los siniestros viales <strong>reportados en medios de prensa</strong> de Argentina. No es estadística oficial. Subestima los siniestros sin víctimas o sin cobertura y las zonas con poca prensa local, y las cifras de víctimas de un siniestro pueden cambiar con los días.</p>
+        </div>
+        <h3>De dónde salen los datos</h3>
+        <p>Todos los días se leen las notas publicadas en las últimas 48 horas en Google News (una búsqueda por término y por provincia) y en los feeds y sitemaps de noticias de <span id="n-medios">más de 70</span> medios nacionales y provinciales. La prensa local es imprescindible: la mayoría de los siniestros solo los cubre el medio de la zona.</p>
+        <h3>De notas a siniestros</h3>
+        <p>Un modelo de lenguaje filtra las notas, lee las relevantes y arma una ficha propia de cada siniestro (fecha, lugar, tipo, vehículos, víctimas y factores que menciona la nota). Lo que la nota no dice queda vacío: preferimos subestimar a inventar. Las notas que cuentan el mismo hecho se agrupan en un solo siniestro, con todas sus fuentes; de cada dato se toma el más completo y las cifras de víctimas, de la nota más reciente.</p>
+        <h3>Cómo leer los indicadores</h3>
+        <ul>
+          <li>Los siniestros se cuentan por la <strong>fecha del hecho</strong>. "Esta semana" son los últimos 7 días completos (hasta ayer).</li>
+          <li>Los <strong>últimos días siempre están incompletos</strong>: las notas y las cifras de víctimas llegan con demora, así que la comparación con la semana anterior hay que leerla con cuidado.</li>
+          <li>Algunos siniestros solo se conocen por titulares (no se pudo leer la nota completa); tienen menos datos y se pueden excluir con la casilla de arriba.</li>
+          <li>Los <strong>factores</strong> son los que menciona la nota, muchas veces como hipótesis ("presuntos"). Nunca son causas confirmadas.</li>
+          <li>Cuando una nota no dice la provincia y hay una pista clara (el medio local o la búsqueda por la que llegó), la provincia se completa y se marca como inferida.</li>
+        </ul>
+        <h3>Privacidad</h3>
+        <p>No se publican nombres, edades exactas ni otros datos que permitan identificar a las personas, y nunca se identifica a niñas, niños o adolescentes. El tablero muestra un resumen propio y el enlace a cada nota original.</p>
+        <h3>Cifras oficiales</h3>
+        <p>Para estadísticas oficiales de siniestralidad vial:</p>
+        <ul id="lista-oficiales"></ul>
+        <p class="nota">Población: INDEC, Censo Nacional de Población, Hogares y Viviendas 2022, resultados definitivos. Cartografía: Instituto Geográfico Nacional.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">
+      <img src="assets/logo-observatorio-humanitario.png" alt="Cruz Roja Argentina · Observatorio Humanitario">
+      <div>
+        <p style="margin:0">Radar Vial · Observatorio Humanitario · Cruz Roja Argentina</p>
+        <p style="margin:4px 0 0"><a href="https://www.cruzroja.org.ar/observatorio-humanitario/" rel="noopener">cruzroja.org.ar/observatorio-humanitario</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+          integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+          integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

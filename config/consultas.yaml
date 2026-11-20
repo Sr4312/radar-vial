@@ -1,0 +1,62 @@
+# Consultas a Google News (se editan acá, sin tocar código).
+#
+# Cada término se busca con cada jurisdicción de config/provincias.yaml, una búsqueda por par:
+#   término lugar when:2d
+# No se combinan términos ni lugares con OR: en la prueba del 19-11-2026 Google News devolvió mucho menos
+# con OR (Mendoza: 27 notas con los términos combinados contra 49 sumando las búsquedas sueltas; provincia de
+# Buenos Aires: 26 contra 119 sumando sus ciudades). `python -m radar_vial fuentes` informa cuántas notas
+# aporta cada término por sí solo, para decidir con datos cuáles conviene sacar.
+
+terminos:
+  - choque
+  - '"accidente de tránsito"'
+  - '"siniestro vial"'
+  - vuelco
+  - atropellado
+  - '"motociclista murió"'
+  - '"ruta nacional"'
+  - colisión
+  - despiste
+  - '"paso a nivel"'
+
+# Términos que se cruzan además con las `ciudades` de cada provincia (las grandes tienen varias).
+terminos_ciudades:
+  - choque
+  - accidente
+
+# Búsquedas nacionales de contexto vial (normativa, controles, estadísticas, rutas, campañas).
+# Lo que traen no se suma a los conteos de siniestros. Una búsqueda por término.
+contexto:
+  - alcoholemia
+  - '"alcohol cero"'
+  - '"licencia de conducir"'
+  - '"seguridad vial"'
+  - '"Agencia Nacional de Seguridad Vial"'
+  - '"Luchemos por la Vida"'
+  - '"estado de las rutas"'
+  - '"control vehicular"'
+
+# Prefiltro barato para los feeds RSS y sitemaps de medios (traen todo lo que publica el medio, no solo
+# siniestros): solo pasan al filtro con Claude las notas cuyo título o bajada contiene alguna de estas raíces.
+# Se comparan sin acentos y en minúscula.
+palabras_clave:
+  - choc
+  - colision
+  - accidente
+  - siniestro
+  - vuelc
+  - volco
+  - despist
+  - atropell
+  - embist
+  - motociclista
+  - ciclista
+  - peaton
+  - paso a nivel
+  - ruta nacional
+  - ruta provincial
+  - transito
+  - alcoholemia
+  - alcohol cero
+  - seguridad vial
+  - licencia de conducir

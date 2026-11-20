@@ -1,0 +1,73 @@
+# Configuración general del Radar Vial (se cambia acá, sin tocar código).
+
+modelos:
+  # Filtro barato: ¿es Argentina? ¿siniestro, contexto o descartar?
+  filtro: claude-haiku-5-5
+  # Extracción de la ficha estructurada de cada nota
+  extraccion: claude-sonnet-5-5
+  # Desempate de la agrupación en eventos (cuando las reglas no alcanzan)
+  eventos: claude-sonnet-5-5
+
+# Esfuerzo de razonamiento por etapa (low, medium, high). En estos modelos el razonamiento no se puede
+# apagar: el esfuerzo es lo que controla cuánto piensa (y cuánto cuesta) cada llamada.
+esfuerzo:
+  filtro: low
+  extraccion: medium
+  eventos: low
+
+# Respaldo automático ante un rechazo del modelo (opción de la API, "fallbacks"): si Sonnet 5.5 rechaza una
+# nota por sus filtros de seguridad, la API la reintenta con otro modelo en la misma llamada. Haiku no lo admite.
+respaldo_por_rechazo: [claude-sonnet-5-5]
+
+# Precios de lista en USD por millón de tokens (para estimar el costo de cada corrida en data/costos.jsonl).
+# Tomados de la documentación de la API en noviembre de 2026: revisarlos si cambian.
+precios:
+  claude-haiku-5-5: {entrada: 0.10, salida: 0.50, cache_lectura: 0.01, cache_escritura: 0.125}
+  claude-sonnet-5-5: {entrada: 2.00, salida: 10.00, cache_lectura: 0.10, cache_escritura: 2.50}
+
+# Desde cuándo el radar registra siniestros (la primera corrida real leyó notas desde el 18-11-2026). Los días
+# anteriores tienen solo notas tardías sueltas: el tablero no compara contra ellos ni los muestra como datos.
+inicio_cobertura: "2026-11-18"
+
+recoleccion:
+  # Ventana de cada corrida diaria: notas publicadas en las últimas N horas
+  ventana_horas: 48
+  google_news: "https://news.google.com/rss/search?q={q}+when:2d&hl=es-419&gl=AR&ceid=AR:es-419"
+  # Pausa entre pedidos a un mismo servicio (respetar a los servidores)
+  pausa_segundos: 1.0
+  # Tiempo máximo por pedido HTTP y reintentos ante errores de red o 5xx
+  timeout_segundos: 25
+  reintentos: 2
+  # Identificación honesta del lector automático
+  user_agent: "RadarVial/1.0 (Observatorio Humanitario - Cruz Roja Argentina)"
+
+resolucion:
+  # Los links de Google News no llevan la URL original. Se la busca en el sitemap de noticias y en el
+  # RSS del propio medio, comparando títulos. Lo que se descubre de cada dominio se guarda acá:
+  dias_cache_dominios: 7
+  # Parecido mínimo entre títulos (0 a 1) para dar por encontrada la nota
+  similitud_minima: 0.82
+  # Si no aparece en el medio, buscar el título exacto en el RSS público de Bing Noticias
+  bing: true
+
+descarga:
+  # Texto completo de cada nota: caché temporal fuera de git (trae nombres de personas)
+  dias_cache_textos: 14
+  # Notas con menos caracteres que esto se consideran sin texto útil
+  min_caracteres: 300
+
+historial:
+  dias: 90
+
+limites:
+  # Tope de notas que pasan a la extracción (etapa cara) en cada corrida. Las que no entran quedan para la
+  # próxima (primero se extraen los siniestros y las notas más nuevas).
+  max_extraccion_por_corrida: 400
+  # Lugar reservado dentro del tope para las notas de contexto vial (si no, los siniestros las dejan afuera)
+  cupo_contexto: 50
+  # Notas por llamada al filtro (título y bajada de cada una)
+  notas_por_lote_filtro: 40
+  # Llamadas de extracción en paralelo
+  extracciones_en_paralelo: 4
+  # Caracteres del texto de la nota que se mandan a la extracción (las notas largas se cortan al final)
+  max_caracteres_texto: 12000

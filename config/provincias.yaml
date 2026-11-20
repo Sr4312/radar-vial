@@ -1,0 +1,199 @@
+# Las 24 jurisdicciones de Argentina.
+# - id: código INDEC, el mismo que usa la API Georef (verificado contra Georef el 19-11-2026).
+# - nombre: nombre oficial en Georef.  corto: cómo se muestra en el dashboard.
+# - busqueda: cómo se nombra la jurisdicción en las búsquedas de Google News (una búsqueda por término).
+# - ciudades: lugares que se buscan aparte, con los `terminos_ciudades` de config/consultas.yaml. Se buscan
+#   por separado porque Google News devuelve menos notas cuando se combinan lugares con OR.
+# - capital: localidad capital (nombre de Georef, verificado el 20-11-2026); se usa cuando la nota dice "la capital".
+# - alias: otras formas en que las notas nombran a la jurisdicción (para normalizar la extracción).
+# - centro: solo donde el centroide de Georef no sirve para el mapa (Tierra del Fuego incluye la Antártida).
+# - poblacion: Censo 2022, resultados definitivos (INDEC, Cuadro resumen, c2022_tp_c_resumen.xlsx de censo.gob.ar,
+#   leído el 20-11-2026): total de población, incluye viviendas particulares, colectivas y situación de calle.
+#   Suma de las 24 jurisdicciones = total del país = 45.892.285.
+provincias:
+  - id: "02"
+    nombre: Ciudad Autónoma de Buenos Aires
+    poblacion: 3121707
+    corto: CABA
+    capital: Ciudad de Buenos Aires
+    busqueda: '"Ciudad de Buenos Aires"'
+    ciudades: [CABA, porteño, porteña]
+    alias: [CABA, Capital Federal, Ciudad de Buenos Aires, Ciudad Autónoma de Buenos Aires]
+  - id: "06"
+    nombre: Buenos Aires
+    poblacion: 17523996
+    corto: Buenos Aires
+    capital: La Plata
+    busqueda: '"provincia de Buenos Aires"'
+    ciudades: [bonaerense, conurbano, '"La Plata"', '"Mar del Plata"', '"Bahía Blanca"']
+    alias: [Provincia de Buenos Aires, PBA, provincia bonaerense]
+  - id: "10"
+    nombre: Catamarca
+    poblacion: 429562
+    corto: Catamarca
+    capital: San Fernando del Valle de Catamarca
+    busqueda: Catamarca
+    alias: []
+  - id: "14"
+    nombre: Córdoba
+    poblacion: 3840905
+    corto: Córdoba
+    capital: Córdoba
+    busqueda: '"Córdoba"'
+    ciudades: ['"Río Cuarto"', '"Villa María"']
+    alias: []
+  - id: "18"
+    nombre: Corrientes
+    poblacion: 1212696
+    corto: Corrientes
+    capital: Corrientes
+    busqueda: Corrientes
+    alias: []
+  - id: "22"
+    nombre: Chaco
+    poblacion: 1129606
+    corto: Chaco
+    capital: Resistencia
+    busqueda: Chaco
+    ciudades: [Resistencia]
+    alias: []
+  - id: "26"
+    nombre: Chubut
+    poblacion: 592621
+    corto: Chubut
+    capital: Rawson
+    busqueda: Chubut
+    ciudades: ['"Comodoro Rivadavia"', Trelew]
+    alias: []
+  - id: "30"
+    nombre: Entre Ríos
+    poblacion: 1425578
+    corto: Entre Ríos
+    capital: Paraná
+    busqueda: '"Entre Ríos"'
+    ciudades: [Paraná, '"Concordia"']
+    alias: []
+  - id: "34"
+    nombre: Formosa
+    poblacion: 607419
+    corto: Formosa
+    capital: Formosa
+    busqueda: Formosa
+    alias: []
+  - id: "38"
+    nombre: Jujuy
+    poblacion: 811611
+    corto: Jujuy
+    capital: San Salvador de Jujuy
+    busqueda: Jujuy
+    alias: []
+  - id: "42"
+    nombre: La Pampa
+    poblacion: 361859
+    corto: La Pampa
+    capital: Santa Rosa
+    busqueda: '"La Pampa"'
+    ciudades: ['"Santa Rosa"']
+    alias: []
+  - id: "46"
+    nombre: La Rioja
+    poblacion: 383865
+    corto: La Rioja
+    capital: La Rioja
+    busqueda: '"La Rioja"'
+    ciudades: [riojano]
+    alias: []
+  - id: "50"
+    nombre: Mendoza
+    poblacion: 2043540
+    corto: Mendoza
+    capital: Mendoza
+    busqueda: Mendoza
+    ciudades: ['"San Rafael"']
+    alias: []
+  - id: "54"
+    nombre: Misiones
+    poblacion: 1278873
+    corto: Misiones
+    capital: Posadas
+    busqueda: Misiones
+    ciudades: [Posadas, Oberá]
+    alias: []
+  - id: "58"
+    nombre: Neuquén
+    poblacion: 710814
+    corto: Neuquén
+    capital: Neuquén
+    busqueda: Neuquén
+    alias: []
+  - id: "62"
+    nombre: Río Negro
+    poblacion: 750768
+    corto: Río Negro
+    capital: Viedma
+    busqueda: '"Río Negro"'
+    ciudades: [Bariloche, '"General Roca"', Cipolletti, Viedma]
+    alias: []
+  - id: "66"
+    nombre: Salta
+    poblacion: 1441351
+    corto: Salta
+    capital: Salta
+    busqueda: Salta
+    alias: []
+  - id: "70"
+    nombre: San Juan
+    poblacion: 822853
+    corto: San Juan
+    capital: San Juan
+    busqueda: '"San Juan"'
+    ciudades: [sanjuanino]
+    alias: []
+  - id: "74"
+    nombre: San Luis
+    poblacion: 542069
+    corto: San Luis
+    capital: San Luis
+    busqueda: '"San Luis"'
+    ciudades: ['"Villa Mercedes"']
+    alias: []
+  - id: "78"
+    nombre: Santa Cruz
+    poblacion: 337226
+    corto: Santa Cruz
+    capital: Río Gallegos
+    busqueda: '"Santa Cruz"'
+    ciudades: ['"Río Gallegos"', '"Caleta Olivia"']
+    alias: []
+  - id: "82"
+    nombre: Santa Fe
+    poblacion: 3544908
+    corto: Santa Fe
+    capital: Santa Fe
+    busqueda: '"Santa Fe"'
+    ciudades: [Rosario, Rafaela]
+    alias: []
+  - id: "86"
+    nombre: Santiago del Estero
+    poblacion: 1060906
+    corto: Santiago del Estero
+    capital: Santiago del Estero
+    busqueda: '"Santiago del Estero"'
+    ciudades: [santiagueño]
+    alias: []
+  - id: "90"
+    nombre: Tucumán
+    poblacion: 1731820
+    corto: Tucumán
+    capital: San Miguel de Tucumán
+    busqueda: Tucumán
+    alias: []
+  - id: "94"
+    nombre: Tierra del Fuego, Antártida e Islas del Atlántico Sur
+    poblacion: 185732
+    corto: Tierra del Fuego
+    capital: Ushuaia
+    busqueda: '"Tierra del Fuego"'
+    ciudades: [Ushuaia, '"Río Grande"']
+    alias: [Tierra del Fuego]
+    centro: {lat: -54.3, lon: -67.7}

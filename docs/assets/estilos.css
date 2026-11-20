@@ -1,0 +1,177 @@
+/* Radar Vial · Observatorio Humanitario · Cruz Roja Argentina
+   Tokens del sistema de diseño de Cruz Roja Argentina (Encode Sans, rojo de comunicación, tinta y pizarra).
+   Texto chico en rojo: siempre --rojo-texto (#C11F2A), que cumple contraste AA sobre blanco y papel. */
+
+:root {
+  --rojo: #E73743;          /* rojo de comunicación: marcas de datos, filetes, fondos con texto blanco grande */
+  --rojo-texto: #C11F2A;    /* rojo para texto y enlaces (contraste AA) */
+  --tinta: #231F20;
+  --pizarra: #5E686F;
+  --papel: #FAF8F7;
+  --bruma: #F1F3F4;
+  --linea: #E3E6E8;
+  --linea-fuerte: #C9CFD3;
+  --blanco: #FFFFFF;
+  --sec-1: #F9D2D5;         /* escala secuencial rosada (mapa) */
+  --sec-2: #F6ACB1;
+  --sec-3: #F1858B;
+  --sec-4: #E94E58;
+  --sec-5: #C11F2A;
+  --fuente: 'Encode Sans', 'Helvetica Neue', Arial, sans-serif;
+  --radio: 8px;
+  --sombra: 0 1px 2px rgba(35,31,32,.06), 0 1px 1px rgba(35,31,32,.04);
+  --contenedor: 1200px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--papel); color: var(--tinta);
+  font-family: var(--fuente); font-size: 16px; line-height: 1.5;
+}
+a { color: var(--rojo-texto); }
+a:hover { color: var(--tinta); }
+:focus-visible { outline: 3px solid var(--rojo-texto); outline-offset: 2px; }
+.oculto-visual { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.contenedor { max-width: var(--contenedor); margin: 0 auto; padding: 0 16px; }
+[hidden] { display: none !important; }
+
+/* ---------- Cabecera ---------- */
+.cabecera { background: var(--blanco); border-bottom: 1px solid var(--linea); }
+.cabecera .contenedor { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
+.cabecera img { height: 52px; width: auto; max-width: 100%; display: block; }
+.actualizado { font-size: 13px; color: var(--pizarra); text-align: right; }
+.actualizado strong { color: var(--tinta); font-weight: 600; }
+
+.titulo { padding: 28px 0 8px; }
+.antetitulo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--rojo-texto); margin: 0 0 6px; }
+.antetitulo::before { content: ""; width: 24px; height: 3px; background: currentColor; display: inline-block; }
+h1 { font-weight: 900; font-size: clamp(36px, 6vw, 56px); line-height: 1.05; letter-spacing: -.02em; margin: 0; text-transform: lowercase; }
+.bajada { font-size: 18px; color: var(--pizarra); margin: 8px 0 0; max-width: 68ch; }
+
+.aviso-demo { background: var(--tinta); color: var(--blanco); font-weight: 700; text-align: center; padding: 10px 16px; letter-spacing: .04em; }
+
+/* ---------- Pestañas y filtros ---------- */
+.pestanas { display: flex; gap: 4px; border-bottom: 1px solid var(--linea); margin-top: 20px; overflow-x: auto; }
+.pestanas button {
+  font: inherit; font-weight: 600; font-size: 15px; background: none; border: 0; border-bottom: 3px solid transparent;
+  padding: 10px 14px; color: var(--pizarra); cursor: pointer; white-space: nowrap;
+}
+.pestanas button[aria-selected="true"] { color: var(--tinta); border-bottom-color: var(--rojo); }
+.pestanas button:hover { color: var(--tinta); }
+
+.filtros { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 20px; padding: 16px 0 8px; }
+.campo { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--pizarra); font-weight: 600; }
+select, input[type="date"], input[type="search"] {
+  font: inherit; font-size: 15px; color: var(--tinta); background: var(--blanco); border: 1px solid var(--linea-fuerte);
+  border-radius: 6px; padding: 7px 10px; min-height: 38px; max-width: 100%;
+}
+.casilla { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--tinta); font-weight: 500; min-height: 38px; }
+.casilla input { width: 18px; height: 18px; accent-color: var(--rojo-texto); }
+
+/* ---------- Tarjetas ---------- */
+main { padding-bottom: 48px; }
+.seccion { margin-top: 28px; }
+.seccion > h2, .tarjeta h2 { font-weight: 900; text-transform: lowercase; letter-spacing: -.01em; }
+.seccion > h2 { font-size: 26px; margin: 0 0 12px; }
+.tarjeta { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); box-shadow: var(--sombra); padding: 18px 20px; min-width: 0; }
+.tarjeta h2 { font-size: 19px; margin: 0 0 4px; }
+.tarjeta .sub { font-size: 13px; color: var(--pizarra); margin: 0 0 12px; }
+.nota { font-size: 13px; color: var(--pizarra); margin: 8px 0 0; }
+.grilla-2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; }
+.grilla-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.grilla-kpi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+
+/* ---------- Indicadores ---------- */
+.kpi { border-top: 4px solid var(--rojo); border-radius: 0 0 var(--radio) var(--radio); }
+.kpi .valor { font-size: clamp(36px, 5vw, 48px); font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.kpi .etiqueta { font-size: 16px; font-weight: 600; margin-top: 6px; }
+.kpi .delta { font-size: 13px; color: var(--pizarra); margin-top: 8px; }
+.kpi .delta b { color: var(--tinta); font-weight: 700; }
+.aviso-carga { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--pizarra); margin-top: 12px; }
+.aviso-carga::before { content: "i"; flex: 0 0 18px; height: 18px; border-radius: 50%; background: var(--bruma); color: var(--tinta); font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+
+/* ---------- Gráficos ---------- */
+.lienzo { position: relative; width: 100%; }
+.lienzo.alto-s { height: 170px; }
+.lienzo.alto-m { height: 240px; }
+.lienzo.alto-l { height: 300px; }
+details.datos { margin-top: 10px; font-size: 13px; }
+details.datos summary { cursor: pointer; color: var(--rojo-texto); font-weight: 600; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--pizarra); margin-top: 8px; align-items: center; }
+.leyenda .muestra { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
+.leyenda .punto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; }
+
+#mapa { height: 460px; border-radius: 6px; background: var(--bruma); }
+.leaflet-container { font-family: var(--fuente); }
+.leaflet-popup-content { font-size: 13px; line-height: 1.45; margin: 12px 14px; }
+.leaflet-popup-content b { font-weight: 700; }
+.escala { display: flex; align-items: center; gap: 2px; font-size: 12px; color: var(--pizarra); margin-top: 8px; flex-wrap: wrap; }
+.escala span.paso { width: 34px; height: 10px; display: inline-block; }
+
+/* ---------- Tablas ---------- */
+.tabla-envoltura { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--pizarra); font-weight: 700; border-bottom: 2px solid var(--tinta); padding: 8px 8px; }
+td { border-bottom: 1px solid var(--linea); padding: 9px 8px; vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ranking td:first-child { font-weight: 600; white-space: nowrap; }
+
+.eventos td.resumen { min-width: 260px; }
+.eventos .lugar { font-weight: 600; }
+.eventos .via { color: var(--pizarra); font-size: 13px; }
+.eventos .fuentes a { display: inline-block; margin: 0 8px 2px 0; }
+.marca { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 1px 7px; border-radius: 999px; background: var(--bruma); color: var(--tinta); margin: 4px 4px 0 0; }
+.capsula { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 2px 9px; border-radius: 999px; background: var(--rojo-texto); color: var(--blanco); }
+.paginacion { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; font-size: 14px; color: var(--pizarra); flex-wrap: wrap; }
+.paginacion button, .boton {
+  font: inherit; font-size: 14px; font-weight: 600; color: var(--tinta); background: var(--blanco);
+  border: 1px solid var(--linea-fuerte); border-radius: 999px; padding: 6px 14px; cursor: pointer; min-height: 36px;
+}
+.paginacion button:disabled { opacity: .45; cursor: default; }
+
+/* ---------- Contexto vial ---------- */
+.contexto { border-left: 4px solid var(--rojo); border-radius: 0 var(--radio) var(--radio) 0; }
+.contexto ul { list-style: none; margin: 0; padding: 0; }
+.contexto li { padding: 12px 0; border-bottom: 1px solid var(--linea); }
+.contexto li:last-child { border-bottom: 0; }
+.contexto .meta { font-size: 13px; color: var(--pizarra); margin-top: 4px; }
+.contexto .dato { font-weight: 700; }
+
+/* ---------- Metodología ---------- */
+.texto { max-width: 72ch; }
+.texto h3 { font-size: 18px; font-weight: 700; margin: 22px 0 6px; }
+.texto p, .texto li { color: var(--tinta); }
+.caja { background: var(--bruma); border-left: 4px solid var(--rojo); padding: 14px 18px; margin: 16px 0; }
+.caja .antetitulo { margin-bottom: 4px; }
+
+/* ---------- Pie ---------- */
+.pie { border-top: 2px solid var(--rojo); background: var(--blanco); margin-top: 40px; }
+.pie .contenedor { padding-top: 18px; padding-bottom: 24px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--pizarra); }
+.pie img { height: 40px; width: auto; max-width: 100%; }
+
+/* ---------- Pantallas chicas ---------- */
+@media (max-width: 900px) {
+  .grilla-2, .grilla-3 { grid-template-columns: minmax(0, 1fr); }
+  .grilla-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #mapa { height: 380px; }
+}
+@media (max-width: 640px) {
+  .cabecera img { height: 34px; }
+  .actualizado { text-align: left; }
+  .tarjeta { padding: 14px; }
+  .kpi .etiqueta { font-size: 14px; }
+  /* la tabla de eventos pasa a fichas apiladas */
+  table.eventos thead { display: none; }
+  table.eventos, table.eventos tbody, table.eventos tr, table.eventos td { display: block; width: 100%; }
+  table.eventos tr { border-bottom: 1px solid var(--linea-fuerte); padding: 10px 0; }
+  table.eventos td { border: 0; padding: 3px 0; }
+  table.eventos td[data-titulo]::before { content: attr(data-titulo) ": "; font-weight: 700; color: var(--pizarra); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .eventos td.resumen { min-width: 0; }
+  table.eventos td.num { text-align: left; }
+}
+@media print {
+  .filtros, .pestanas, .paginacion, details.datos { display: none !important; }
+  body { background: var(--blanco); }
+}

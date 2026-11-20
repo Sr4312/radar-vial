@@ -1,0 +1,758 @@
+# Catálogo de medios del Radar Vial (se edita acá, sin tocar código).
+# Generado por scripts/descubrir_fuentes.py el 2026-11-19 y revisable a mano.
+#
+# - sitio: dominio del medio (sirve también para reconocerlo cuando llega por Google News)
+# - feeds: RSS que se leen directo en cada corrida
+# - sitemap: sitemap de noticias del medio. Si el medio no tiene feed, se lee el sitemap en su lugar;
+#   además lo usa el resolvedor para encontrar la URL original de los links de Google News
+# - provincia: id de config/provincias.yaml (vacío = nacional)
+# - nivel: nacional, provincial, local u oficial
+# - activo: si se lee en cada corrida (por feed o, si no tiene, por sitemap)
+# - verificar: true = no se pudo confirmar que el feed o el sitemap respondan con notas; revisarlo a mano
+#   (el medio igual puede llegar por Google News)
+
+medios:
+  - nombre: "Infobae"
+    sitio: infobae.com
+    feeds: ["https://www.infobae.com/arc/outboundfeeds/rss/category/sociedad/"]
+    sitemap: "https://www.infobae.com/arc/outboundfeeds/news-sitemap2/"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "La Nación"
+    sitio: lanacion.com.ar
+    feeds: ["https://www.lanacion.com.ar/arc/outboundfeeds/rss/category/sociedad/?outputType=xml"]
+    sitemap: "https://www.lanacion.com.ar/sitemap-news.xml"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "Clarín"
+    sitio: clarin.com
+    feeds: ["https://www.clarin.com/rss/policiales/", "https://www.clarin.com/rss/sociedad/"]
+    sitemap: "https://www.clarin.com/sitemaps/sitemap_google_news.xml"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "Página/12"
+    sitio: pagina12.com.ar
+    feeds: ["https://www.pagina12.com.ar/arc/outboundfeeds/rss/?outputType=xml"]
+    sitemap: "https://www.pagina12.com.ar/arc/outboundfeeds/breakingnews-sitemap.xml"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "Perfil"
+    sitio: perfil.com
+    feeds: ["https://www.perfil.com/feed"]
+    sitemap: "https://www.perfil.com/sitemap/news.xml"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "TN"
+    sitio: tn.com.ar
+    feeds: ["https://tn.com.ar/arc/outboundfeeds/rss/category/policiales/?outputType=xml", "https://tn.com.ar/arc/outboundfeeds/rss/category/sociedad/?outputType=xml"]
+    sitemap: "https://tn.com.ar/arc/outboundfeeds/news-sitemap/?outputType=xml"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "Noticias Argentinas (agencia)"
+    sitio: noticiasargentinas.com
+    feeds: ["https://noticiasargentinas.com/rss"]
+    sitemap: "https://noticiasargentinas.com/sitemap.xml"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "Télam (cerrada como agencia de noticias)"
+    sitio: telam.com.ar
+    feeds: []
+    sitemap: null
+    provincia: null
+    nivel: nacional
+    activo: false
+    verificar: true
+    # SSLError: HTTPSConnectionPool(host='telam.com.ar', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, "[SSL: 
+  - nombre: "Ámbito"
+    sitio: ambito.com
+    feeds: ["https://www.ambito.com/rss/home.xml"]
+    sitemap: "https://www.ambito.com/sitemap-news.xml"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "MinutoUno"
+    sitio: minutouno.com
+    feeds: []
+    sitemap: "https://www.minutouno.com/sitemap-news.xml"
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "Crónica"
+    sitio: cronica.com.ar
+    feeds: ["https://www.cronica.com.ar/files/rss/ultimas-noticias.xml"]
+    sitemap: null
+    provincia: null
+    nivel: nacional
+    activo: true
+    verificar: false
+  - nombre: "Gobierno de la Ciudad (noticias)"
+    sitio: buenosaires.gob.ar
+    feeds: ["https://buenosaires.gob.ar/rss.xml"]
+    sitemap: null
+    provincia: "02"
+    nivel: oficial
+    activo: true
+    verificar: false
+  - nombre: "El Día (La Plata)"
+    sitio: eldia.com
+    feeds: ["https://www.eldia.com/feed"]
+    sitemap: "https://www.eldia.com/news_1.xml"
+    provincia: "06"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "La Capital (Mar del Plata)"
+    sitio: lacapitalmdp.com
+    feeds: []
+    sitemap: "https://www.lacapitalmdp.com/lcmdp-sitemap-news.xml"
+    provincia: "06"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "La Nueva (Bahía Blanca)"
+    sitio: lanueva.com
+    feeds: []
+    sitemap: "https://www.lanueva.com/sitemap_news.xml"
+    provincia: "06"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "0223 (Mar del Plata)"
+    sitio: 0223.com.ar
+    feeds: ["https://www.0223.com.ar/rss"]
+    sitemap: "https://www.0223.com.ar/sitemaps_news.xml"
+    provincia: "06"
+    nivel: local
+    activo: true
+    verificar: false
+  - nombre: "Infocielo"
+    sitio: infocielo.com
+    feeds: ["https://www.infocielo.com/feed"]
+    sitemap: null
+    provincia: "06"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Ancasti"
+    sitio: elancasti.com.ar
+    feeds: []
+    sitemap: "https://www.elancasti.com.ar/sitemap-news.xml"
+    provincia: "10"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Esquiú"
+    sitio: elesquiu.com
+    feeds: []
+    sitemap: "https://www.elesquiu.com/sitemap-news.xml"
+    provincia: "10"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Catamarca Actual"
+    sitio: catamarcaactual.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "10"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # ConnectionError: HTTPSConnectionPool(host='catamarcaactual.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSC
+  - nombre: "La Voz del Interior"
+    sitio: lavoz.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "14"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "Cadena 3"
+    sitio: cadena3.com
+    feeds: []
+    sitemap: "https://www.cadena3.com/feed/sitemap-news.xml"
+    provincia: "14"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Doce"
+    sitio: eldoce.tv
+    feeds: ["https://eldoce.tv/arc/outboundfeeds/rss/?outputType=xml"]
+    sitemap: "https://eldoce.tv/arc/outboundfeeds/news-sitemap/?outputType=xml"
+    provincia: "14"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Cba24n"
+    sitio: cba24n.com.ar
+    feeds: ["https://www.cba24n.com.ar/rss"]
+    sitemap: "https://www.cba24n.com.ar/sitemap-news.xml"
+    provincia: "14"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Puntal (Río Cuarto)"
+    sitio: puntal.com.ar
+    feeds: []
+    sitemap: "https://www.puntal.com.ar/sitemap-news.xml"
+    provincia: "14"
+    nivel: local
+    activo: true
+    verificar: false
+  - nombre: "El Litoral (Corrientes)"
+    sitio: ellitoral.com.ar
+    feeds: ["https://www.ellitoral.com.ar/feed"]
+    sitemap: "https://www.ellitoral.com.ar/sitemaps_news.xml"
+    provincia: "18"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Época"
+    sitio: diarioepoca.com
+    feeds: ["https://www.diarioepoca.com/rss"]
+    sitemap: "https://www.diarioepoca.com/sitemap-news.xml"
+    provincia: "18"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Radio Sudamericana"
+    sitio: radiosudamericana.com
+    feeds: []
+    sitemap: "https://www.radiosudamericana.com/sitemap-noticias.xml"
+    provincia: "18"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Norte"
+    sitio: diarionorte.com
+    feeds: ["https://www.diarionorte.com/rss"]
+    sitemap: "https://www.diarionorte.com/sitemap-news.xml"
+    provincia: "22"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Chaco Día por Día"
+    sitio: chacodiapordia.com
+    feeds: ["https://chacodiapordia.com/feed/"]
+    sitemap: null
+    provincia: "22"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Data Chaco"
+    sitio: datachaco.com
+    feeds: ["https://www.datachaco.com/rss"]
+    sitemap: "https://www.datachaco.com/sitemap-news.xml"
+    provincia: "22"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Chubut"
+    sitio: elchubut.com.ar
+    feeds: ["https://www.elchubut.com.ar/rss/portada.xml"]
+    sitemap: "https://www.elchubut.com.ar/sitemap-news.xml"
+    provincia: "26"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Jornada"
+    sitio: diariojornada.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "26"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "ADNSUR"
+    sitio: adnsur.com.ar
+    feeds: ["https://www.adnsur.com.ar/rss"]
+    sitemap: "https://www.adnsur.com.ar/sitemap-news.xml"
+    provincia: "26"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Uno Entre Ríos"
+    sitio: unoentrerios.com.ar
+    feeds: ["https://www.unoentrerios.com.ar/rss/home.xml"]
+    sitemap: "https://www.unoentrerios.com.ar/sitemap-news.xml"
+    provincia: "30"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Elonce"
+    sitio: elonce.com
+    feeds: []
+    sitemap: "https://www.elonce.com/sitemap-news.xml"
+    provincia: "30"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Análisis Digital"
+    sitio: analisisdigital.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "30"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "La Mañana (Formosa)"
+    sitio: lamananaonline.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "34"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # ConnectionError: HTTPSConnectionPool(host='lamananaonline.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSCo
+  - nombre: "El Comercial"
+    sitio: elcomercial.com.ar
+    feeds: ["https://www.elcomercial.com.ar/rss"]
+    sitemap: "https://www.elcomercial.com.ar/sitemap-news.xml"
+    provincia: "34"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Expreso Formosa"
+    sitio: expresoformosa.com
+    feeds: []
+    sitemap: null
+    provincia: "34"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # ConnectionError: HTTPSConnectionPool(host='expresoformosa.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConne
+  - nombre: "Agenfor (agencia de noticias de Formosa)"
+    sitio: agenfor.com.ar
+    feeds: ["https://agenfor.com.ar/feed/"]
+    sitemap: null
+    provincia: "34"
+    nivel: oficial
+    activo: true
+    verificar: false
+  - nombre: "Todo Jujuy"
+    sitio: todojujuy.com
+    feeds: []
+    sitemap: "https://www.todojujuy.com/sitemap-news.xml"
+    provincia: "38"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Jujuy al Momento"
+    sitio: jujuyalmomento.com
+    feeds: []
+    sitemap: "https://www.jujuyalmomento.com/sitemap-news.xml"
+    provincia: "38"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Tribuno (Salta y Jujuy)"
+    sitio: eltribuno.com
+    feeds: ["https://www.eltribuno.com/feed"]
+    sitemap: "https://www.eltribuno.com/sitemap-news.xml"
+    provincia: "66"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "La Arena"
+    sitio: laarena.com.ar
+    feeds: ["https://www.laarena.com.ar/rss/portada.xml"]
+    sitemap: "https://www.laarena.com.ar/sitemap-news.xml"
+    provincia: "42"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Diario de La Pampa"
+    sitio: eldiariodelapampa.com.ar
+    feeds: ["https://www.eldiariodelapampa.com.ar/rss.xml"]
+    sitemap: "https://www.eldiariodelapampa.com.ar/news-sitemap.xml"
+    provincia: "42"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Nueva Rioja"
+    sitio: nuevarioja.com.ar
+    feeds: []
+    sitemap: "https://nuevarioja.com.ar/sitemap-news.xml"
+    provincia: "46"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Rioja Virtual"
+    sitio: riojavirtual.com.ar
+    feeds: ["https://riojavirtual.com.ar/feed/"]
+    sitemap: null
+    provincia: "46"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Independiente"
+    sitio: elindependiente.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "46"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "Los Andes"
+    sitio: losandes.com.ar
+    feeds: []
+    sitemap: "https://www.losandes.com.ar/sitemap-news.xml"
+    provincia: "50"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "MDZ"
+    sitio: mdzol.com
+    feeds: []
+    sitemap: "https://www.mdzol.com/sitemap-news.xml"
+    provincia: "50"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Sol"
+    sitio: elsol.com.ar
+    feeds: ["https://www.elsol.com.ar/feed/"]
+    sitemap: "https://www.elsol.com.ar/news-sitemap.xml"
+    provincia: "50"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Diario Uno"
+    sitio: diariouno.com.ar
+    feeds: ["https://www.diariouno.com.ar/rss/home.xml"]
+    sitemap: "https://www.diariouno.com.ar/sitemap-news.xml"
+    provincia: "50"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Territorio"
+    sitio: elterritorio.com.ar
+    feeds: ["https://www.elterritorio.com.ar/rss/noticias"]
+    sitemap: "https://www.elterritorio.com.ar/news_sitemap.xml"
+    provincia: "54"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Misiones Online"
+    sitio: misionesonline.net
+    feeds: ["https://misionesonline.net/feed/"]
+    sitemap: "https://static.misionesonline.news/sitemaps/v2/sitemap_index.xml"
+    provincia: "54"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Primera Edición"
+    sitio: primeraedicion.com.ar
+    feeds: ["https://www.primeraedicion.com.ar/feed/"]
+    sitemap: null
+    provincia: "54"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "LM Neuquén"
+    sitio: lmneuquen.com
+    feeds: ["https://www.lmneuquen.com/rss/home.xml"]
+    sitemap: "https://www.lmneuquen.com/sitemap-news.xml"
+    provincia: "58"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Neuquén Hoy"
+    sitio: neuquenhoy.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "58"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # la portada no responde
+  - nombre: "Río Negro"
+    sitio: rionegro.com.ar
+    feeds: ["https://www.rionegro.com.ar/feed/"]
+    sitemap: "https://www.rionegro.com.ar/news-sitemap.xml"
+    provincia: "62"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Cordillerano (Bariloche)"
+    sitio: elcordillerano.com.ar
+    feeds: []
+    sitemap: "https://www.elcordillerano.com.ar/sitemap-news.xml"
+    provincia: "62"
+    nivel: local
+    activo: true
+    verificar: false
+  - nombre: "ANB (Bariloche)"
+    sitio: anbariloche.com.ar
+    feeds: ["https://www.anbariloche.com.ar/rss/noticias"]
+    sitemap: "https://www.anbariloche.com.ar/news_sitemap.xml"
+    provincia: "62"
+    nivel: local
+    activo: true
+    verificar: false
+  - nombre: "Qué Pasa Salta"
+    sitio: quepasasalta.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "66"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "Informate Salta"
+    sitio: informatesalta.com.ar
+    feeds: ["https://informatesalta.com.ar/rss"]
+    sitemap: "https://informatesalta.com.ar/sitemap-news.xml"
+    provincia: "66"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Diario de Cuyo"
+    sitio: diariodecuyo.com.ar
+    feeds: []
+    sitemap: "https://www.diariodecuyo.com.ar/sitemap-news.xml"
+    provincia: "70"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Tiempo de San Juan"
+    sitio: tiempodesanjuan.com
+    feeds: ["https://www.tiempodesanjuan.com/feed"]
+    sitemap: "https://www.tiempodesanjuan.com/sitemap-news.xml"
+    provincia: "70"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Diario Huarpe"
+    sitio: diariohuarpe.com
+    feeds: ["https://www.diariohuarpe.com/rss/portada.xml"]
+    sitemap: "https://www.diariohuarpe.com/sitemap-news.xml"
+    provincia: "70"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Diario de la República"
+    sitio: eldiariodelarepublica.com
+    feeds: ["https://www.eldiariodelarepublica.com/rss/portada.xml"]
+    sitemap: "https://www.eldiariodelarepublica.com/sitemap-news.xml"
+    provincia: "74"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Chorrillero"
+    sitio: elchorrillero.com
+    feeds: []
+    sitemap: "https://elchorrillero.com/sitemap_news.xml"
+    provincia: "74"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Agencia de Noticias San Luis"
+    sitio: agenciasanluis.com
+    feeds: ["https://agenciasanluis.com/feed/"]
+    sitemap: null
+    provincia: "74"
+    nivel: oficial
+    activo: true
+    verificar: false
+  - nombre: "La Opinión Austral"
+    sitio: laopinionaustral.com.ar
+    feeds: []
+    sitemap: "https://laopinionaustral.com.ar/sitemaps/sitemaps-googlenews.xml"
+    provincia: "78"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "TiempoSur"
+    sitio: tiemposur.com.ar
+    feeds: ["https://www.tiemposur.com.ar/feed/"]
+    sitemap: null
+    provincia: "78"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Nuevo Día (Santa Cruz)"
+    sitio: nuevodiaweb.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "78"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # ConnectionError: HTTPSConnectionPool(host='nuevodiaweb.com.ar', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConne
+  - nombre: "La Capital (Rosario)"
+    sitio: lacapital.com.ar
+    feeds: ["https://www.lacapital.com.ar/rss/home.xml"]
+    sitemap: "https://www.lacapital.com.ar/sitemap-news.xml"
+    provincia: "82"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Litoral (Santa Fe)"
+    sitio: ellitoral.com
+    feeds: []
+    sitemap: "https://www.ellitoral.com/sitemaps/sitemap_google_news.xml"
+    provincia: "82"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Rosario3"
+    sitio: rosario3.com
+    feeds: []
+    sitemap: "https://www.rosario3.com/ecos365/sitemap/news-daily.xml"
+    provincia: "82"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Aire de Santa Fe"
+    sitio: airedesantafe.com.ar
+    feeds: ["https://www.airedesantafe.com.ar/rss/home.xml"]
+    sitemap: "https://www.airedesantafe.com.ar/sitemap-news.xml"
+    provincia: "82"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Liberal"
+    sitio: elliberal.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "86"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "Nuevo Diario (Santiago del Estero)"
+    sitio: nuevodiarioweb.com.ar
+    feeds: []
+    sitemap: null
+    provincia: "86"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "Diario Panorama"
+    sitio: diariopanorama.com
+    feeds: ["https://www.diariopanorama.com/rss"]
+    sitemap: "https://www.diariopanorama.com/rss/news?token=llo387fg12fu54ks"
+    provincia: "86"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "La Gaceta"
+    sitio: lagaceta.com.ar
+    feeds: ["https://feeds.feedburner.com/LaGacetaUltimoMomento?format=xml"]
+    sitemap: "https://www.lagaceta.com.ar/rss/sitemap_news"
+    provincia: "90"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Tucumano"
+    sitio: eltucumano.com
+    feeds: ["https://www.eltucumano.com/rss"]
+    sitemap: null
+    provincia: "90"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Contexto Tucumán"
+    sitio: contextotucuman.com
+    feeds: []
+    sitemap: null
+    provincia: "90"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "Tucumán a las 7"
+    sitio: tucumanalas7.com.ar
+    feeds: ["https://tucumanalas7.com.ar/feed/"]
+    sitemap: null
+    provincia: "90"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Sur54"
+    sitio: sur54.com
+    feeds: []
+    sitemap: "https://www.sur54.com/sitemap-news.xml"
+    provincia: "94"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "El Diario del Fin del Mundo"
+    sitio: eldiariodelfindelmundo.com
+    feeds: []
+    sitemap: null
+    provincia: "94"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # sin feed ni sitemap de noticias que respondan a lectores automáticos
+  - nombre: "Infofueguina"
+    sitio: infofueguina.com
+    feeds: []
+    sitemap: null
+    provincia: "94"
+    nivel: provincial
+    activo: false
+    verificar: true
+    # ConnectionError: HTTPSConnectionPool(host='infofueguina.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError("HTTPSConnect
+  - nombre: "Tiempo Fueguino"
+    sitio: tiempofueguino.com
+    feeds: ["https://www.tiempofueguino.com/feed/"]
+    sitemap: null
+    provincia: "94"
+    nivel: provincial
+    activo: true
+    verificar: false
+  - nombre: "Actualidad TDF"
+    sitio: actualidadtdf.com.ar
+    feeds: ["https://www.actualidadtdf.com.ar/feed/"]
+    sitemap: null
+    provincia: "94"
+    nivel: provincial
+    activo: true
+    verificar: false
+
+# Referencias oficiales y ONG: para comparar órdenes de magnitud en el dashboard.
+# No se recolectan como notas ni se suman a los conteos.
+oficiales:
+  - nombre: "Agencia Nacional de Seguridad Vial (ANSV)"
+    url: "https://www.argentina.gob.ar/seguridadvial"
+    provincia: null
+    verificar: false
+  - nombre: "Luchemos por la Vida"
+    url: "https://www.luchemosporlavida.org.ar"
+    provincia: null
+    verificar: true
+  - nombre: "Provincia de Buenos Aires · Seguridad Vial"
+    url: "https://www.gba.gob.ar/seguridadvial"
+    provincia: "06"
+    verificar: false
+  - nombre: "Santa Fe · Agencia Provincial de Seguridad Vial"
+    url: "https://www.santafe.gob.ar/index.php/web/content/view/full/93816"
+    provincia: "82"
+    verificar: false
+  - nombre: "Ciudad de Buenos Aires · Movilidad y Seguridad Vial"
+    url: "https://buenosaires.gob.ar/movilidad-e-infraestructura"
+    provincia: "02"
+    verificar: false

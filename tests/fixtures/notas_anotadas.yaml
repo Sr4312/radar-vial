@@ -1,0 +1,315 @@
+# 20 notas reales anotadas para medir la precisión de la extracción (tests/medir_extraccion.py).
+#
+# ESTADO: BORRADOR. Las anotó Claude Code leyendo cada nota el 19-11-2026; el equipo del Observatorio tiene
+# que revisarlas (abrir cada URL y corregir lo que haga falta). Hasta entonces la precisión es preliminar.
+#
+# No se guardan títulos ni textos (traen nombres de personas y son material de terceros): el script los baja
+# de la URL al medir y los deja en la caché temporal (data/cache/textos/fixtures, fuera de git).
+#
+# Cómo se compara cada campo:
+# - un valor: tiene que coincidir. `{uno_de: [...]}`: vale cualquiera (casos ambiguos en la nota).
+# - provincia: por nombre de config/provincias.yaml. localidad: coincide si una contiene a la otra (sin acentos).
+# - via_contiene: palabras que tienen que aparecer en la vía extraída.
+# - vehiculos, grupos_etarios, factores: el conjunto tiene que ser igual.
+# - heridos_total: suma de graves, leves y sin detalle (null si la nota no informa heridos).
+# - Un campo que no figura acá no se evalúa.
+
+notas:
+  - id: f024
+    url: https://www.diarioepoca.com/1395608-murio-un-motociclista-de-51-anos-tras-chocar-con-una-camioneta
+    publicada: "2026-11-19T23:22:00+00:00"
+    medio: Época
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-19"
+        hora_franja: desconocida
+        provincia: Corrientes
+        localidad: Monte Caseros
+        via_contiene: ["129"]
+        tipo_via: ruta_provincial
+        tipo_siniestro: {uno_de: [choque_sin_detalle, choque_frontal, choque_lateral]}
+        vehiculos: [moto, utilitario]
+        fallecidos: 1
+        heridos_total: 1
+        heridos_graves: {uno_de: [1, null]}
+        grupos_etarios: {uno_de: [[adulto], []]}
+        factores: []
+
+  - id: f032   # una nota, dos siniestros distintos; la nota nombra a una víctima (no debe aparecer en la ficha)
+    url: https://www.elancasti.com.ar/policiales/dos-siniestros-viales-graves-la-capital-atropellaron-un-jubilado-y-una-menor-se-estrello-contra-una-camioneta-estacionada-n626296
+    publicada: "2026-11-18T15:55:00+00:00"
+    medio: El Ancasti
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-17"
+        hora_franja: manana
+        provincia: Catamarca
+        via_contiene: ["acosta", "villafa"]
+        tipo_via: urbana
+        tipo_siniestro: {uno_de: [atropello, choque_lateral, choque_sin_detalle, choque_por_alcance]}
+        vehiculos: [moto, bicicleta]
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: 1
+        grupos_etarios: [adulto, persona_mayor]
+        factores: []
+      - fecha_hecho: "2026-11-17"
+        hora_franja: tarde
+        provincia: Catamarca
+        via_contiene: ["saavedra"]
+        tipo_via: urbana
+        tipo_siniestro: {uno_de: [choque_por_alcance, despiste]}
+        vehiculos: [moto, utilitario]
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: 1
+        grupos_etarios: [adolescencia]
+        factores: []
+
+  - id: f035
+    url: https://elchorrillero.com/nota/2026/11/18/679855-un-conductor-se-habria-desvanecido-al-volante-y-choco-contra-un-poste-en-la-circunvalacion-dos-heridos
+    publicada: "2026-11-18T13:26:00+00:00"
+    medio: El Chorrillero
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-18"
+        hora_franja: manana
+        provincia: San Luis
+        localidad: San Luis
+        via_contiene: ["circunvalacion"]
+        tipo_via: {uno_de: [urbana, autopista]}
+        tipo_siniestro: despiste
+        vehiculos: [auto]
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: 2
+        grupos_etarios: [joven, adulto]
+        factores: {uno_de: [[otro], [fatiga], []]}
+
+  - id: f037
+    url: https://www.elcomercial.com.ar/58754-un-camion-despisto-cayo-a-un-riacho-y-se-incendio
+    publicada: "2026-11-20T00:42:00+00:00"
+    medio: El Comercial
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-19"
+        hora_franja: tarde
+        provincia: Formosa
+        via_contiene: ["11", "1140"]
+        tipo_via: ruta_nacional
+        tipo_siniestro: despiste
+        vehiculos: {uno_de: [[camion]]}
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: {uno_de: [1, null]}
+        factores: {uno_de: [[falla_mecanica], [falla_mecanica, otro], [otro], []]}
+
+  - id: f039
+    url: https://eldoce.tv/actualidad/2026/11/18/un-camion-con-piedras-volco-en-medio-de-la-llovizna-en-circunvalacion-y-provoco-demoras
+    publicada: "2026-11-18T18:55:00+00:00"
+    medio: El Doce
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-18"
+        hora_franja: tarde
+        provincia: Córdoba
+        localidad: Córdoba
+        via_contiene: ["circunvalacion"]
+        tipo_via: {uno_de: [urbana, autopista]}
+        tipo_siniestro: {uno_de: [vuelco, despiste]}
+        vehiculos: [camion, utilitario]
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: 2
+        grupos_etarios: [adulto]
+        factores: {uno_de: [[clima], []]}
+
+  - id: f043   # niña: no debe quedar ningún dato que la identifique
+    url: https://www.ellitoral.com.ar/policiales/2026-11-19-20-46-0-tragedia-en-mocoreta-murio-una-nena-de-11-anos-atropellada-por-un-camion
+    publicada: "2026-11-19T23:46:00+00:00"
+    medio: El Litoral (Corrientes)
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-19"
+        hora_franja: tarde
+        provincia: Corrientes
+        localidad: Mocoretá
+        tipo_siniestro: {uno_de: [atropello, choque_sin_detalle]}
+        vehiculos: [camion, bicicleta]
+        fallecidos: 1
+        heridos_total: {uno_de: [null, 0]}
+        grupos_etarios: [ninez]
+        factores: []
+
+  - id: f048
+    url: https://www.elonce.com/policiales/chocaron-tres-autos-en-transitada-calle-de-parana-un-conductor-se-habria-desvanecido-y-fue-hospitalizado.htm
+    publicada: "2026-11-19T21:24:00+00:00"
+    medio: Elonce
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-19"
+        hora_franja: desconocida
+        provincia: Entre Ríos
+        localidad: Paraná
+        via_contiene: ["echague"]
+        tipo_via: urbana
+        tipo_siniestro: multiple
+        vehiculos: [auto]
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: {uno_de: [1, null]}
+        factores: {uno_de: [[otro], [fatiga], []]}
+
+  - id: f053   # caída de moto sin colisión; el estado de las personas es confuso en la nota
+    url: https://www.eltribuno.com/policiales/2026-11-19-9-4-0-siniestro-vial-en-avenida-belgrano-y-junin-una-moto-cayo-al-intentar-esquivar-una-bicicleta
+    publicada: "2026-11-19T12:04:00+00:00"
+    medio: El Tribuno
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-19"
+        hora_franja: manana
+        provincia: Salta
+        localidad: Salta
+        via_contiene: ["belgrano", "junin"]
+        tipo_via: urbana
+        tipo_siniestro: caida
+        vehiculos: {uno_de: [[moto, bicicleta], [moto]]}
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: {uno_de: [null, 1, 0]}
+        factores: []
+
+  - id: f079   # mismo siniestro que f028 (otro medio): sirve también para probar la agrupación en eventos
+    url: https://www.losandes.com.ar/policiales/fallecio-una-motociclista-chocar-un-auto-una-app-viajes-las-heras-n6014883
+    publicada: "2026-11-19T16:10:00+00:00"
+    medio: Los Andes
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-19"
+        hora_franja: manana
+        provincia: Mendoza
+        localidad: Las Heras
+        via_contiene: ["balloffet"]
+        tipo_via: urbana
+        tipo_siniestro: {uno_de: [choque_lateral, choque_sin_detalle]}
+        vehiculos: [auto, moto]
+        fallecidos: 1
+        heridos_total: {uno_de: [null, 0]}
+        grupos_etarios: [adulto]
+        factores: {uno_de: [[], [alcohol]]}
+
+  - id: f028
+    url: https://www.diariouno.com.ar/policiales/un-accidente-termino-la-muerte-una-motociclista-las-heras-chocar-un-auto-n1618086
+    publicada: "2026-11-19T16:12:00+00:00"
+    medio: Diario Uno
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-19"
+        hora_franja: manana
+        provincia: Mendoza
+        localidad: Las Heras
+        via_contiene: ["balloffet"]
+        tipo_via: urbana
+        tipo_siniestro: {uno_de: [choque_lateral, choque_sin_detalle]}
+        vehiculos: [auto, moto]
+        fallecidos: 1
+        heridos_total: {uno_de: [null, 0]}
+        grupos_etarios: [adulto]
+        factores: {uno_de: [[], [alcohol]]}
+
+  - id: f081   # Santa Rosa de Mendoza (no la capital de La Pampa); la nota no dice el día del hecho
+    url: https://www.losandes.com.ar/policiales/volco-una-familia-la-ruta-153-santa-rosa-un-hombre-resulto-gravemente-herido-n6014832
+    publicada: "2026-11-19T13:10:00+00:00"
+    medio: Los Andes
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: {uno_de: ["2026-11-19", "2026-11-18"]}
+        provincia: Mendoza
+        localidad: {uno_de: [Las Catitas, Santa Rosa]}
+        via_contiene: ["153"]
+        tipo_via: {uno_de: [ruta_nacional, desconocida]}
+        tipo_siniestro: {uno_de: [despiste, vuelco]}
+        vehiculos: [auto]
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: 2
+        heridos_graves: 1
+        grupos_etarios: [adulto, ninez]
+        factores: []
+
+  - id: f018   # figura pública: el nombre no debe aparecer en la ficha. Maniobra a la banquina, sin heridos.
+    url: https://www.diariodecuyo.com.ar/espectaculos/felipe-fort-sufrio-un-accidente-la-ruta-5-que-paso-y-como-estan-los-cuatro-ocupantes-n6589093
+    publicada: "2026-11-19T20:01:00+00:00"
+    medio: Diario de Cuyo
+    categoria: {uno_de: [siniestro, descartar]}
+    siniestros:
+      - fecha_hecho: "2026-11-14"
+        provincia: Buenos Aires
+        via_contiene: ["5"]
+        tipo_via: ruta_nacional
+        tipo_siniestro: {uno_de: [despiste, otro]}
+        vehiculos: {uno_de: [[utilitario], [utilitario, camion], [utilitario, camion, auto], [utilitario, auto]]}
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: {uno_de: [0, null]}
+        grupos_etarios: {uno_de: [[joven], []]}
+        factores: {uno_de: [[sobrepaso], []]}
+
+  - id: f105   # la nota no nombra la ciudad (el medio es de la capital de Corrientes)
+    url: https://www.radiosudamericana.com/nota/policiales/352931-Peaton-cruzo-mirando-el-celular-y-fue-atropellada-por-una-moto.htm
+    publicada: "2026-11-19T11:37:00+00:00"
+    medio: Radio Sudamericana
+    categoria: siniestro
+    siniestros:
+      - fecha_hecho: "2026-11-19"
+        hora_franja: manana
+        provincia: {uno_de: [Corrientes, null]}
+        via_contiene: ["vidal"]
+        tipo_via: urbana
+        tipo_siniestro: atropello
+        vehiculos: [moto, peaton]
+        fallecidos: {uno_de: [0, null]}
+        heridos_total: 1
+        factores: [celular]
+
+  - id: f025
+    url: https://www.diarioepoca.com/1395604-la-municipalidad-llevo-charlas-de-seguridad-vial-y-sorteo-cascos
+    publicada: "2026-11-19T21:57:00+00:00"
+    medio: Época
+    categoria: contexto
+    contexto:
+      subtipo: campana
+      provincia: Corrientes
+
+  - id: f107
+    url: https://www.tiemposur.com.ar/info-general/mas-de-1-500-jovenes-se-inscribieron-en-el-programa-municipal-mi-primera-licencia
+    publicada: "2026-11-19T22:04:00+00:00"
+    medio: TiempoSur
+    categoria: contexto
+    contexto:
+      subtipo: {uno_de: [normativa, campana, otro]}
+      provincia: Santa Cruz
+
+  - id: f051
+    url: https://www.elterritorio.com.ar/noticias/2026/11/19/928113-misiones-invertira-mas-de-31000-millones-para-ampliar-y-repavimentar-la-ruta-nacional-14
+    publicada: "2026-11-19T14:30:00+00:00"
+    medio: El Territorio
+    categoria: contexto
+    contexto:
+      subtipo: infraestructura_rutas
+      provincia: Misiones
+
+  - id: f020   # accidente laboral
+    url: https://www.diariodecuyo.com.ar/policiales/un-accidente-laboral-campo-ramon-deja-un-obrero-56-anos-muerto-ser-golpeado-un-pino-n6589029
+    publicada: "2026-11-19T12:19:00+00:00"
+    medio: Diario de Cuyo
+    categoria: descartar
+
+  - id: f076   # accidente doméstico
+    url: https://www.lagaceta.com.ar/nota/1163314/espectaculos/valeria-lynch-sufrio-accidente-debio-suspender-show-le-paso-cantante.html
+    publicada: "2026-11-19T19:04:00+00:00"
+    medio: La Gaceta
+    categoria: descartar
+
+  - id: f086   # otro país, no vial
+    url: https://www.mdzol.com/mundo/2026/11/19/video-un-ferry-enorme-choco-contra-una-roca-cuando-intentaba-esquivar-a-otro-barco-en-tanzania-1996664.html
+    publicada: "2026-11-19T21:54:00+00:00"
+    medio: MDZ
+    categoria: descartar
+
+  - id: f093   # deporte (polo)
+    url: https://www.minutouno.com/deportes/dramatico-accidente-el-abierto-palermo-bautista-bayugar-quedo-atrapado-su-yegua-500-kilos-n6346949
+    publicada: "2026-11-19T01:59:00+00:00"
+    medio: MinutoUno
+    categoria: descartar

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.env
+salida/
+graft/
+# Texto completo de las notas: trae nombres de personas. Caché temporal, nunca se sube al repo.
+data/cache/textos/
+# Configuración local de Claude Code (vista previa del tablero)
+.claude/
