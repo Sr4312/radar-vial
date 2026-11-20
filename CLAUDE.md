@@ -145,7 +145,10 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   para rehacer lo procesado en Actions, correrlo desde un workflow (o esperar a la corrida diaria).
 
 ## Pendientes conocidos
-- Cargar el secreto `ANTHROPIC_API_KEY` y verificar la primera corrida en Actions. Verificar ahí que Google News no bloquee las 314 búsquedas desde las IP de Actions (desde la
+- Primera corrida en Actions (20-11-2026, manual): Google News respondió desde las IP de GitHub (2 errores en 388
+  búsquedas y feeds), 69 notas extraídas, USD 0,50, sin errores; el despliegue de Pages falló por el artefacto
+  que no aparecía (ver Automatización) y se corrigió. La corrida programada del 21-11 es la primera con un día
+  completo: medir ahí el volumen diario. Verificar ahí que Google News no bloquee las 314 búsquedas desde las IP de Actions (desde la
   oficina no hubo errores) y la duración real (una corrida de 400 notas tardó 29 min; el job tiene 90).
 - Validar las 20 notas de `tests/fixtures/notas_anotadas.yaml` (borrador) y medir la precisión de la agrupación
   con las planillas de `auditoria`.
