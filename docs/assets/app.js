@@ -43,11 +43,12 @@
     },
   };
   const POR_PAGINA = 20;
+  const ARGENTINA = [[-55.1, -73.6], [-21.8, -53.6]];
   const MIN_CASOS_TASA = 5;
   const CONTEXTO_POR_TANDA = 25;
 
   const estado = {
-    datos: null, desde: null, hasta: null, incluirTitulos: true, pagina: 0, graficos: {}, mapa: null, contextoVisibles: 25,
+    datos: null, desde: null, hasta: null, incluirTitulos: true, provincia: "", encuadre: null, pagina: 0, graficos: {}, mapa: null, contextoVisibles: 25,
     capaProvincias: null, capaPuntos: null, provincias: {},
   };
 
@@ -110,16 +111,21 @@
   // ------------------------------------------------------------------ selección
   function eventosDelRango() {
     const { desde, hasta, incluirTitulos } = estado;
-    return estado.datos.eventos.filter((e) => e.fecha >= desde && e.fecha <= hasta && (incluirTitulos || !e.solo_titulos));
+    return estado.datos.eventos.filter((e) => e.fecha >= desde && e.fecha <= hasta && (incluirTitulos || !e.solo_titulos)
+      && (!estado.provincia || e.provincia === estado.provincia));
   }
 
+  /** Las 6 cifras de un día de la serie: las de la provincia elegida en el filtro general, o las del país. */
+  const CERO6 = [0, 0, 0, 0, 0, 0];
+  const filaDia = (v, todas = false) => (estado.provincia && !todas ? (v.provincias[estado.provincia] || CERO6) : v.total);
+
   /** Totales de la serie diaria (histórico completo) entre dos fechas, respetando la casilla de titulares. */
-  function sumarSerie(desde, hasta) {
+  function sumarSerie(desde, hasta, todas = false) {
     const t = { siniestros: 0, fallecidos: 0, heridos: 0, provincias: {} };
     const dias = estado.datos.serie_diaria.dias;
     for (const [dia, v] of Object.entries(dias)) {
       if (dia < desde || dia > hasta) continue;
-      const [n, m, h, nt, mt, ht] = v.total;
+      const [n, m, h, nt, mt, ht] = filaDia(v, todas);
       t.siniestros += n - (estado.incluirTitulos ? 0 : nt);
       t.fallecidos += m - (estado.incluirTitulos ? 0 : mt);
       t.heridos += h - (estado.incluirTitulos ? 0 : (ht || 0));
@@ -138,7 +144,7 @@
     return dias.map((d) => {
       const v = datos[d];
       if (!v) return { siniestros: 0, fallecidos: 0 };
-      const [n, m, , nt, mt] = v.total;
+      const [n, m, , nt, mt] = filaDia(v);
       return { siniestros: n - (estado.incluirTitulos ? 0 : nt), fallecidos: m - (estado.incluirTitulos ? 0 : mt) };
     });
   }
@@ -158,7 +164,7 @@
     const cuanto = previo >= BASE_MINIMA_PCT
       ? `${DEC1.format(Math.abs((100 * (actual - previo)) / previo))}%`
       : NUM.format(Math.abs(actual - previo));
-    return el("span", {}, el("b", { texto: `${flecha} ${cuanto} ${sube ? "más" : "menos"}` }),
+    return el("span", {}, el("b", { clase: sube ? "sube" : "baja" }, el("span", { clase: "flecha", "aria-hidden": "true", texto: flecha }), ` ${cuanto} ${sube ? "más" : "menos"}`),
       ` ${tramo}que en ${periodo} (${NUM.format(previo)})`);
   }
 
@@ -186,7 +192,17 @@
       [actual.provinciasConCasos, "Provincias con casos", cerrado.provinciasConCasos, previo.provinciasConCasos],
     ];
     const caja = vaciar($("kpis"));
+    const prov = estado.provincias[estado.provincia];
     for (const [valor, etiqueta, valorCerrado, ant] of tarjetas) {
+      if (prov && etiqueta === "Provincias con casos") {
+        // con una provincia elegida, la cuarta tarjeta es su tasa (si hay casos suficientes para calcularla)
+        const hayTasa = actual.siniestros >= MIN_CASOS_TASA;
+        caja.append(el("div", { clase: "tarjeta kpi" },
+          el("div", { clase: "valor", texto: hayTasa ? DEC2.format((100000 * actual.siniestros) / prov.poblacion) : "Sin tasa" }),
+          el("div", { clase: "etiqueta", texto: "Siniestros cada 100.000 habitantes" }),
+          el("div", { clase: "delta", texto: hayTasa ? `Población: ${NUM.format(prov.poblacion)} (Censo 2022)` : `Con menos de ${MIN_CASOS_TASA} siniestros no se calcula` })));
+        continue;
+      }
       caja.append(el("div", { clase: "tarjeta kpi" },
         el("div", { clase: "valor", texto: NUM.format(valor) }),
         el("div", { clase: "etiqueta", texto: etiqueta === "Provincias con casos" ? `${etiqueta} (de 24)` : etiqueta }),
@@ -195,6 +211,7 @@
     // Aviso sobre los días que todavía se completan y sobre la cobertura de los detalles
     const enCarga = (estado.datos.resumen_semana.dias_en_carga || []).filter((d) => d >= desde && d <= hasta);
     const partes = [];
+    if (prov) partes.push(`Se muestran solo los siniestros de ${prov.nombre}.`);
     if (hasta > meta.corte) partes.push(`El ${fechaCorta(hasta)} todavía no terminó: sus cifras son parciales.`);
     if (!comparacion) {
       partes.push(sinPrevio ? "Todavía no hay un período anterior completo para comparar."
@@ -413,10 +430,9 @@
     if (estado.mapa || !window.L) return;
     const mapa = L.map("mapa", { scrollWheelZoom: false, zoomSnap: 0.25, attributionControl: true });
     mapa.attributionControl.setPrefix('<a href="https://leafletjs.com" rel="noopener">Leaflet</a>');   // sin la bandera que agrega por defecto
-    const argentina = [[-55.1, -73.6], [-21.8, -53.6]];
-    mapa.fitBounds(argentina, { padding: [4, 4] });
+    mapa.fitBounds(ARGENTINA, { padding: [4, 4] });
     // el contenedor termina de medir cuando cargan las fuentes y la grilla: se vuelve a encuadrar
-    setTimeout(() => { mapa.invalidateSize(); mapa.fitBounds(argentina, { padding: [4, 4] }); }, 150);
+    setTimeout(() => { mapa.invalidateSize(); if (!estado.provincia) mapa.fitBounds(ARGENTINA, { padding: [4, 4] }); }, 150);
     L.tileLayer("https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{y}.png", {
       tms: true, minZoom: 3, maxZoom: 15,
       attribution: '<a href="https://www.ign.gob.ar/" rel="noopener">Instituto Geográfico Nacional</a>',
@@ -439,7 +455,7 @@
   function dibujarMapa(eventos) {
     iniciarMapa();
     if (!estado.mapa) return;
-    const totales = sumarSerie(estado.desde, estado.hasta);
+    const totales = sumarSerie(estado.desde, estado.hasta, true);   // el mapa siempre pinta todas las provincias
     const filas = estado.datos.meta.provincias.map((p) => {
       const t = totales.provincias[p.id] || { siniestros: 0, fallecidos: 0 };
       return { ...p, siniestros: t.siniestros, fallecidos: t.fallecidos, tasa: (100000 * t.siniestros) / p.poblacion };
@@ -452,14 +468,32 @@
     if (estado.capaProvincias) estado.capaProvincias.remove();
     if (estado.datos.geo) {
       estado.capaProvincias = L.geoJSON(estado.datos.geo, {
-        style: (f) => ({ fillColor: colorProvincia(porId[f.properties.id]), fillOpacity: 0.78, color: "#FFFFFF", weight: 1 }),
+        style: (f) => (f.properties.id === estado.provincia
+          ? { fillColor: colorProvincia(porId[f.properties.id]), fillOpacity: 0.78, color: C.tinta, weight: 2.5 }
+          : { fillColor: colorProvincia(porId[f.properties.id]), fillOpacity: estado.provincia ? 0.35 : 0.78, color: "#FFFFFF", weight: 1 }),
         onEachFeature: (f, capa) => {
           const p = porId[f.properties.id];
           if (!p) return;
           capa.bindTooltip(`${p.nombre}: ${plural(p.siniestros, "siniestro", "siniestros")} · ${pocos(p) ? "pocos casos para calcular una tasa" : `${DEC2.format(p.tasa)} cada 100.000 hab.`}`, { sticky: true });
-          capa.on({ mouseover: () => capa.setStyle({ weight: 2.5, color: C.tinta }), mouseout: () => capa.setStyle({ weight: 1, color: "#FFFFFF" }) });
+          const elegida = () => f.properties.id === estado.provincia;
+          capa.on({
+            mouseover: () => capa.setStyle({ weight: 2.5, color: C.tinta }),
+            mouseout: () => { if (!elegida()) capa.setStyle({ weight: 1, color: "#FFFFFF" }); },
+            // un clic en la provincia la elige en el filtro general; otro clic la quita
+            click: () => elegirProvincia(elegida() ? "" : f.properties.id),
+          });
         },
       }).addTo(estado.mapa);
+      // encuadre: la provincia elegida o el país (solo cuando cambia, para no mover el mapa en cada filtro)
+      if (estado.encuadre !== estado.provincia) {
+        estado.encuadre = estado.provincia;
+        let limites = null;
+        estado.capaProvincias.eachLayer((capa) => {
+          if (capa.feature.properties.id !== estado.provincia) return;
+          limites = limites ? limites.extend(capa.getBounds()) : capa.getBounds();
+        });
+        estado.mapa.fitBounds(limites || ARGENTINA, { padding: [12, 12] });
+      }
     }
     // Puntos: un círculo por lugar (los siniestros del mismo lugar se agrupan)
     if (estado.capaPuntos) estado.capaPuntos.remove();
@@ -531,8 +565,10 @@
   }
 
   function filtrosTabla(eventos) {
-    const p = $("f-provincia").value, t = $("f-tipo").value, v = $("f-vehiculo").value, fatales = $("f-fatales").value;
-    return eventos.filter((e) => (!p || (p === "sin" ? !e.provincia : e.provincia === p)) && (!t || e.tipo === t)
+    const t = $("f-tipo").value, v = $("f-vehiculo").value, fatales = $("f-fatales").value, via = $("f-via").value;
+    const fuentes = $("f-fuentes").value;
+    return eventos.filter((e) => (!t || e.tipo === t) && (!via || (e.tipo_via || "desconocida") === via)
+      && (!fuentes || (fuentes === "varias" ? e.n_fuentes > 1 : e.n_fuentes === 1))
       && (!v || e.vehiculos.includes(v))
       && (!fatales || (fatales === "con" ? (e.fallecidos || 0) > 0 : !(e.fallecidos > 0))));
   }
@@ -543,6 +579,8 @@
     estado.pagina = Math.min(estado.pagina, paginas - 1);
     const pagina = filtrados.slice(estado.pagina * POR_PAGINA, (estado.pagina + 1) * POR_PAGINA);
     const caja = vaciar($("tabla-eventos"));
+    $("n-lista").textContent = filtrados.length === eventos.length ? plural(eventos.length, "siniestro", "siniestros")
+      : `${NUM.format(filtrados.length)} de ${plural(eventos.length, "siniestro", "siniestros")}`;
     if (!pagina.length) {
       caja.append(el("p", { clase: "nota", texto: "No hay siniestros con estos filtros en el período elegido." }));
     } else {
@@ -584,7 +622,7 @@
     for (const p of estado.datos.meta.provincias.slice().sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))) {
       provincias.append(el("option", { value: p.id, texto: p.nombre }));
     }
-    provincias.append(el("option", { value: "sin", texto: "Sin provincia identificada" }));
+    for (const [k, v] of Object.entries(ETIQUETAS.via)) if (k !== "desconocida") $("f-via").append(el("option", { value: k, texto: v }));
     for (const [k, v] of Object.entries(ETIQUETAS.tipo)) $("f-tipo").append(el("option", { value: k, texto: v }));
     for (const [k, v] of Object.entries(ETIQUETAS.vehiculo)) $("f-vehiculo").append(el("option", { value: k, texto: v }));
     for (const [k, v] of Object.entries(ETIQUETAS.subtipo)) $("f-contexto").append(el("option", { value: k, texto: v }));
@@ -595,6 +633,7 @@
     const lista = vaciar($("lista-contexto"));
     const subtipo = $("f-contexto").value;
     const items = estado.datos.contexto.filter((c) => c.fecha >= estado.desde && c.fecha <= estado.hasta
+      && (!estado.provincia || c.provincia === estado.provincia || c.ambito === "nacional")
       && (!subtipo || (c.subtipo || "otro") === subtipo));
     if (!items.length) {
       lista.append(el("li", { clase: "nota", texto: subtipo ? "Sin novedades de ese tipo en el período elegido." : "Sin novedades de contexto vial en el período elegido." }));
@@ -627,7 +666,7 @@
       if (dia > corte) continue;
       const lunes = sumarDias(dia, -diaSemana(dia));
       const s = semanas[lunes] || (semanas[lunes] = { siniestros: 0, fallecidos: 0, heridos: 0 });
-      const [n, m, h, nt, mt, ht] = v.total;
+      const [n, m, h, nt, mt, ht] = filaDia(v);
       s.siniestros += n - (estado.incluirTitulos ? 0 : nt);
       s.fallecidos += m - (estado.incluirTitulos ? 0 : mt);
       s.heridos += h - (estado.incluirTitulos ? 0 : (ht || 0));
@@ -678,6 +717,16 @@
     if (!$("vista-historico").hidden) dibujarHistorico();
   }
 
+  function elegirProvincia(id) {
+    estado.provincia = id;
+    $("f-provincia").value = id;
+    estado.pagina = 0;
+    estado.contextoVisibles = CONTEXTO_POR_TANDA;
+    const prov = estado.provincias[id];
+    $("aviso-historico").textContent = prov ? `Se muestran solo los siniestros de ${prov.nombre} (filtro de la pestaña "Esta semana").` : "";
+    dibujarTodo();
+  }
+
   function fijarRango(valor) {
     const corte = estado.datos.meta.corte;
     const desdeInput = $("desde"), hastaInput = $("hasta");
@@ -716,7 +765,8 @@
     for (const id of ["desde", "hasta"]) $(id).addEventListener("change", () => { fijarRango("personalizado"); estado.pagina = 0; dibujarTodo(); });
     $("incluir-titulos").addEventListener("change", (ev) => { estado.incluirTitulos = ev.target.checked; estado.pagina = 0; dibujarTodo(); });
     $("f-contexto").addEventListener("change", () => { estado.contextoVisibles = CONTEXTO_POR_TANDA; dibujarContexto(); });
-    for (const id of ["f-provincia", "f-tipo", "f-vehiculo", "f-fatales"]) {
+    $("f-provincia").addEventListener("change", (ev) => elegirProvincia(ev.target.value));
+    for (const id of ["f-tipo", "f-vehiculo", "f-fatales", "f-via", "f-fuentes"]) {
       $(id).addEventListener("change", () => { estado.pagina = 0; dibujarTabla(eventosDelRango()); });
     }
     const pestanas = ["semana", "historico", "metodologia"];

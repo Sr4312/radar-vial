@@ -89,6 +89,11 @@ main { padding-bottom: 48px; }
 .kpi .etiqueta { font-size: 16px; font-weight: 600; margin-top: 6px; }
 .kpi .delta { font-size: 13px; color: var(--pizarra); margin-top: 8px; }
 .kpi .delta b { color: var(--tinta); font-weight: 700; }
+/* la flecha lleva el sentido; el color lo refuerza (verde 5,1:1 y rojo 5,9:1 sobre blanco) */
+.kpi .delta b.sube { color: #1A7F37; }
+.kpi .delta .flecha { font-size: 18px; line-height: 1; vertical-align: -1px; }
+.kpi .delta b { font-size: 15px; }
+.kpi .delta b.baja { color: var(--rojo-texto); }
 .aviso-carga { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--pizarra); margin-top: 12px; }
 .aviso-carga::before { content: "i"; flex: 0 0 18px; height: 18px; border-radius: 50%; background: var(--bruma); color: var(--tinta); font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
 
@@ -99,6 +104,9 @@ main { padding-bottom: 48px; }
 .lienzo.alto-l { height: 300px; }
 details.datos { margin-top: 10px; font-size: 13px; }
 details.datos summary { cursor: pointer; color: var(--rojo-texto); font-weight: 600; }
+details.lista { margin-top: 4px; }
+details.lista > summary { cursor: pointer; color: var(--rojo-texto); font-weight: 700; font-size: 15px; padding: 10px 0; }
+details.lista[open] > summary { margin-bottom: 4px; }
 .leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--pizarra); margin-top: 8px; align-items: center; }
 .leyenda .muestra { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
 .leyenda .punto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; }
