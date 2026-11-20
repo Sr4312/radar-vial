@@ -131,16 +131,17 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   con reintentos de push -> resumen de costos en la página de la corrida -> artefacto `salida/` (14 días) ->
   job `publicar` (Pages desde Actions: Settings > Pages > Source: GitHub Actions) solo si cambió `docs/data`.
 - Secreto: `ANTHROPIC_API_KEY` (Settings > Secrets and variables > Actions). Nunca en el código ni en `.env.ejemplo`.
-- Repositorio: `Sr4312/radar-vial`, **privado** (decisión del 20-11-2026). Con el plan gratuito GitHub no permite
-  Pages en privados (la API respondió 422), así que el job `publicar` solo corre si la variable del repositorio
-  `PUBLICAR_PAGES` vale "true". Mientras tanto, cada corrida que publica sube `docs/` como artefacto `tablero-*`.
+- Repositorio: `Sr4312/radar-vial`, **público** desde el 20-11-2026 (se creó privado; con el plan gratuito GitHub
+  no permite Pages en privados y se pasó a público para publicar). Tablero: https://sr4312.github.io/radar-vial/.
+  El job `publicar` corre si la variable del repositorio `PUBLICAR_PAGES` vale "true" (ya configurada) y la
+  corrida publicó, o con el disparo manual `solo_publicar` (publica `docs/` sin correr el radar). Cada corrida
+  que publica también sube `docs/` como artefacto `tablero-*`.
 - Los textos de las notas no migran: los que se bajan en Actions viven solo en la caché de Actions, y los de esta
   computadora solo acá. `reprocesar` corrido localmente solo rehace las notas procesadas en la misma máquina;
   para rehacer lo procesado en Actions, correrlo desde un workflow (o esperar a la corrida diaria).
 
 ## Pendientes conocidos
-- Cargar el secreto `ANTHROPIC_API_KEY` y hacer la primera corrida manual. Definir dónde se publica el tablero
-  (Pages necesita repo público o plan pago; ver README, paso 6). Verificar ahí que Google News no bloquee las 314 búsquedas desde las IP de Actions (desde la
+- Cargar el secreto `ANTHROPIC_API_KEY` y verificar la primera corrida en Actions. Verificar ahí que Google News no bloquee las 314 búsquedas desde las IP de Actions (desde la
   oficina no hubo errores) y la duración real (una corrida de 400 notas tardó 29 min; el job tiene 90).
 - Validar las 20 notas de `tests/fixtures/notas_anotadas.yaml` (borrador) y medir la precisión de la agrupación
   con las planillas de `auditoria`.

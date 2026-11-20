@@ -85,7 +85,7 @@ La vista previa queda en `salida\vista_previa`. Para verla:
 
 ### 5. Correr en GitHub (una sola vez)
 
-El repositorio es `Sr4312/radar-vial` (privado).
+El repositorio es [`Sr4312/radar-vial`](https://github.com/Sr4312/radar-vial) (público).
 
 1. En el repositorio: **Settings > Secrets and variables > Actions > Secrets > New repository secret**.
    Nombre: `ANTHROPIC_API_KEY`; valor: la clave del Observatorio.
@@ -94,18 +94,15 @@ El repositorio es `Sr4312/radar-vial` (privado).
 Desde ahí corre solo todos los días. Si un día falla, el siguiente intento (cada dos horas hasta las 18:17)
 lo vuelve a probar; si ya corrió, los intentos siguientes terminan en segundos.
 
-### 6. Publicar el tablero en la web (GitHub Pages)
+### 6. El tablero en la web (GitHub Pages)
 
-GitHub Pages **no está disponible en repositorios privados con el plan gratuito**. Opciones: pasar el
-repositorio a público, usar una cuenta u organización con plan pago, o publicar `docs/` en otro servicio de
-sitios estáticos. Ojo: con un plan pago, el sitio de Pages de un repositorio privado igual es **público**.
+El tablero se publica en **<https://sr4312.github.io/radar-vial/>** después de cada corrida diaria. Ya está
+configurado: Pages publica desde GitHub Actions (**Settings > Pages > Source: GitHub Actions**) y la variable
+del repositorio `PUBLICAR_PAGES` vale `true` (**Settings > Secrets and variables > Actions > Variables**).
+Para dejar de publicar sin tocar el workflow, cambiar esa variable a `false`.
 
-Cuando Pages esté disponible:
-
-1. **Settings > Pages > Build and deployment > Source: GitHub Actions**.
-2. **Settings > Secrets and variables > Actions > Variables > New repository variable**: nombre
-   `PUBLICAR_PAGES`, valor `true`.
-3. Correr el workflow. El tablero queda en `https://<cuenta>.github.io/radar-vial/`.
+GitHub Pages es gratis solo en repositorios públicos: si el repositorio vuelve a privado, la publicación se
+corta (con un plan pago se puede, pero el sitio igual es público).
 
 ### 7. Ver el tablero sin GitHub Pages
 
@@ -136,7 +133,8 @@ Cuando Pages esté disponible:
 En la computadora del Observatorio, anteponer `.venv\Scripts\` a `python` (por ejemplo,
 `.venv\Scripts\python.exe -m radar_vial demo`).
 
-Desde GitHub: **Actions > Radar Vial > Run workflow**, con las opciones *sin_publicar* y *tope*.
+Desde GitHub: **Actions > Radar Vial > Run workflow**, con las opciones *sin_publicar*, *tope* y *solo_publicar*
+(publica en Pages el tablero que ya está en `docs/`, sin correr el radar; sirve tras cambiar el diseño).
 
 ---
 

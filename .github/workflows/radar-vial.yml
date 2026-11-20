@@ -16,6 +16,10 @@ on:
         description: "Tope de notas a extraer en esta corrida (vacío = el de config/config.yaml)"
         type: string
         default: ""
+      solo_publicar:
+        description: "No correr el radar: solo publicar en Pages el tablero que ya está en docs/ (por ejemplo, tras cambiar el diseño)"
+        type: boolean
+        default: false
 
 # Permisos mínimos: el job que corre el radar (lee contenido de terceros con la clave presente) solo puede
 # escribir el repositorio; los permisos de Pages los tiene solo el job que publica.
@@ -46,7 +50,13 @@ jobs:
         id: hoy
         env:
           EVENTO: ${{ github.event_name }}
+          SOLO_PUBLICAR: ${{ inputs.solo_publicar }}
         run: |
+          if [ "$SOLO_PUBLICAR" = "true" ]; then
+            echo "Solo publicar: no se corre el radar."
+            echo "ya=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           HOY=$(TZ=America/Argentina/Buenos_Aires date +%F)
           ULTIMO=$(python3 -c "import json; print(json.load(open('data/estado.json')).get('ultimo_diario', ''))" 2>/dev/null || echo "")
           if [ "$EVENTO" = "schedule" ] && [ "$ULTIMO" = "$HOY" ]; then
@@ -169,7 +179,7 @@ jobs:
   # y este paso fallaría todos los días.
   publicar:
     needs: correr
-    if: needs.correr.outputs.publicado == 'true' && vars.PUBLICAR_PAGES == 'true'
+    if: (needs.correr.outputs.publicado == 'true' || inputs.solo_publicar) && vars.PUBLICAR_PAGES == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
