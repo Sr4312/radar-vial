@@ -155,7 +155,12 @@ def cmd_diario(args) -> None:
     except ErrorClaude as exc:
         log(f"No se pudo correr: {exc}")
         sys.exit(1)
-    if not args.sin_publicar:
+    if resumen.get("incompleta"):
+        # todo lo que sí se procesó quedó guardado; el día no se marca para que el próximo intento lo repita
+        log(f"Corrida incompleta: {resumen['incompleta']}. No se marca como hecha.")
+        sys.exit(1)
+    # una corrida de prueba con --tope no reemplaza a la del día
+    if not args.sin_publicar and args.tope is None:
         estado.marcar_diario(resumen, publicado=True)
 
 

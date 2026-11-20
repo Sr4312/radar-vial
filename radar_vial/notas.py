@@ -29,7 +29,6 @@ class Notas:
         return sorted(self.por_id.values(), key=lambda n: (n["publicada"], n["id_nota"]))
 
     def guardar(self) -> None:
-        self.archivo.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.archivo, "w", encoding="utf-8") as f:
-            for n in self.todas():
-                f.write(json.dumps(n, ensure_ascii=False, sort_keys=True) + "\n")
+        from .historial import escribir_lineas
+
+        escribir_lineas(self.archivo, (json.dumps(n, ensure_ascii=False, sort_keys=True) for n in self.todas()))

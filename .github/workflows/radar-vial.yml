@@ -84,10 +84,10 @@ jobs:
       # repositorio. Se conservan entre corridas en la caché de Actions (se poda sola a los 14 días).
       - name: Recuperar la caché de textos
         if: steps.hoy.outputs.ya != 'true'
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: data/cache/textos
-          key: textos-${{ github.run_id }}
+          key: textos-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: textos-
 
       - name: Corrida diaria
@@ -141,6 +141,15 @@ jobs:
             done
           fi
           echo "publicado=$PUBLICADO" >> "$GITHUB_OUTPUT"
+
+      # Se guarda aunque la corrida haya fallado (la acción de caché común solo guarda si todo el job termina
+      # bien): ahí están los textos ya bajados y la cola de notas pendientes, que el próximo intento necesita.
+      - name: Guardar la caché de textos
+        if: always() && steps.corrida.outcome != 'skipped'
+        uses: actions/cache/save@v4
+        with:
+          path: data/cache/textos
+          key: textos-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Resumen de la corrida
         if: always() && steps.hoy.outputs.ya != 'true'

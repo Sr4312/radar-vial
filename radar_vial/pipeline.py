@@ -9,7 +9,7 @@ Las etapas de eventos y dashboard se suman después de la extracción (eventos.p
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from . import config
 from .claude import Claude, ErrorClaude, RegistroCostos
@@ -17,7 +17,7 @@ from .extraer import extraer_nota
 from .filtrar import filtrar
 from .historial import Historial
 from .notas import Notas
-from .recolectar import recolectar
+from .recolectar import fusionar, recolectar
 from .red import Red
 from .resolver import Resolvedor, Robots, bajar_nota, cargar_texto, guardar_texto, podar_textos
 from .texto import log as log_consola
@@ -65,7 +65,8 @@ def elegir_para_extraer(relevantes: list[dict], tope: int, cupo_contexto: int) -
     """
     siniestros = [it for it in relevantes if it["filtro"] == "siniestro"]
     contexto = [it for it in relevantes if it["filtro"] != "siniestro"]
-    cupo = min(len(contexto), cupo_contexto, tope)
+    # el cupo nunca pasa de un tercio del tope: con un tope chico (pruebas) no desplaza a los siniestros
+    cupo = min(len(contexto), cupo_contexto, tope // 3)
     elegidas = siniestros[:tope - cupo] + contexto[:cupo]
     ids = {it["id"] for it in elegidas}
     for it in relevantes:
@@ -106,9 +107,17 @@ def guardar_pendientes(items: list[dict]) -> None:
     guardar_texto(_COLA, {"items": [{c: it.get(c) for c in campos} for it in items]})
 
 
+DIAS_EN_COLA = 7
+
+
 def cargar_pendientes() -> list[dict]:
-    datos = cargar_texto(_COLA)
-    return (datos or {}).get("items", [])
+    """La cola, sin lo que lleva más de DIAS_EN_COLA días (no crece sin fin). Si no se puede leer, vacía."""
+    try:
+        datos = cargar_texto(_COLA)
+    except Exception:  # noqa: BLE001 - un archivo de cola dañado no debe frenar todas las corridas
+        return []
+    limite = datetime.now(timezone.utc) - timedelta(days=DIAS_EN_COLA)
+    return [p for p in (datos or {}).get("items", []) if datetime.fromisoformat(p["publicada"]) >= limite]
 
 
 def resolver_y_bajar(red: Red, resolvedor: Resolvedor, robots: Robots, it: dict) -> None:
@@ -142,17 +151,27 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
         log(f"Historial: {podados} registros viejos podados; caché de textos: {borrados} textos vencidos borrados.")
 
     # 1. Recolectar (más las que quedaron en la cola por el tope de la corrida anterior)
-    items, _ = recolectar(red, log=log)
-    por_id = {it["id"]: it for it in items}
+    items, resultados = recolectar(red, log=log)
     pendientes = cargar_pendientes()
-    for p in pendientes:  # las que volvieron a aparecer conservan lo que ya decidió el filtro
-        if p["id"] in por_id and p.get("filtro"):
-            por_id[p["id"]]["filtro"] = p["filtro"]
-    cola = [p for p in pendientes if p["id"] not in por_id]
     if pendientes:
-        log(f"Cola de la corrida anterior: {len(pendientes)} notas ({len(cola)} ya fuera de la ventana de 48 h).")
-        items += cola
-    previos = {it["id"]: historial.buscar(it) for it in items}
+        recolectadas = {it["id"] for it in items}
+        fuera = sum(1 for p in pendientes if p["id"] not in recolectadas)
+        log(f"Cola de la corrida anterior: {len(pendientes)} notas ({fuera} ya fuera de la ventana de 48 h).")
+        # la misma nota puede volver con otro id de Google News: se une a su copia de la cola, que conserva
+        # lo que ya decidió el filtro
+        items = fusionar(items + pendientes)
+    # Una nota ya vista conserva su id: Google News la entrega con distintos ids de artículo y, si cambiara,
+    # su ficha anterior quedaría suelta y se contaría dos veces.
+    previos, unicos = {}, []
+    for it in items:
+        previo = historial.buscar(it)
+        if previo is not None and previo.get("id_nota"):
+            it["id"] = previo["id_nota"]
+        if it["id"] in previos:
+            continue
+        previos[it["id"]] = previo
+        unicos.append(it)
+    items = unicos
     nuevos = [it for it in items if not historial.ya_procesada(it)]
     log(f"Nuevas o pendientes: {len(nuevos)} (ya procesadas antes: {len(items) - len(nuevos)}).")
 
@@ -174,7 +193,8 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
     relevantes.sort(key=lambda it: (it["filtro"] != "siniestro", -datetime.fromisoformat(it["publicada"]).timestamp()))
     tope = tope if tope is not None else conf["limites"]["max_extraccion_por_corrida"]
     a_procesar, postergadas = elegir_para_extraer(relevantes, tope, conf["limites"].get("cupo_contexto", 50))
-    guardar_pendientes(postergadas)
+    # Hasta que termine la corrida, la cola incluye también lo que se va a procesar: si se corta, no se pierde.
+    guardar_pendientes(postergadas + a_procesar)
     if postergadas:
         log(f"Tope de extracción: {len(postergadas)} notas quedan en la cola para la próxima corrida.")
 
@@ -186,13 +206,17 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
 
     # 5. Deduplicar por URL canónica (la misma nota pudo llegar por dos vías que no se reconocieron antes)
     vistas: set[str] = set()
-    para_extraer = []
+    para_extraer, duplicadas = [], []
     for it in a_procesar:
         previo = previos.get(it["id"])
         if it.get("clave"):
             otro = historial.buscar({"clave": it["clave"]})
-            if it["clave"] in vistas or (otro and otro is not previo and otro.get("estado") in ("siniestro", "contexto", "descartada")):
-                historial.registrar(it, "duplicada")
+            ya_contada = (otro is not None and otro is not previo and otro.get("id_nota") != it["id"]
+                          and otro.get("estado") in ("siniestro", "contexto", "descartada"))
+            if it["clave"] in vistas or ya_contada:
+                # No se registra con `historial.registrar`: con la clave canónica encontraría el registro de la
+                # nota original y lo pisaría (pasó: una nota de Bariloche se extrajo dos veces). Se anota al final.
+                duplicadas.append((it, previo))
                 # si en una corrida anterior se había hecho una ficha solo con el título, deja de contarse:
                 # la misma nota ya está contada por la otra vía
                 notas.por_id.pop(it["id"], None)
@@ -214,35 +238,67 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
             return it, None, str(exc)
 
     conteo = {"siniestro": 0, "contexto": 0, "descartar": 0, "error": 0, "solo_titulo": 0, "fichas_siniestro": 0}
-    with ThreadPoolExecutor(max_workers=conf["limites"]["extracciones_en_paralelo"]) as ex:
-        for it, ext, error in ex.map(extraer, para_extraer):
-            if error:
-                conteo["error"] += 1
-                log(f"  ! extracción {it['sitio']}: {error}")
-                historial.registrar(it, "pendiente")
-                continue
-            fuente = "completo" if it.get("texto") else "titulo"
-            guardar_texto(it["id"], _datos_cache(it, it.get("texto")))
-            conteo[ext["categoria"]] += 1
-            if ext["categoria"] == "descartar":
-                historial.registrar(it, "descartada")
-                notas.por_id.pop(it["id"], None)  # si antes se había contado, deja de contarse
-                continue
-            notas.guardar_nota(_ficha_nota(it, ext, fuente, modelo))
-            conteo["fichas_siniestro"] += len(ext["siniestros"])
-            if fuente == "titulo":
-                conteo["solo_titulo"] += 1
-                historial.registrar(it, "solo_titulo", id_nota=it["id"])  # se reintenta resolver
-            else:
-                historial.registrar(it, ext["categoria"], id_nota=it["id"])
+    fallidas: list[dict] = []
 
-    for it in nuevos:  # guardar en el historial lo que decidió el filtro (para no volver a filtrar)
-        r = historial.buscar(it)
-        if r is not None and it.get("filtro"):
-            r["filtro"] = it["filtro"]
+    def guardar_avance(final: bool = False) -> None:
+        """Fichas, historial y cola a disco. Se llama cada tanto y si la corrida se corta: lo ya extraído (y
+        pagado) no se pierde, y lo que falta sigue en la cola."""
+        for it in nuevos:  # lo que decidió el filtro, para no volver a filtrar
+            r = historial.buscar(it)
+            if r is not None and it.get("filtro") and it["filtro"] != "sin_evaluar":
+                r["filtro"] = it["filtro"]
+        notas.guardar()
+        historial.guardar()
+        if final:
+            # vuelven a la cola: las postergadas, las que fallaron al extraer (hasta agotar sus intentos) y las
+            # que el filtro no pudo evaluar (sin marca, para que se filtren de nuevo)
+            cola = postergadas + [it for it in fallidas if not historial.ya_procesada(it)]
+            cola += [{**it, "filtro": None} for it in nuevos if it.get("filtro") == "sin_evaluar"]
+        else:
+            cola = postergadas + [it for it in a_procesar if not historial.ya_procesada(it)]
+        guardar_pendientes(cola)
 
-    notas.guardar()
-    historial.guardar()
+    try:
+        with ThreadPoolExecutor(max_workers=conf["limites"]["extracciones_en_paralelo"]) as ex:
+            for hechas, (it, ext, error) in enumerate(ex.map(extraer, para_extraer), 1):
+                if hechas % 25 == 0:
+                    guardar_avance()
+                if error:
+                    conteo["error"] += 1
+                    log(f"  ! extracción {it['sitio']}: {error}")
+                    historial.registrar(it, "pendiente")
+                    fallidas.append(it)
+                    continue
+                fuente = "completo" if it.get("texto") else "titulo"
+                guardar_texto(it["id"], _datos_cache(it, it.get("texto")))
+                conteo[ext["categoria"]] += 1
+                if ext["categoria"] == "descartar":
+                    historial.registrar(it, "descartada")
+                    notas.por_id.pop(it["id"], None)  # si antes se había contado, deja de contarse
+                    continue
+                notas.guardar_nota(_ficha_nota(it, ext, fuente, modelo))
+                conteo["fichas_siniestro"] += len(ext["siniestros"])
+                if fuente == "titulo":
+                    conteo["solo_titulo"] += 1
+                    historial.registrar(it, "solo_titulo", id_nota=it["id"])  # se reintenta resolver
+                else:
+                    historial.registrar(it, ext["categoria"], id_nota=it["id"])
+    except BaseException:
+        guardar_avance()
+        registro.guardar(extra={"notas": {"interrumpida": True, **conteo}})
+        raise
+
+    # Las duplicadas: su registro propio (si tenían una ficha de solo título) queda cerrado; si no, sus claves
+    # pasan a ser alias de la nota original, que conserva su estado.
+    for it, previo in duplicadas:
+        original = historial.buscar({"clave": it["clave"]})
+        if previo is not None and previo is not original:
+            previo["estado"] = "duplicada"
+            previo.pop("id_nota", None)
+        elif original is not None:
+            historial.agregar_alias(original, {"gn_id": it.get("gn_id"), "hash_titulo": it.get("hash_titulo")})
+
+    guardar_avance(final=True)
 
     # 7. Geografía y eventos
     eventos = geo_y_eventos(notas, claude, log=log)
@@ -252,9 +308,21 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
 
     publicar_tablero(publicar_en_docs=publicar, log=log)
 
+    # Salud de la corrida: si falló más de la mitad de una etapa (API caída, sin crédito, Google News bloqueado),
+    # la corrida no cuenta como hecha y el próximo intento del día la repite.
+    problemas = []
+    sin_evaluar = sum(1 for it in nuevos if it.get("filtro") == "sin_evaluar")
+    errores_recoleccion = sum(1 for r in resultados if r.error)
+    if resultados and errores_recoleccion * 2 > len(resultados):
+        problemas.append(f"fallaron {errores_recoleccion} de {len(resultados)} búsquedas y feeds")
+    if a_filtrar and sin_evaluar * 2 > len(a_filtrar):
+        problemas.append(f"el filtro no pudo evaluar {sin_evaluar} de {len(a_filtrar)} notas")
+    if para_extraer and conteo["error"] * 2 > len(para_extraer):
+        problemas.append(f"falló la extracción de {conteo['error']} de {len(para_extraer)} notas")
     resumen = {
         "recolectadas": len(items), "nuevas": len(nuevos), "relevantes_filtro": len(relevantes),
         "extraidas": len(para_extraer), "postergadas": len(postergadas), **conteo, "eventos": len(eventos),
+        "sin_evaluar": sin_evaluar, "incompleta": "; ".join(problemas) or None,
         "duracion_min": round((datetime.now(timezone.utc) - inicio).total_seconds() / 60, 1),
     }
     costos = registro.guardar(extra={"notas": resumen})

@@ -173,6 +173,20 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
 el título porque no se encontró la URL o no se pudo bajar), `pendiente` (falló la extracción) y `sin_resolver`
 se reintentan hasta 3 veces; si una corrida posterior consigue el texto, la ficha se rehace (mismo `id_nota`).
 
+Reglas del historial y de la corrida (revisión del 20-11-2026; pruebas en `tests/test_pipeline.py`):
+- Un registro es de una sola nota. Una duplicada **no** se registra con `historial.registrar` (con la clave canónica
+  encontraría el registro de la original y lo pisaría: así se extrajo dos veces una nota de Bariloche): sus claves
+  pasan a `alias` de la original (`agregar_alias`). Al cambiar una clave, la anterior queda de alias.
+- `hash_titulo(titulo, sitio)`: por medio y solo `DIAS_HASH_TITULO` (7) días. Una nota ya vista conserva su `id_nota`
+  aunque Google News la entregue con otro id; la cola se une a lo recolectado con `fusionar`.
+- Corrida que se puede cortar: `guardar_avance` cada 25 extracciones y ante cualquier excepción; mientras corre, la
+  cola incluye lo que se está procesando; al final vuelven a la cola las postergadas, las extracciones fallidas y
+  las que el filtro no evaluó. La cola descarta lo de más de `DIAS_EN_COLA` (7). Escrituras con archivo temporal.
+- `resumen["incompleta"]`: si falla más de la mitad de la recolección, del filtro o de la extracción, `diario` sale
+  con error y no marca el día (el siguiente intento del cron la repite). Con `--tope` tampoco se marca.
+- El cupo de contexto no pasa de un tercio del tope. En Actions la caché de textos se guarda aunque el job falle
+  (`actions/cache/restore` + `actions/cache/save` con `always()`).
+
 ## Decisiones que no hay que romper
 - **Links de Google News**: no se decodifican con el servicio interno de Google (no documentado; el entorno lo
   bloqueó y es frágil). Se resuelven por título contra el sitemap de noticias o el RSS del propio medio y, si no

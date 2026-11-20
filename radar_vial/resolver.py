@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import os
 import re
 from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
@@ -207,8 +208,11 @@ def _ruta_texto(id_nota: str):
 def guardar_texto(id_nota: str, datos: dict) -> None:
     config.DIR_TEXTOS.mkdir(parents=True, exist_ok=True)
     datos = {**datos, "guardado": datetime.now(timezone.utc).isoformat()}
-    with gzip.open(_ruta_texto(id_nota), "wt", encoding="utf-8") as f:
+    ruta = _ruta_texto(id_nota)
+    tmp = ruta.with_name(ruta.name + ".tmp")
+    with gzip.open(tmp, "wt", encoding="utf-8") as f:
         json.dump(datos, f, ensure_ascii=False)
+    os.replace(tmp, ruta)   # una corrida cortada no deja el archivo por la mitad
 
 
 def cargar_texto(id_nota: str) -> dict | None:

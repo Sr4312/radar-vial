@@ -192,7 +192,7 @@ def leer(red: Red, tarea: Tarea, desde: datetime, medios: dict[str, dict], prefi
             "url": link,
             "gn_id": gn_id,
             "clave": None if gn_id else clave_url(link),
-            "hash_titulo": None if e.get("provisional") else hash_titulo(titulo),
+            "hash_titulo": None if e.get("provisional") else hash_titulo(titulo, sitio),
             "titulo_provisional": bool(e.get("provisional")),
             "medio": (catalogo or {}).get("nombre") or medio_nombre or sitio,
             "sitio": sitio,
@@ -236,6 +236,8 @@ def fusionar(items: list[dict]) -> list[dict]:
                 previo.setdefault("gn_id_original", previo["gn_id"])
             if it.get("tipo_busqueda") == "siniestro":
                 previo["tipo_busqueda"] = "siniestro"
+            if it.get("filtro") and not previo.get("filtro"):   # la copia que venía de la cola ya pasó el filtro
+                previo["filtro"] = it["filtro"]
             if not previo.get("provincia_medio") and it.get("provincia_medio"):
                 previo["provincia_medio"] = it["provincia_medio"]
         for c in claves:

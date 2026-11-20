@@ -3,8 +3,13 @@
 Una nota se reconoce por:
 - su URL canónica (sin parámetros de seguimiento, sin versión AMP ni móvil, sin barra final);
 - el id del artículo en Google News (antes de conocer la URL original);
-- el hash de su título normalizado, solo si el título es distintivo (los títulos genéricos como
-  "Murió un motociclista en un choque" se repiten entre notas distintas y no sirven para deduplicar).
+- el hash de su título normalizado junto con el sitio del medio, solo si el título es distintivo (los títulos
+  genéricos como "Murió un motociclista en un choque" se repiten entre notas distintas y no sirven para
+  deduplicar) y solo durante `DIAS_HASH_TITULO` días: otro medio, o el mismo medio semanas después, puede
+  titular igual un siniestro distinto.
+
+Cada registro es de una sola nota. Las otras claves por las que llega esa misma nota (otro id de Google News,
+la URL del link cuando la canónica es distinta) se guardan como `alias` del registro, sin cambiarle el estado.
 
 El historial no guarda títulos ni textos (pueden traer nombres de personas): solo claves y estado.
 """
@@ -12,6 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
@@ -36,9 +42,13 @@ _PARAMS_SEGUIMIENTO = re.compile(
 # Palabras que no distinguen una nota de otra al decidir si un título es "genérico"
 _VACIAS = set(
     "el la los las un una unos unas de del al a en y o que con por para tras sobre su sus se lo le es fue "
-    "murio muere muerto murieron herido heridos grave choque accidente ruta tras".split()
+    "murio muere muerto murieron herido heridos grave choque accidente ruta tras "
+    "motociclista ciclista peaton conductor hombre mujer joven persona personas auto moto camion camioneta "
+    "chocar choco chocaron contra vuelco volco atropello fatal tragedia siniestro vial".split()
 )
 MIN_PALABRAS_DISTINTIVAS = 5
+DIAS_HASH_TITULO = 7
+_CAMPOS = ("clave", "gn_id", "hash_titulo")
 
 
 def canonizar_url(url: str) -> str:
@@ -88,9 +98,19 @@ def titulo_distintivo(titulo: str) -> bool:
     return len(palabras) >= MIN_PALABRAS_DISTINTIVAS
 
 
-def hash_titulo(titulo: str) -> str | None:
-    """Hash del título normalizado, o None si el título es demasiado genérico para deduplicar."""
-    return _hash(normalizar(titulo)) if titulo_distintivo(titulo) else None
+def hash_titulo(titulo: str, sitio: str | None = None) -> str | None:
+    """Hash del título normalizado y el sitio, o None si el título es demasiado genérico para deduplicar."""
+    return _hash(f"{sitio or ''}|{normalizar(titulo)}") if titulo_distintivo(titulo) else None
+
+
+def escribir_lineas(archivo, lineas) -> None:
+    """Escribe a un archivo temporal y lo renombra: una corrida cortada no deja el archivo por la mitad."""
+    archivo.parent.mkdir(parents=True, exist_ok=True)
+    tmp = archivo.with_name(archivo.name + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        for linea in lineas:
+            f.write(linea + "\n")
+    os.replace(tmp, archivo)
 
 
 class Historial:
@@ -105,16 +125,35 @@ class Historial:
     def _indexar(self) -> None:
         self._por_clave: dict[str, dict] = {}
         for r in self.registros:
-            for campo in ("clave", "gn_id", "hash_titulo"):
+            for alias in r.get("alias") or []:
+                self._por_clave[alias] = r
+        for r in self.registros:   # las claves propias ganan a los alias
+            for campo in _CAMPOS:
                 if r.get(campo):
                     self._por_clave[f"{campo}:{r[campo]}"] = r
 
+    @staticmethod
+    def _reciente(r: dict) -> bool:
+        limite = datetime.now(timezone.utc) - timedelta(days=DIAS_HASH_TITULO)
+        return datetime.fromisoformat(r.get("visto") or r["actualizado"]) >= limite
+
     def buscar(self, item: dict) -> dict | None:
-        for campo in ("clave", "gn_id", "hash_titulo"):
+        for campo in _CAMPOS:
             valor = item.get(campo)
-            if valor and f"{campo}:{valor}" in self._por_clave:
-                return self._por_clave[f"{campo}:{valor}"]
+            r = self._por_clave.get(f"{campo}:{valor}") if valor else None
+            if r is not None and (campo != "hash_titulo" or self._reciente(r)):
+                return r
         return None
+
+    def agregar_alias(self, r: dict, item: dict) -> None:
+        """La misma nota llegó por otra vía: sus claves llevan al registro `r`, que no cambia de estado."""
+        for campo in _CAMPOS:
+            valor = item.get(campo)
+            if valor and r.get(campo) != valor:
+                alias = f"{campo}:{valor}"
+                if alias not in r.setdefault("alias", []):
+                    r["alias"].append(alias)
+                self._por_clave.setdefault(alias, r)
 
     def ya_procesada(self, item: dict) -> bool:
         """True si la nota llegó a un estado final o agotó sus reintentos."""
@@ -129,8 +168,14 @@ class Historial:
         if r is None:
             r = {"visto": ahora, "intentos": 0}
             self.registros.append(r)
-        for campo in ("clave", "gn_id", "hash_titulo"):
+        for campo in _CAMPOS:
             if item.get(campo):
+                if r.get(campo) and r[campo] != item[campo]:   # la clave anterior sigue llevando a este registro
+                    alias = r.setdefault("alias", [])
+                    if f"{campo}:{r[campo]}" not in alias:
+                        alias.append(f"{campo}:{r[campo]}")
+                    if f"{campo}:{item[campo]}" in alias:
+                        alias.remove(f"{campo}:{item[campo]}")
                 r[campo] = item[campo]
         r["estado"] = estado
         r["actualizado"] = ahora
@@ -138,7 +183,7 @@ class Historial:
             r["intentos"] = r.get("intentos", 0) + 1
         if id_nota:
             r["id_nota"] = id_nota
-        for campo in ("clave", "gn_id", "hash_titulo"):
+        for campo in _CAMPOS:
             if r.get(campo):
                 self._por_clave[f"{campo}:{r[campo]}"] = r
         return r
@@ -152,7 +197,4 @@ class Historial:
         return antes - len(self.registros)
 
     def guardar(self) -> None:
-        self.archivo.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.archivo, "w", encoding="utf-8") as f:
-            for r in self.registros:
-                f.write(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n")
+        escribir_lineas(self.archivo, (json.dumps(r, ensure_ascii=False, sort_keys=True) for r in self.registros))

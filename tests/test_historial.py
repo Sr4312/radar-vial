@@ -103,3 +103,31 @@ def test_poda_de_registros_viejos(tmp_path):
     assert h.podar(dias=90) == 1
     assert h.buscar({"clave": "viejo"}) is None
     assert h.buscar({"clave": "nuevo"}) is not None
+
+
+def test_el_mismo_titulo_en_otro_medio_o_semanas_despues_es_otra_nota(tmp_path):
+    from datetime import datetime, timedelta, timezone
+
+    titulo = "Un colectivo de larga distancia volcó cerca de Cafayate y hay doce pasajeros lesionados"
+    assert hash_titulo(titulo, "a.com.ar") != hash_titulo(titulo, "b.com.ar")
+    h = Historial(tmp_path / "historial.jsonl")
+    item = {"gn_id": "G1", "hash_titulo": hash_titulo(titulo, "a.com.ar")}
+    r = h.registrar(item, "siniestro")
+    assert h.ya_procesada({"gn_id": "G2", "hash_titulo": item["hash_titulo"]})          # misma nota, otro id
+    assert not h.ya_procesada({"gn_id": "G3", "hash_titulo": hash_titulo(titulo, "b.com.ar")})
+    r["visto"] = (datetime.now(timezone.utc) - timedelta(days=20)).isoformat()
+    assert not h.ya_procesada({"gn_id": "G4", "hash_titulo": item["hash_titulo"]})      # 20 días después: otra nota
+    assert h.ya_procesada({"gn_id": "G1"})                                              # por su id se la sigue reconociendo
+
+
+def test_los_alias_persisten_y_no_cambian_el_estado(tmp_path):
+    archivo = tmp_path / "historial.jsonl"
+    h = Historial(archivo)
+    r = h.registrar({"gn_id": "G1", "clave": "link"}, "solo_titulo", id_nota="n_1")
+    h.registrar({"gn_id": "G1", "clave": "canonica"}, "siniestro", id_nota="n_1")       # la clave del link queda de alias
+    h.agregar_alias(r, {"gn_id": "G2"})
+    h.guardar()
+    h2 = Historial(archivo)
+    for item in ({"clave": "link"}, {"clave": "canonica"}, {"gn_id": "G2"}):
+        assert h2.buscar(item)["estado"] == "siniestro"
+    assert len(h2.registros) == 1 and not list(tmp_path.glob("*.tmp"))

@@ -171,3 +171,98 @@ def test_el_contexto_tiene_cupo_propio_dentro_del_tope():
     # si hay pocos siniestros, el lugar que sobra lo usa el contexto
     elegidas, _ = pipeline.elegir_para_extraer(rel[8:], tope=6, cupo_contexto=2)
     assert [it["id"] for it in elegidas] == ["s8", "s9", "c0", "c1", "c2", "c3"]
+
+
+# ------------------------------------------------------------------ casos de la revisión del 20-11-2026
+
+def _extracciones(entorno):
+    return sum(1 for ll in entorno["cliente"].llamadas if "lista numerada" not in ll["system"][0]["text"])
+
+
+def test_una_duplicada_no_pisa_el_registro_de_la_original(entorno, monkeypatch):
+    silencio = lambda *a: None  # noqa: E731
+    pipeline.correr_diario(log=silencio)
+    # la nota A, ya extraída, vuelve por el RSS del medio (misma URL) con un título que no deduplica
+    url_a = "https://medio-a.com.ar/nota-A"
+    directa = {**_items()[0], "id": "n_rss_a", "url": url_a, "gn_id": None, "clave": None, "hash_titulo": None,
+               "origenes": [{"tipo": "rss", "consulta": "RSS A", "provincia": "66", "termino": None}]}
+    otra_via = {**directa, "id": "n_gn_a2", "gn_id": "A", "url": "https://news.google.com/rss/articles/A"}
+    otra_via["gn_id"] = "A2"
+    entorno["resolubles"].add("A2")
+    monkeypatch.setattr(pipeline.Resolvedor, "resolver_con_metodo",
+                        lambda self, it: (url_a, "medio") if it.get("gn_id") == "A2" else (None, None))
+    monkeypatch.setattr(pipeline, "recolectar", lambda red, log=None: ([otra_via], []))
+    antes = _extracciones(entorno)
+    pipeline.correr_diario(log=silencio)
+    h = Historial(entorno["tmp"] / "historial.jsonl")
+    original = h.buscar({"gn_id": "A"})
+    assert original["estado"] == "siniestro" and original["id_nota"] == "n_a"   # no quedó como "duplicada"
+    assert h.buscar({"gn_id": "A2"}) is original                                # la otra vía es un alias
+    assert _extracciones(entorno) == antes                                      # no se pagó otra extracción
+    assert set(Notas(entorno["tmp"] / "notas.jsonl").por_id) == {"n_a", "n_b"}
+    r3 = pipeline.correr_diario(log=silencio)                                   # y ya no vuelve a entrar
+    assert r3["nuevas"] == 0
+
+
+def test_si_el_filtro_no_responde_la_corrida_queda_incompleta_y_nada_se_pierde(entorno, monkeypatch):
+    silencio = lambda *a: None  # noqa: E731
+    filtro_real = pipeline.filtrar
+
+    def caido(claude, items, log=None):
+        for it in items:
+            it["filtro"] = "sin_evaluar"
+
+    monkeypatch.setattr(pipeline, "filtrar", caido)
+    r1 = pipeline.correr_diario(log=silencio)
+    assert r1["incompleta"] and r1["sin_evaluar"] == 3
+    cola = pipeline.cargar_pendientes()
+    assert len(cola) == 3 and all(p["filtro"] is None for p in cola)
+    # al día siguiente las notas ya salieron de la ventana, pero siguen en la cola y se procesan
+    monkeypatch.setattr(pipeline, "filtrar", filtro_real)
+    monkeypatch.setattr(pipeline, "recolectar", lambda red, log=None: ([], []))
+    r2 = pipeline.correr_diario(log=silencio)
+    assert not r2["incompleta"] and r2["siniestro"] == 2
+    assert pipeline.cargar_pendientes() == []
+
+
+def test_una_corrida_cortada_conserva_lo_extraido_y_la_cola(entorno, monkeypatch):
+    silencio = lambda *a: None  # noqa: E731
+    real = pipeline.extraer_nota
+
+    def se_corta(claude, it, texto):
+        if it["id"] == "n_b":
+            raise KeyboardInterrupt
+        return real(claude, it, texto)
+
+    monkeypatch.setattr(pipeline, "extraer_nota", se_corta)
+    with pytest.raises(KeyboardInterrupt):
+        pipeline.correr_diario(log=silencio)
+    assert set(Notas(entorno["tmp"] / "notas.jsonl").por_id) == {"n_a"}       # lo ya pagado quedó guardado
+    assert [p["id"] for p in pipeline.cargar_pendientes()] == ["n_b"]          # lo que faltaba sigue en la cola
+    costos = (entorno["tmp"] / "costos.jsonl").read_text(encoding="utf-8")
+    assert '"interrumpida": true' in costos
+
+
+def test_con_un_tope_chico_igual_entran_siniestros():
+    rel = [{"id": f"s{i}", "filtro": "siniestro"} for i in range(100)] + [{"id": f"c{i}", "filtro": "contexto"} for i in range(60)]
+    elegidas, _ = pipeline.elegir_para_extraer(rel, tope=10, cupo_contexto=50)
+    assert sum(1 for it in elegidas if it["filtro"] == "siniestro") == 7
+    elegidas, _ = pipeline.elegir_para_extraer(rel, tope=150, cupo_contexto=50)
+    assert sum(1 for it in elegidas if it["filtro"] == "contexto") == 50
+
+
+def test_corrida_incompleta_o_con_tope_no_marca_el_dia(monkeypatch):
+    from radar_vial import __main__ as cli
+    from radar_vial import estado
+
+    marcas = []
+    monkeypatch.setattr(estado, "marcar_diario", lambda resumen, publicado: marcas.append(resumen))
+    args = NS(si_no_corrio_hoy=False, sin_publicar=False, tope=None)
+    monkeypatch.setattr(pipeline, "correr_diario", lambda **kw: {"incompleta": "el filtro no pudo evaluar 40 de 40 notas"})
+    with pytest.raises(SystemExit):
+        cli.cmd_diario(args)
+    monkeypatch.setattr(pipeline, "correr_diario", lambda **kw: {"incompleta": None})
+    cli.cmd_diario(NS(si_no_corrio_hoy=False, sin_publicar=False, tope=30))
+    assert marcas == []
+    cli.cmd_diario(args)
+    assert len(marcas) == 1
