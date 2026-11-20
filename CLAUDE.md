@@ -124,8 +124,8 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   la diferencia en cantidad, no en porcentaje; la semana en curso del histórico no se compara. El mapa no pinta la
   tasa con menos de 5 siniestros (`MIN_CASOS_TASA`) y avisa que el color depende de la cobertura de prensa. El
   rango personalizado se acota al calendario. Contexto vial con filtro por tipo y "Ver más".
-- Pedidos del equipo (20-11-2026): en las tarjetas, flecha verde (#1A7F37) si sube y roja si baja, tal cual (aunque
-  en siniestros subir es malo: se avisó y quedó a decisión del equipo). Filtro general de provincia (`estado.provincia`,
+- Pedidos del equipo (20-11-2026): en las tarjetas, flecha roja si sube y verde (#1A7F37) si baja (en siniestros
+  subir es malo; el equipo lo pidió al revés y lo invirtió el mismo día). Filtro general de provincia (`estado.provincia`,
   `elegirProvincia`, `filaDia`): aplica a tarjetas, series, distribuciones, rutas, lista, contexto e histórico; el mapa
   sigue pintando todas, resalta y encuadra la elegida, y un clic en una provincia la elige. La lista de siniestros va
   plegada (`details.lista`) con filtros de tipo, vehículo, vía, víctimas fatales y cantidad de fuentes.

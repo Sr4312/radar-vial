@@ -89,11 +89,12 @@ main { padding-bottom: 48px; }
 .kpi .etiqueta { font-size: 16px; font-weight: 600; margin-top: 6px; }
 .kpi .delta { font-size: 13px; color: var(--pizarra); margin-top: 8px; }
 .kpi .delta b { color: var(--tinta); font-weight: 700; }
-/* la flecha lleva el sentido; el color lo refuerza (verde 5,1:1 y rojo 5,9:1 sobre blanco) */
-.kpi .delta b.sube { color: #1A7F37; }
+/* la flecha lleva el sentido; el color dice si es buena noticia: subir (más siniestros o víctimas) va en rojo
+   y bajar en verde (verde 5,1:1 y rojo 5,9:1 sobre blanco) */
+.kpi .delta b.sube { color: var(--rojo-texto); }
 .kpi .delta .flecha { font-size: 18px; line-height: 1; vertical-align: -1px; }
 .kpi .delta b { font-size: 15px; }
-.kpi .delta b.baja { color: var(--rojo-texto); }
+.kpi .delta b.baja { color: #1A7F37; }
 .aviso-carga { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--pizarra); margin-top: 12px; }
 .aviso-carga::before { content: "i"; flex: 0 0 18px; height: 18px; border-radius: 50%; background: var(--bruma); color: var(--tinta); font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
 
