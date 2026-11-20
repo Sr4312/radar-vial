@@ -206,6 +206,23 @@ Reglas del historial y de la corrida (revisión del 20-11-2026; pruebas en `test
 - El cupo de contexto no pasa de un tercio del tope. En Actions la caché de textos se guarda aunque el job falle
   (`actions/cache/restore` + `actions/cache/save` con `always()`).
 
+## Recuperación histórica (20-11-2026: del 18-10 al 17-11)
+- `python -m radar_vial historico recolectar|procesar|eventos|tablero|estado`. Usa la **cuenta de Claude** con
+  `claude -p` (`radar_vial/cuenta.py`, `ClaudeCuenta`, misma interfaz que `Claude.json`), no la API: corre en esta
+  computadora, con el entorno sin `ANTHROPIC_API_KEY` y comprobando `apiKeySource == "none"` en cada llamada (si no,
+  `AutenticacionNoEsCuenta` corta todo). Sin herramientas, plugins, MCP ni configuración (`--setting-sources ""`,
+  carpeta vacía), y `--no-session-persistence` para que los textos con nombres no queden en el historial de Claude
+  Code. No usar `--bare`: ignora la cuenta y solo acepta clave de API.
+- Al límite de uso de la cuenta (`rate_limit_event` con `rejected`) levanta `LimiteCuenta`: `procesar` guarda y sale
+  con código 3; se retoma con el mismo comando después de la hora de reinicio.
+- Google News respeta `after:`/`before:`; con ventanas de 2 días devuelve más que con una semana (medido: Córdoba
+  "choque", 50 notas en 2 días contra 36 en una semana). Solo búsquedas de siniestros; los feeds y sitemaps no
+  sirven para fechas viejas. Las notas de contexto no se extraen.
+- Archivos aparte: `data/historico/` (fichas, historial, siniestros, georef, decisiones, `uso_cuenta.jsonl` con
+  tokens, no dólares) y `data/cache/historico/` (notas con títulos, fuera de git). Actions no los lee; el tablero
+  publicado no los usa (`inicio_cobertura` sigue en 18-11). `historico tablero` arma una vista en salida/historico/.
+- Calidad menor que la del diario: muchas notas quedan solo con el título. Las fichas llevan `origen: "historico"`.
+
 ## Decisiones que no hay que romper
 - **Links de Google News**: no se decodifican con el servicio interno de Google (no documentado; el entorno lo
   bloqueó y es frágil). Se resuelven por título contra el sitemap de noticias o el RSS del propio medio y, si no

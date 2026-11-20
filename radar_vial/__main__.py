@@ -199,6 +199,25 @@ def cmd_demo(args) -> None:
     correr_demo(servir=not args.sin_servidor, puerto=args.puerto, log=log)
 
 
+def cmd_historico(args) -> None:
+    from datetime import date
+
+    from . import historico
+
+    if args.etapa == "recolectar":
+        historico.recolectar_historico(date.fromisoformat(args.desde), date.fromisoformat(args.hasta), log=log)
+    elif args.etapa == "procesar":
+        r = historico.procesar_historico(log=log, tope=args.tope)
+        if r["limite"]:
+            sys.exit(3)   # se frenó por el límite de la cuenta: se retoma después
+    elif args.etapa == "eventos":
+        historico.eventos_historico(log=log)
+    elif args.etapa == "tablero":
+        historico.tablero_historico(date.fromisoformat(args.desde), date.fromisoformat(args.hasta), log=log)
+    else:
+        historico.estado_historico(log=log)
+
+
 def _pendiente(etapa: str):
     def cmd(args) -> None:
         log(f"Este comando llega en la etapa de {etapa}.")
@@ -236,6 +255,13 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--n", type=int, default=30, help="cantidad de fichas de la muestra")
     s.add_argument("--dias", type=int, default=7, help="tomar notas publicadas en los últimos N días")
     s.set_defaults(func=cmd_auditoria)
+
+    s = sub.add_parser("historico", help="siniestros de fechas pasadas con la cuenta de Claude (no la API)")
+    s.add_argument("etapa", choices=["recolectar", "procesar", "eventos", "tablero", "estado"])
+    s.add_argument("--desde", default="2026-10-18", help="AAAA-MM-DD (recolectar y tablero)")
+    s.add_argument("--hasta", default="2026-11-17", help="AAAA-MM-DD (recolectar y tablero)")
+    s.add_argument("--tope", type=int, help="procesar: notas a extraer en esta corrida")
+    s.set_defaults(func=cmd_historico)
 
     args = p.parse_args(argv)
     args.func(args)
