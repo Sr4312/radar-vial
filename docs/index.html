@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Radar Vial · Observatorio Humanitario</title>
   <meta name="description" content="Siniestros viales reportados en medios de Argentina. Observatorio Humanitario de Cruz Roja Argentina.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_AR">
+  <meta property="og:title" content="Radar Vial · Observatorio Humanitario">
+  <meta property="og:description" content="Siniestros viales reportados en medios de Argentina, actualizados todos los días. Observatorio Humanitario de Cruz Roja Argentina.">
+  <meta name="theme-color" content="#C11F2A">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23fff'/%3E%3Cpath d='M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z' fill='%23E73743'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -66,6 +72,7 @@
             <span><span class="punto" style="background:#C11F2A"></span>Con personas fallecidas</span>
             <span><span class="punto" style="background:#fff;border:2px solid #E73743"></span>Sin personas fallecidas</span>
           </div>
+          <p class="nota"><strong>No sirve para decir qué provincia es más peligrosa.</strong> El color depende también de cuánta prensa local cubre cada provincia: donde hay más medios se registran más siniestros. Con menos de 5 siniestros en el período no se calcula la tasa.</p>
           <p class="nota">La provincia de Tierra del Fuego, Antártida e Islas del Atlántico Sur incluye el sector antártico, que la proyección del mapa web no puede mostrar. Los puntos marcan la localidad o el departamento; los siniestros sin ese dato no se dibujan.</p>
           <details class="datos"><summary>Ver datos por provincia</summary><div class="tabla-envoltura" id="tabla-mapa"></div></details>
         </article>
@@ -121,6 +128,7 @@
         <h2>Contexto vial</h2>
         <article class="tarjeta contexto">
           <p class="sub">Controles, normas, estadísticas oficiales, estado de rutas y campañas. No se suman a los conteos de siniestros.</p>
+          <div class="filtros" style="padding-top:0"><label class="campo">Tipo de novedad <select id="f-contexto"><option value="">Todas</option></select></label></div>
           <ul id="lista-contexto"></ul>
         </article>
       </section>
@@ -161,11 +169,13 @@
         <h3>De dónde salen los datos</h3>
         <p>Todos los días se leen las notas publicadas en las últimas 48 horas en Google News (una búsqueda por término y por provincia) y en los feeds y sitemaps de noticias de <span id="n-medios">más de 70</span> medios nacionales y provinciales. La prensa local es imprescindible: la mayoría de los siniestros solo los cubre el medio de la zona.</p>
         <h3>De notas a siniestros</h3>
-        <p>Un modelo de lenguaje filtra las notas, lee las relevantes y arma una ficha propia de cada siniestro (fecha, lugar, tipo, vehículos, víctimas y factores que menciona la nota). Lo que la nota no dice queda vacío: preferimos subestimar a inventar. Las notas que cuentan el mismo hecho se agrupan en un solo siniestro, con todas sus fuentes; de cada dato se toma el más completo y las cifras de víctimas, de la nota más reciente.</p>
+        <p>Un modelo de lenguaje filtra las notas, lee las relevantes y arma una ficha propia de cada siniestro (fecha, lugar, tipo, vehículos, víctimas y factores que menciona la nota). Lo que la nota no dice queda vacío: preferimos subestimar a inventar. Las notas que cuentan el mismo hecho se agrupan en un solo siniestro, con todas sus fuentes; de cada dato se toma el más completo; las personas fallecidas son la cifra más alta que informan las notas completas, y las heridas, las de la nota más reciente.</p>
         <h3>Cómo leer los indicadores</h3>
         <ul>
-          <li>Los siniestros se cuentan por la <strong>fecha del hecho</strong>. "Esta semana" son los últimos 7 días completos (hasta ayer).</li>
-          <li>Los <strong>últimos días siempre están incompletos</strong>: las notas y las cifras de víctimas llegan con demora, así que la comparación con la semana anterior hay que leerla con cuidado.</li>
+          <li>Los siniestros se cuentan por la <strong>fecha del hecho</strong>. "Esta semana" son los últimos 7 días hasta ayer.</li>
+          <li>Los <strong>últimos días siempre están incompletos</strong>: las notas y las cifras de víctimas llegan con demora. Por eso la comparación con el período anterior usa solo los días ya cerrados, y con menos de 20 casos muestra la diferencia en cantidad y no en porcentaje.</li>
+          <li>El <strong>mapa por provincia no mide peligrosidad</strong>: la cantidad de siniestros registrados depende de cuántos medios locales cubre el radar en cada provincia. Con menos de 5 siniestros no se calcula la tasa.</li>
+          <li>Las <strong>personas fallecidas</strong> son las que informan las notas hasta el momento. No se sigue a cada persona herida, así que las muertes posteriores sin nota no se cuentan, y la cifra no es comparable con las estadísticas oficiales (que cuentan las muertes hasta 30 días después).</li>
           <li>Algunos siniestros solo se conocen por titulares (no se pudo leer la nota completa); tienen menos datos y se pueden excluir con la casilla de arriba.</li>
           <li>Los <strong>factores</strong> son los que menciona la nota, muchas veces como hipótesis ("presuntos"). Nunca son causas confirmadas.</li>
           <li>Cuando una nota no dice la provincia y hay una pista clara (el medio local o la búsqueda por la que llegó), la provincia se completa y se marca como inferida.</li>

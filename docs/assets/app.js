@@ -6,7 +6,7 @@
   // ------------------------------------------------------------------ constantes
   const C = {
     rojo: "#E73743", rojoTexto: "#C11F2A", tinta: "#231F20", pizarra: "#5E686F", linea: "#E3E6E8",
-    bruma: "#F1F3F4", carga: "#F6ACB1", previo: "#8A9399", secuencial: ["#F9D2D5", "#F6ACB1", "#F1858B", "#E94E58", "#C11F2A"],
+    bruma: "#F1F3F4", carga: "#F6ACB1", previo: "#8A9399", pocos: "#C9CED2", secuencial: ["#F9D2D5", "#F6ACB1", "#F1858B", "#E94E58", "#C11F2A"],
   };
   const NUM = new Intl.NumberFormat("es-AR");
   const DEC1 = new Intl.NumberFormat("es-AR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -43,9 +43,11 @@
     },
   };
   const POR_PAGINA = 20;
+  const MIN_CASOS_TASA = 5;
+  const CONTEXTO_POR_TANDA = 25;
 
   const estado = {
-    datos: null, desde: null, hasta: null, incluirTitulos: true, pagina: 0, graficos: {}, mapa: null,
+    datos: null, desde: null, hasta: null, incluirTitulos: true, pagina: 0, graficos: {}, mapa: null, contextoVisibles: 25,
     capaProvincias: null, capaPuntos: null, provincias: {},
   };
 
@@ -142,43 +144,65 @@
   }
 
   // ------------------------------------------------------------------ indicadores
-  function textoVariacion(actual, previo, dias, previoCompleto = true) {
-    const periodo = `los ${dias} días anteriores`;
-    if (!previoCompleto) return el("span", { texto: `Sin datos completos de ${periodo}` });
-    if (!previo) return el("span", { texto: `Sin datos de ${periodo}` });
-    const pct = (100 * (actual - previo)) / previo;
-    if (Math.abs(pct) < 0.5) return el("span", {}, "Igual que en ", periodo, " (", NUM.format(previo), ")");
-    const flecha = pct > 0 ? "▲" : "▼";
-    return el("span", {}, el("b", { texto: `${flecha} ${DEC1.format(Math.abs(pct))}% ${pct > 0 ? "más" : "menos"}` }),
-      ` que en ${periodo} (${NUM.format(previo)})`);
+  const BASE_MINIMA_PCT = 20;   // con menos casos que esto, un porcentaje engaña ("de 2 a 4: 100% más")
+
+  /** Variación entre dos cantidades de días ya cerrados. `comparacion` es null si no hay con qué comparar. */
+  function textoVariacion(actual, previo, comparacion) {
+    if (!comparacion) return el("span", { texto: "Sin comparación todavía" });
+    const { dias, parcial } = comparacion;
+    const periodo = dias === 1 ? "el día anterior" : `los ${dias} días anteriores`;
+    const tramo = parcial ? (dias === 1 ? "en el día ya cerrado " : `en los ${dias} días ya cerrados `) : "";
+    if (actual === previo) return el("span", {}, `Igual ${tramo}que en ${periodo} (${NUM.format(previo)})`);
+    const sube = actual > previo;
+    const flecha = sube ? "▲" : "▼";
+    const cuanto = previo >= BASE_MINIMA_PCT
+      ? `${DEC1.format(Math.abs((100 * (actual - previo)) / previo))}%`
+      : NUM.format(Math.abs(actual - previo));
+    return el("span", {}, el("b", { texto: `${flecha} ${cuanto} ${sube ? "más" : "menos"}` }),
+      ` ${tramo}que en ${periodo} (${NUM.format(previo)})`);
   }
 
   function dibujarIndicadores() {
     const { desde, hasta } = estado;
-    const n = diasEntre(desde, hasta) + 1;
+    const meta = estado.datos.meta;
     const actual = sumarSerie(desde, hasta);
-    const previo = sumarSerie(sumarDias(desde, -n), sumarDias(desde, -1));
-    const inicio = estado.datos.meta.inicio_cobertura;
-    const previoCompleto = !inicio || sumarDias(desde, -n) >= inicio;
+    const inicio = meta.inicio_cobertura;
+    // Se comparan solo días cerrados: los últimos (y el día en curso) todavía reciben notas, y contra un período
+    // completo siempre darían "menos".
+    const ultimoCerrado = sumarDias(meta.corte, -(meta.dias_en_carga || 0));
+    const hastaCerrado = hasta < ultimoCerrado ? hasta : ultimoCerrado;
+    const n = diasEntre(desde, hastaCerrado) + 1;
+    let comparacion = null, cerrado = actual, previo = actual;
+    const sinPrevio = n >= 1 && inicio && sumarDias(desde, -n) < inicio;
+    if (n >= 1 && !sinPrevio) {
+      cerrado = hastaCerrado === hasta ? actual : sumarSerie(desde, hastaCerrado);
+      previo = sumarSerie(sumarDias(desde, -n), sumarDias(desde, -1));
+      comparacion = { dias: n, parcial: hastaCerrado !== hasta };
+    }
     const tarjetas = [
-      [actual.siniestros, "Siniestros reportados", previo.siniestros],
-      [actual.fallecidos, "Personas fallecidas", previo.fallecidos],
-      [actual.heridos, "Personas heridas", previo.heridos],
-      [actual.provinciasConCasos, "Provincias con casos", previo.provinciasConCasos],
+      [actual.siniestros, "Siniestros reportados", cerrado.siniestros, previo.siniestros],
+      [actual.fallecidos, "Personas fallecidas", cerrado.fallecidos, previo.fallecidos],
+      [actual.heridos, "Personas heridas", cerrado.heridos, previo.heridos],
+      [actual.provinciasConCasos, "Provincias con casos", cerrado.provinciasConCasos, previo.provinciasConCasos],
     ];
     const caja = vaciar($("kpis"));
-    for (const [valor, etiqueta, ant] of tarjetas) {
+    for (const [valor, etiqueta, valorCerrado, ant] of tarjetas) {
       caja.append(el("div", { clase: "tarjeta kpi" },
         el("div", { clase: "valor", texto: NUM.format(valor) }),
         el("div", { clase: "etiqueta", texto: etiqueta === "Provincias con casos" ? `${etiqueta} (de 24)` : etiqueta }),
-        el("div", { clase: "delta" }, textoVariacion(valor, ant, n, previoCompleto))));
+        el("div", { clase: "delta" }, textoVariacion(valorCerrado, ant, comparacion))));
     }
     // Aviso sobre los días que todavía se completan y sobre la cobertura de los detalles
     const enCarga = (estado.datos.resumen_semana.dias_en_carga || []).filter((d) => d >= desde && d <= hasta);
     const partes = [];
+    if (hasta > meta.corte) partes.push(`El ${fechaCorta(hasta)} todavía no terminó: sus cifras son parciales.`);
+    if (!comparacion) {
+      partes.push(sinPrevio ? "Todavía no hay un período anterior completo para comparar."
+        : "El período elegido no tiene días cerrados para comparar.");
+    }
     if (inicio && desde < inicio) partes.push(`El radar registra siniestros desde el ${fechaCompleta(inicio)}: los días anteriores tienen solo notas sueltas.`);
     if (enCarga.length) {
-      partes.push(`${enCarga.length === 1 ? "El día" : "Los días"} ${enCarga.map(fechaCorta).join(" y ")} todavía se ${enCarga.length === 1 ? "está" : "están"} completando: las notas y las cifras de víctimas siguen llegando, así que la comparación con el período anterior puede cambiar.`);
+      partes.push(`${enCarga.length === 1 ? "El día" : "Los días"} ${enCarga.map(fechaCorta).join(" y ")} todavía se ${enCarga.length === 1 ? "está" : "están"} completando: las notas y las cifras de víctimas siguen llegando, por eso la comparación usa solo los días ya cerrados.`);
     }
     const primerDia = sumarDias(estado.datos.meta.corte, -(estado.datos.meta.dias_eventos - 1));
     if (desde < primerDia) partes.push(`El mapa de puntos, las distribuciones, los rankings de rutas y la tabla muestran los siniestros desde el ${fechaCorta(primerDia)}.`);
@@ -421,15 +445,18 @@
       return { ...p, siniestros: t.siniestros, fallecidos: t.fallecidos, tasa: (100000 * t.siniestros) / p.poblacion };
     });
     const porId = Object.fromEntries(filas.map((f) => [f.id, f]));
-    const cortes = clasesTasa(filas.map((f) => f.tasa));
+    // Con pocos siniestros la tasa salta por un solo caso (y por cuánta prensa local hay): no se pinta.
+    const pocos = (f) => f && f.siniestros > 0 && f.siniestros < MIN_CASOS_TASA;
+    const colorProvincia = (f) => (pocos(f) ? C.pocos : colorTasa(f && f.siniestros ? f.tasa : 0, cortes));
+    const cortes = clasesTasa(filas.filter((f) => !pocos(f)).map((f) => f.tasa));
     if (estado.capaProvincias) estado.capaProvincias.remove();
     if (estado.datos.geo) {
       estado.capaProvincias = L.geoJSON(estado.datos.geo, {
-        style: (f) => ({ fillColor: colorTasa((porId[f.properties.id] || {}).tasa, cortes), fillOpacity: 0.78, color: "#FFFFFF", weight: 1 }),
+        style: (f) => ({ fillColor: colorProvincia(porId[f.properties.id]), fillOpacity: 0.78, color: "#FFFFFF", weight: 1 }),
         onEachFeature: (f, capa) => {
           const p = porId[f.properties.id];
           if (!p) return;
-          capa.bindTooltip(`${p.nombre}: ${plural(p.siniestros, "siniestro", "siniestros")} · ${DEC2.format(p.tasa)} cada 100.000 hab.`, { sticky: true });
+          capa.bindTooltip(`${p.nombre}: ${plural(p.siniestros, "siniestro", "siniestros")} · ${pocos(p) ? "pocos casos para calcular una tasa" : `${DEC2.format(p.tasa)} cada 100.000 hab.`}`, { sticky: true });
           capa.on({ mouseover: () => capa.setStyle({ weight: 2.5, color: C.tinta }), mouseout: () => capa.setStyle({ weight: 1, color: "#FFFFFF" }) });
         },
       }).addTo(estado.mapa);
@@ -452,12 +479,13 @@
     // Escala del mapa
     const escala = vaciar($("escala-mapa"));
     escala.append(el("span", { texto: "Siniestros cada 100.000 hab.:" }), " ",
-      el("span", { clase: "paso", style: `background:${C.bruma}` }), el("span", { texto: " 0 " }));
+      el("span", { clase: "paso", style: `background:${C.bruma}` }), el("span", { texto: " 0 " }),
+      el("span", { clase: "paso", style: `background:${C.pocos}` }), el("span", { texto: ` Menos de ${MIN_CASOS_TASA} siniestros ` }));
     const limites = [0, ...cortes];
     C.secuencial.slice(0, cortes.length + 1).forEach((color, i) => {
       const desde = limites[i];
       escala.append(el("span", { clase: "paso", style: `background:${color}` }),
-        el("span", { texto: i < cortes.length ? ` Hasta ${DEC2.format(cortes[i])} ` : ` Más de ${DEC2.format(desde)} ` }));
+        el("span", { texto: i < cortes.length ? ` Hasta ${DEC2.format(cortes[i])} ` : desde ? ` Más de ${DEC2.format(desde)} ` : " Con siniestros " }));
     });
     // Tabla del mapa (acceso sin mapa)
     tablaSimple($("tabla-mapa"), ["Provincia", "Siniestros", "Fallecidos", "Cada 100.000 hab."],
@@ -559,17 +587,20 @@
     provincias.append(el("option", { value: "sin", texto: "Sin provincia identificada" }));
     for (const [k, v] of Object.entries(ETIQUETAS.tipo)) $("f-tipo").append(el("option", { value: k, texto: v }));
     for (const [k, v] of Object.entries(ETIQUETAS.vehiculo)) $("f-vehiculo").append(el("option", { value: k, texto: v }));
+    for (const [k, v] of Object.entries(ETIQUETAS.subtipo)) $("f-contexto").append(el("option", { value: k, texto: v }));
   }
 
   // ------------------------------------------------------------------ contexto vial
   function dibujarContexto() {
     const lista = vaciar($("lista-contexto"));
-    const items = estado.datos.contexto.filter((c) => c.fecha >= estado.desde && c.fecha <= estado.hasta);
+    const subtipo = $("f-contexto").value;
+    const items = estado.datos.contexto.filter((c) => c.fecha >= estado.desde && c.fecha <= estado.hasta
+      && (!subtipo || (c.subtipo || "otro") === subtipo));
     if (!items.length) {
-      lista.append(el("li", { clase: "nota", texto: "Sin novedades de contexto vial en el período elegido." }));
+      lista.append(el("li", { clase: "nota", texto: subtipo ? "Sin novedades de ese tipo en el período elegido." : "Sin novedades de contexto vial en el período elegido." }));
       return;
     }
-    for (const c of items.slice(0, 25)) {
+    for (const c of items.slice(0, estado.contextoVisibles)) {
       const prov = estado.provincias[c.provincia];
       const donde = prov ? prov.nombre : (c.ambito === "nacional" ? "Nacional" : "");
       lista.append(el("li", {},
@@ -579,7 +610,12 @@
         el("div", { clase: "meta" }, [fechaCorta(c.fecha), donde, c.organismo].filter(Boolean).join(" · "), " · ",
           c.fuentes.map((f, i) => [i ? ", " : "", enlace(f.url, f.medio || "Nota")]))));
     }
-    if (items.length > 25) lista.append(el("li", { clase: "nota", texto: `Y ${plural(items.length - 25, "novedad más", "novedades más")} en el período.` }));
+    const faltan = items.length - estado.contextoVisibles;
+    if (faltan > 0) {
+      const mas = el("button", { type: "button", texto: `Ver ${NUM.format(Math.min(faltan, CONTEXTO_POR_TANDA))} más (${faltan === 1 ? "queda 1 novedad" : `quedan ${NUM.format(faltan)} novedades`})` });
+      mas.addEventListener("click", () => { estado.contextoVisibles += CONTEXTO_POR_TANDA; dibujarContexto(); });
+      lista.append(el("li", { clase: "nota" }, mas));
+    }
   }
 
   // ------------------------------------------------------------------ histórico
@@ -601,21 +637,27 @@
     // Semanas que empezaron antes del inicio del registro: incompletas, no se compara contra ellas
     const inicio = estado.datos.meta.inicio_cobertura || Object.keys(dias).sort()[0];
     const incompleta = (lunes) => !inicio || lunes < inicio;
+    const marca = (k) => (!incompleta(k) ? (enCurso(k) ? " (en curso)" : "")
+      : sumarDias(k, 6) < inicio ? " (anterior al inicio del registro)" : " (el registro empezó durante esta semana)");
     graficoBarras("g-semanas", claves.map((k) => fechaCorta(k)), claves.map((k) => semanas[k].siniestros), {
       colores: claves.map((k) => (incompleta(k) ? C.previo : enCurso(k) ? C.carga : C.rojo)),
       bordes: claves.map((k) => (enCurso(k) && !incompleta(k) ? 2 : 0)), unidad: "siniestros", valoresVisibles: claves.length <= 20,
-      titulos: claves.map((k) => `Semana del ${fechaCorta(k)} al ${fechaCorta(sumarDias(k, 6))}${incompleta(k) ? " (el registro empezó durante esta semana)" : enCurso(k) ? " (en curso)" : ""}`),
+      titulos: claves.map((k) => `Semana del ${fechaCorta(k)} al ${fechaCorta(sumarDias(k, 6))}${marca(k)}`),
     });
     const filas = claves.slice().reverse().map((k, i, arr) => {
       const s = semanas[k];
       const anterior = semanas[sumarDias(k, -7)];
       const anioAnterior = semanas[sumarDias(k, -364)];
       let variacion = "Sin datos";
-      if (anterior && anterior.siniestros && !incompleta(sumarDias(k, -7))) {
-        const pct = (100 * (s.siniestros - anterior.siniestros)) / anterior.siniestros;
-        variacion = `${pct > 0 ? "+" : pct < 0 ? "-" : ""}${DEC1.format(Math.abs(pct))}%`;
+      if (enCurso(k)) {
+        variacion = "Semana en curso";   // incompleta: contra una semana entera siempre daría "menos"
+      } else if (anterior && anterior.siniestros && !incompleta(sumarDias(k, -7)) && !incompleta(k)) {
+        const dif = s.siniestros - anterior.siniestros;
+        const signo = dif > 0 ? "+" : dif < 0 ? "-" : "";
+        variacion = anterior.siniestros >= BASE_MINIMA_PCT
+          ? `${signo}${DEC1.format(Math.abs((100 * dif) / anterior.siniestros))}%` : `${signo}${NUM.format(Math.abs(dif))}`;
       }
-      return [`Del ${fechaCorta(k)} al ${fechaCorta(sumarDias(k, 6))}${incompleta(k) ? " (el registro empezó durante esta semana)" : enCurso(k) ? " (en curso)" : ""}`,
+      return [`Del ${fechaCorta(k)} al ${fechaCorta(sumarDias(k, 6))}${marca(k)}`,
         NUM.format(s.siniestros), NUM.format(s.fallecidos), NUM.format(s.heridos), variacion,
         anioAnterior ? NUM.format(anioAnterior.siniestros) : "Sin datos"];
     });
@@ -641,9 +683,15 @@
     const desdeInput = $("desde"), hastaInput = $("hasta");
     if (valor === "personalizado") {
       $("campo-desde").hidden = false; $("campo-hasta").hidden = false;
-      estado.desde = desdeInput.value || estado.desde;
-      estado.hasta = hastaInput.value || estado.hasta;
+      // dentro de los límites del calendario (al tipear el año a mano se pueden pasar) y en orden
+      const acotar = (v, actual) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(v || "")) return actual;
+        return v < desdeInput.min ? desdeInput.min : v > desdeInput.max ? desdeInput.max : v;
+      };
+      estado.desde = acotar(desdeInput.value, estado.desde);
+      estado.hasta = acotar(hastaInput.value, estado.hasta);
       if (estado.desde > estado.hasta) [estado.desde, estado.hasta] = [estado.hasta, estado.desde];
+      desdeInput.value = estado.desde; hastaInput.value = estado.hasta;
     } else {
       $("campo-desde").hidden = true; $("campo-hasta").hidden = true;
       estado.hasta = corte;
@@ -667,6 +715,7 @@
     $("rango").addEventListener("change", (ev) => { fijarRango(ev.target.value); estado.pagina = 0; dibujarTodo(); });
     for (const id of ["desde", "hasta"]) $(id).addEventListener("change", () => { fijarRango("personalizado"); estado.pagina = 0; dibujarTodo(); });
     $("incluir-titulos").addEventListener("change", (ev) => { estado.incluirTitulos = ev.target.checked; estado.pagina = 0; dibujarTodo(); });
+    $("f-contexto").addEventListener("change", () => { estado.contextoVisibles = CONTEXTO_POR_TANDA; dibujarContexto(); });
     for (const id of ["f-provincia", "f-tipo", "f-vehiculo", "f-fatales"]) {
       $(id).addEventListener("change", () => { estado.pagina = 0; dibujarTabla(eventosDelRango()); });
     }
@@ -686,7 +735,7 @@
   function textosFijos() {
     const meta = estado.datos.meta;
     const generado = new Date(meta.generado);
-    const hora = generado.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    const hora = generado.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
     const actualizado = vaciar($("actualizado"));
     actualizado.append("Actualizado: ", el("strong", { texto: hora }), el("br"), `Datos hasta el ${fechaCompleta(meta.corte)}`);
     $("aviso-demo").hidden = !meta.demo;
@@ -695,7 +744,7 @@
     for (const o of meta.oficiales || []) oficiales.append(el("li", {}, enlace(o.url, o.nombre)));
     const rango = $("desde"), hasta = $("hasta");
     rango.max = hasta.max = sumarDias(meta.corte, 1);
-    if (meta.inicio_cobertura) rango.min = hasta.min = meta.inicio_cobertura;
+    rango.min = hasta.min = Object.keys(estado.datos.serie_diaria.dias).sort()[0] || meta.inicio_cobertura || meta.corte;
   }
 
   async function iniciar() {

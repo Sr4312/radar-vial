@@ -129,7 +129,25 @@ El Radar Vial lo publica Cruz Roja Argentina. Por eso:
 - **Desde cuándo**: el radar registra siniestros desde el 18 de noviembre de 2026. Los días anteriores solo
   tienen notas tardías sueltas: el tablero los muestra aparte y no compara contra ellos.
 - **Días recientes incompletos**: las notas y las cifras de víctimas llegan con demora. Los últimos días
-  siempre están incompletos, por eso la comparación con la semana anterior hay que leerla con cuidado.
+  siempre están incompletos: el tablero compara solo los días ya cerrados y, con menos de 20 casos, muestra
+  la diferencia en cantidad y no en porcentaje.
+- **Las provincias no son comparables entre sí**: la cantidad de siniestros registrados depende de cuántos
+  medios locales cubre el radar en cada provincia (entre uno y cinco) y de lo que Google News devuelve. La
+  tasa cada 100.000 habitantes del mapa refleja esa cobertura además de la siniestralidad: no sirve para
+  ordenar provincias por peligrosidad. Con menos de 5 siniestros en el período no se calcula.
+- **Personas fallecidas**: son las que informan las notas hasta el momento (la cifra más alta entre las notas
+  completas de cada siniestro). No se sigue a las personas heridas: una muerte posterior sin nota no se
+  cuenta. Las estadísticas oficiales cuentan las muertes hasta 30 días después del hecho, así que las cifras
+  no son comparables.
+- **Siniestros repetidos**: una revisión del 20 de noviembre de 2026 encontró cerca de 6% de siniestros
+  duplicados (notas de seguimiento y notas sin lugar) y corrigió las reglas; puede quedar un resto, sobre
+  todo entre los conocidos solo por titulares.
+- **Fecha aproximada**: cuando la nota no dice cuándo fue el hecho se usa la fecha de publicación, que puede
+  correr el siniestro uno o más días.
+- **Siniestros sin provincia**: cuentan en los totales nacionales pero no en el mapa ni en los rankings, así
+  que la suma de las provincias es menor que el total.
+- **Cambios en el método**: un cambio de modelo, de consigna o del catálogo de medios altera cuánto se
+  detecta. La serie histórica no es estrictamente comparable a través de esos cambios.
 - **Errores de extracción y de agrupación**: la extracción y la agrupación las hace un modelo de lenguaje
   con reglas. Su precisión se mide con 20 notas reales anotadas (la anotación está en validación por el
   equipo) y se revisa una muestra semanal, pero puede haber datos mal leídos y siniestros fusionados de más

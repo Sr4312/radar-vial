@@ -119,6 +119,11 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   minúscula de los titulares de la marca (nada de `text-transform: lowercase`). `agregados` publica localidad,
   vía, resumen, organismo y medio con `texto.mayuscula_inicial`; `texto.nombre_medio` limpia los medios que se
   presentan con su dirección ("https://www.diarioya.ar/" -> "Diarioya.ar").
+- Lectura honesta (revisión del 20-11-2026): las variaciones comparan solo días cerrados (hasta `corte` menos
+  `dias_en_carga`) contra la misma cantidad de días anteriores, y con base menor a 20 (`BASE_MINIMA_PCT`) muestran
+  la diferencia en cantidad, no en porcentaje; la semana en curso del histórico no se compara. El mapa no pinta la
+  tasa con menos de 5 siniestros (`MIN_CASOS_TASA`) y avisa que el color depende de la cobertura de prensa. El
+  rango personalizado se acota al calendario. Contexto vial con filtro por tipo y "Ver más".
 - `inicio_cobertura` (config.yaml, 2026-11-18): desde cuándo registra el radar. Va en meta.json; el tablero no
   compara contra períodos que empiezan antes ("Sin datos completos"), pinta en gris los días y semanas previos y
   lo avisa. `resumen_semana.json` trae `periodo_completo` y `previo_completo`. La serie diaria tiene 6
