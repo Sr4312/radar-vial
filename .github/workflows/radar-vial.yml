@@ -146,6 +146,15 @@ jobs:
                   print(f"- {k}: {v}")
           PY
 
+      # El tablero completo como archivo descargable (para verlo sin GitHub Pages: ver README)
+      - name: Subir el tablero
+        if: steps.guardar.outputs.publicado == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tablero-${{ github.run_id }}
+          path: docs/
+          retention-days: 14
+
       - name: Subir vista previa y reportes
         if: always() && steps.hoy.outputs.ya != 'true'
         uses: actions/upload-artifact@v4
@@ -155,10 +164,12 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  # Publica docs/ en GitHub Pages (en la configuración del repositorio: Pages > Source: GitHub Actions)
+  # Publica docs/ en GitHub Pages (Settings > Pages > Source: GitHub Actions). Solo si la variable del
+  # repositorio PUBLICAR_PAGES vale "true": en un repositorio privado con plan gratuito GitHub no permite Pages
+  # y este paso fallaría todos los días.
   publicar:
     needs: correr
-    if: needs.correr.outputs.publicado == 'true'
+    if: needs.correr.outputs.publicado == 'true' && vars.PUBLICAR_PAGES == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read

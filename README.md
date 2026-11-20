@@ -83,19 +83,41 @@ La vista previa queda en `salida\vista_previa`. Para verla:
 .venv\Scripts\python.exe -m http.server 8000 --directory salida\vista_previa
 ```
 
-### 5. Publicar en GitHub (una sola vez)
+### 5. Correr en GitHub (una sola vez)
 
-1. Crear un repositorio **público** en GitHub (GitHub Pages es gratis en repositorios públicos; en uno privado
-   necesita un plan pago). No se sube ningún texto de notas ni dato personal: ver *Privacidad* más abajo.
-2. Subir el proyecto al repositorio (con GitHub Desktop o con `git push`).
-3. En el repositorio: **Settings > Secrets and variables > Actions > New repository secret**. Nombre:
-   `ANTHROPIC_API_KEY`; valor: la clave del Observatorio.
-4. **Settings > Pages > Build and deployment > Source: GitHub Actions**.
-5. **Actions > Radar Vial > Run workflow** para la primera corrida. Al terminar, el tablero queda en
-   `https://<usuario>.github.io/<repositorio>/`.
+El repositorio es `Sr4312/radar-vial` (privado).
+
+1. En el repositorio: **Settings > Secrets and variables > Actions > Secrets > New repository secret**.
+   Nombre: `ANTHROPIC_API_KEY`; valor: la clave del Observatorio.
+2. **Actions > Radar Vial > Run workflow** para la primera corrida (tarda unos 30 minutos).
 
 Desde ahí corre solo todos los días. Si un día falla, el siguiente intento (cada dos horas hasta las 18:17)
-lo vuelve a probar.
+lo vuelve a probar; si ya corrió, los intentos siguientes terminan en segundos.
+
+### 6. Publicar el tablero en la web (GitHub Pages)
+
+GitHub Pages **no está disponible en repositorios privados con el plan gratuito**. Opciones: pasar el
+repositorio a público, usar una cuenta u organización con plan pago, o publicar `docs/` en otro servicio de
+sitios estáticos. Ojo: con un plan pago, el sitio de Pages de un repositorio privado igual es **público**.
+
+Cuando Pages esté disponible:
+
+1. **Settings > Pages > Build and deployment > Source: GitHub Actions**.
+2. **Settings > Secrets and variables > Actions > Variables > New repository variable**: nombre
+   `PUBLICAR_PAGES`, valor `true`.
+3. Correr el workflow. El tablero queda en `https://<cuenta>.github.io/radar-vial/`.
+
+### 7. Ver el tablero sin GitHub Pages
+
+- **Desde la computadora**: traer lo último (`git pull`) y servir la carpeta `docs`:
+
+```powershell
+.venv\Scripts\python.exe -m http.server 8000 --directory docs
+```
+
+  y abrir <http://localhost:8000>.
+- **Desde GitHub**: en cada corrida, **Actions > (la corrida) > Artifacts > tablero-…** baja el tablero en un
+  zip. Descomprimirlo y servirlo igual que arriba (con doble clic sobre `index.html` no carga los datos).
 
 ---
 
