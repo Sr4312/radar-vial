@@ -60,7 +60,13 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   Google News llegó la nota (`provincias_busqueda`, guardado en cada nota). Caché en `data/cache/georef.json`.
   Se guarda en cada ficha (`geo`); las de nivel "ninguno" se reintentan en cada corrida.
 - `radar_vial/eventos.py` - `agrupar`: fichas en orden de publicación, candidatos de ±2 días (índice por fecha),
-  `comparar` da (compatibles, puntaje). Contradicciones duras: provincias distintas, más de 1 día (2 si la fecha
+  `comparar` da (compatibles, puntaje). Reglas de conteo del 20-11-2026 (tras una revisión que encontró 6 de 41
+  muertes duplicadas; quedaron 217 siniestros y 37): (1) nota de seguimiento = fecha aproximada posterior, hasta
+  `DIAS_SEGUIMIENTO` (14): candidata solo con puntaje >= 3 y siempre por `Desempate`; (2) la provincia inferida no
+  contradice (`_prov_segura`), con la misma exigencia; al consolidar gana la provincia confirmada; (3) los
+  números son calles si la vía no es ruta ("Calles 19 y 46"); (4) localidad sin ubicar que contiene a la otra
+  cuenta como la misma; (5) fallecidos = máximo entre notas completas. Sin lugar y sin puntaje la comparación
+  es `NEUTRA` (ni suma ni contradice). Contradicciones duras: provincias distintas, más de 1 día (2 si la fecha
   es aproximada), rutas con distinto número, km a más de 30 entre localidades distintas, dos esquinas distintas
   (cada una con 2 calles y ninguna en común; se ignoran palabras genéricas como bulevar o rotonda, el nombre de
   la localidad y errores de tipeo), dos fichas de una misma nota. `comparar_detalle` marca cada contradicción

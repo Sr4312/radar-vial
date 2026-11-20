@@ -11,7 +11,7 @@ conservan: cada evento nuevo hereda el id del evento anterior con el que compart
 Claude se guardan en data/cache/decisiones_eventos.json para no volver a preguntar lo mismo.
 
 Al fusionar: se queda el dato más completo (notas con texto completo y mayor confianza primero) y, para las
-cifras de víctimas, el de la nota más reciente que las informa (las cifras suben con el paso de los días).
+fallecidos, la cifra más alta de las notas completas; para los heridos, la de la nota más reciente.
 """
 from __future__ import annotations
 
@@ -31,6 +31,11 @@ UMBRAL_FUSION = 4.0       # puntaje desde el que se fusiona sin preguntar
 UMBRAL_CONSULTA = 1.5     # puntaje desde el que se pregunta a Claude (fichas con texto completo)
 MARGEN = 1.0              # ventaja mínima sobre el segundo candidato para fusionar sin preguntar
 MAX_CANDIDATOS = 6
+# Una nota de seguimiento ("murió días después", "detuvieron al conductor") o de solo título no dice cuándo fue
+# el hecho: su fecha es la de publicación (aproximada). Puede ser el mismo siniestro hasta estos días después,
+# pero solo con coincidencia fuerte y nunca sin preguntar (medido el 20-11-2026: 5 siniestros duplicados así).
+DIAS_SEGUIMIENTO = 14
+PUNTAJE_SEGUIMIENTO = 3.0
 
 FAMILIAS = {
     "choque_frontal": "choque", "choque_por_alcance": "choque", "choque_lateral": "choque",
@@ -65,10 +70,16 @@ def ruta_y_km(via: str | None) -> tuple[str | None, int | None, int | None]:
 
 
 def palabras_via(via: str | None, localidad: str | None = None) -> set[str]:
-    """Palabras que distinguen una vía (sin genéricas, números ni el nombre de la propia localidad)."""
+    """Palabras que distinguen una vía (sin genéricas ni el nombre de la propia localidad).
+
+    Los números cuentan solo si la vía no es una ruta: en General Pico o La Plata las calles se llaman por
+    número ("Calles 19 y 46"), y sin ellos dos esquinas distintas se fusionaban solas.
+    """
     propias = set(normalizar(localidad or "").split())
+    con_numeros = ruta_y_km(via)[1] is None
     return {w for w in normalizar(via or "").split()
-            if w not in _VACIAS_VIA and w not in propias and not w.isdigit() and len(w) > 2}
+            if w not in _VACIAS_VIA and w not in propias
+            and ((con_numeros and len(w) <= 4) if w.isdigit() else len(w) > 2)}
 
 
 def _comparten_calle(wa: set[str], wb: set[str]) -> bool:
@@ -92,6 +103,13 @@ def _prov(f: dict) -> str | None:
     return (f.get("geo") or {}).get("provincia_id") or f.get("provincia_id")
 
 
+def _prov_segura(f: dict) -> str | None:
+    """La provincia, salvo que sea inferida (del medio o de la búsqueda): esa es una pista, no un dato, y no
+    alcanza para decir que dos fichas son de siniestros distintos (el choque de Canals, Córdoba, quedó además
+    como un siniestro de La Pampa el 20-11-2026)."""
+    return None if (f.get("geo") or {}).get("provincia_inferida") else _prov(f)
+
+
 # ------------------------------------------------------------------ comparación
 
 def comparar(a: dict, b: dict) -> tuple[bool, float]:
@@ -100,7 +118,7 @@ def comparar(a: dict, b: dict) -> tuple[bool, float]:
     return ok, puntaje
 
 
-ABSOLUTA, TOLERABLE = "absoluta", "tolerable"
+ABSOLUTA, TOLERABLE, NEUTRA = "absoluta", "tolerable", "neutra"
 
 
 def comparar_detalle(a: dict, b: dict) -> tuple[bool, float, str | None]:
@@ -110,16 +128,29 @@ def comparar_detalle(a: dict, b: dict) -> tuple[bool, float, str | None]:
       ficha del evento la compensa.
     - tolerable: dos esquinas distintas. Dentro de un evento puede ser un dato mal de una sola nota, así que
       solo impide sumar la ficha si contradice a la mayoría (Evento.evaluar).
+    - neutra: una nota de seguimiento lejana en días y sin coincidencia fuerte. No suma ni contradice.
     """
-    pa, pb = _prov(a), _prov(b)
+    pa, pb = _prov_segura(a), _prov_segura(b)
     if pa and pb and pa != pb:
         return False, 0.0, ABSOLUTA
-    tope_dias = 2 if (a.get("fecha_aproximada") or b.get("fecha_aproximada")) else 1
-    if _dias(a["fecha_hecho"], b["fecha_hecho"]) > tope_dias:
-        return False, 0.0, ABSOLUTA
+    # provincias distintas y alguna inferida: puede ser el mismo siniestro, pero solo con coincidencia fuerte
+    otra_provincia = bool(_prov(a) and _prov(b) and _prov(a) != _prov(b))
+    aprox_a, aprox_b = bool(a.get("fecha_aproximada")), bool(b.get("fecha_aproximada"))
+    dias = _dias(a["fecha_hecho"], b["fecha_hecho"])
+    seguimiento = False
+    if dias > (2 if (aprox_a or aprox_b) else 1):
+        # solo si la fecha aproximada (la de publicación) es la posterior: el hecho no pudo pasar después
+        posterior_aprox = aprox_a if a["fecha_hecho"] > b["fecha_hecho"] else aprox_b
+        if not posterior_aprox or dias > DIAS_SEGUIMIENTO:
+            return False, 0.0, ABSOLUTA
+        seguimiento = True
     puntaje = 0.0
     ga, gb = a.get("geo") or {}, b.get("geo") or {}
     misma_localidad = bool(ga.get("localidad_id")) and ga.get("localidad_id") == gb.get("localidad_id")
+    if not misma_localidad and not (ga.get("localidad_id") and gb.get("localidad_id")) and a.get("localidad") and b.get("localidad"):
+        # una de las dos no se pudo ubicar ("entre Canals y La Carlota"): vale el nombre contenido en el otro
+        la, lb = normalizar(a["localidad"]), normalizar(b["localidad"])
+        misma_localidad = bool(la and lb) and (la in lb or lb in la)
     # Lugar
     if ga.get("localidad_id") and gb.get("localidad_id"):
         if misma_localidad:
@@ -183,6 +214,10 @@ def comparar_detalle(a: dict, b: dict) -> tuple[bool, float, str | None]:
     # Grupos etarios
     if set(a.get("grupos_etarios") or []) & set(b.get("grupos_etarios") or []):
         puntaje += 0.5
+    if seguimiento or otra_provincia:
+        if puntaje < PUNTAJE_SEGUIMIENTO:
+            return False, 0.0, NEUTRA
+        puntaje = min(puntaje, UMBRAL_FUSION - 0.5)   # nunca se fusiona sola: decide el desempate
     return True, puntaje, None
 
 
@@ -221,7 +256,7 @@ class Evento:
                 puntajes.append(p)
             elif tipo == ABSOLUTA:
                 return False, 0.0
-            else:
+            elif tipo == TOLERABLE:
                 contradicciones += 1
         if not puntajes or contradicciones * 2 > len(self.fichas):
             return False, 0.0
@@ -247,8 +282,11 @@ def consolidar(ev: Evento, id_evento: str) -> dict:
     # Tipo: el más repetido entre los específicos (no "choque_sin_detalle" ni "otro")
     tipos = [f["tipo_siniestro"] for f in completas if f.get("tipo_siniestro") not in _GENERICOS]
     tipo = Counter(tipos).most_common(1)[0][0] if tipos else primero("tipo_siniestro", (None, ""))
-    # Víctimas: de la nota más reciente que las informa (entre las de texto completo, si hay)
-    fallecidos = next((f["fallecidos"] for f in reversed(completas) if f.get("fallecidos") is not None), None)
+    # Fallecidos: la cifra más alta entre las notas de texto completo (si no hay, entre los titulares). Las
+    # muertes no bajan: una nota posterior que no las menciona, o que dice 0, no borra una ya informada.
+    informados = [f["fallecidos"] for f in completas if f.get("fallecidos") is not None]
+    fallecidos = max(informados) if informados else None
+    # Heridos: de la nota más reciente que los informa (las cifras cambian con los días)
     con_heridos = next((f for f in reversed(completas) if _heridos(f) is not None), None)
     heridos = {c: (con_heridos or {}).get(c) for c in ("heridos_graves", "heridos_leves", "heridos_sin_detalle")}
     # Factores: unión; queda "presunto" salvo que todas las notas que lo mencionan lo den por comprobado
@@ -256,8 +294,10 @@ def consolidar(ev: Evento, id_evento: str) -> dict:
     for f in fichas:
         for x in f.get("factores_mencionados") or []:
             factores[x["factor"]] = factores.get(x["factor"], False) or x["presunto"]
+    # una provincia confirmada por alguna nota pesa más que cualquier ubicación con provincia inferida
     geo = max((f.get("geo") or {} for f in fichas),
-              key=lambda g: {"localidad": 3, "departamento": 2, "provincia": 1}.get(g.get("nivel"), 0))
+              key=lambda g: (bool(g.get("provincia_id")) and not g.get("provincia_inferida"),
+                             {"localidad": 3, "departamento": 2, "provincia": 1}.get(g.get("nivel"), 0)))
     mejor = por_calidad[0]
     fuentes, vistas = [], set()
     for f in fichas:
@@ -314,8 +354,9 @@ def fichas_de(notas) -> list[dict]:
 class Desempate:
     """Pregunta a Claude si una ficha es el mismo siniestro que alguno de los eventos candidatos."""
 
-    SISTEMA = """Sos analista del Radar Vial del Observatorio Humanitario de Cruz Roja Argentina. Varios medios cuentan el mismo siniestro vial; tu tarea es decidir si una ficha nueva describe el mismo siniestro que alguno de los eventos candidatos (todos son de la misma provincia y de fechas cercanas).
+    SISTEMA = """Sos analista del Radar Vial del Observatorio Humanitario de Cruz Roja Argentina. Varios medios cuentan el mismo siniestro vial; tu tarea es decidir si una ficha nueva describe el mismo siniestro que alguno de los eventos candidatos.
 Compará lugar, ruta o calle, vehículos, tipo de siniestro, momento del día y víctimas. Las cifras de víctimas pueden cambiar entre notas (un herido que muere después) y los medios describen distinto el mismo hecho (camioneta o auto, choque o vuelco). Si los datos son compatibles y nada importante se contradice, es el mismo siniestro. Si hay una diferencia clara de lugar, de vehículos o de momento, son siniestros distintos.
+Una fecha "(aproximada)" es la de publicación de la nota, no la del hecho: una nota de seguimiento (la persona murió días después, detuvieron al conductor, pedido de justicia) puede publicarse varios días más tarde y es el mismo siniestro si coinciden el lugar y las circunstancias. Una provincia entre paréntesis puede faltar o estar mal en notas con pocos datos: no alcanza por sí sola para descartar. Si la ficha nueva no trae lugar y solo coincide en datos comunes a muchos siniestros (los vehículos, el tipo, una persona herida), respondé null: hace falta un detalle distintivo en común (la calle o la ruta, una circunstancia particular, una lesión o un dato poco frecuente). Ante la duda, respondé null: es peor unir dos siniestros distintos que dejar uno repetido.
 Respondé con el número del evento que es el mismo siniestro, o null si no es ninguno."""
 
     SCHEMA = {
@@ -389,17 +430,27 @@ def agrupar(fichas: list[dict], desempate: Desempate | None = None) -> list[Even
 
     eventos: list[Evento] = []
     por_fecha: dict[str, list[Evento]] = {}   # índice: solo se comparan eventos de fechas cercanas
+    por_fecha_aprox: dict[str, list[Evento]] = {}   # eventos con alguna ficha de fecha aproximada en ese día
 
-    def registrar(ev: Evento, fecha: str) -> None:
-        lista = por_fecha.setdefault(fecha, [])
-        if ev not in lista:
-            lista.append(ev)
+    def registrar(ev: Evento, ficha: dict) -> None:
+        indices = [por_fecha, por_fecha_aprox] if ficha.get("fecha_aproximada") else [por_fecha]
+        for indice in indices:
+            lista = indice.setdefault(ficha["fecha_hecho"], [])
+            if ev not in lista:
+                lista.append(ev)
 
     for ficha in fichas:
         d = date.fromisoformat(ficha["fecha_hecho"])
         cercanos: list[Evento] = []
-        for delta in range(-2, 3):
-            for ev in por_fecha.get((d + timedelta(days=delta)).isoformat(), []):
+        # ±2 días siempre; una nota de seguimiento mira además hasta DIAS_SEGUIMIENTO hacia atrás, y una nota
+        # con fecha clara mira hacia adelante solo los eventos que tienen notas de fecha aproximada
+        vistas = [(por_fecha, delta) for delta in range(-2, 3)]
+        if ficha.get("fecha_aproximada"):
+            vistas += [(por_fecha, -delta) for delta in range(3, DIAS_SEGUIMIENTO + 1)]
+        else:
+            vistas += [(por_fecha_aprox, delta) for delta in range(3, DIAS_SEGUIMIENTO + 1)]
+        for indice, delta in vistas:
+            for ev in indice.get((d + timedelta(days=delta)).isoformat(), []):
                 if ev not in cercanos:
                     cercanos.append(ev)
         evaluados = []
@@ -424,7 +475,7 @@ def agrupar(fichas: list[dict], desempate: Desempate | None = None) -> list[Even
         else:
             elegido = Evento(ficha)
             eventos.append(elegido)
-        registrar(elegido, ficha["fecha_hecho"])
+        registrar(elegido, ficha)
     return eventos
 
 

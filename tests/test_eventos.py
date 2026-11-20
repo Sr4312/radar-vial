@@ -232,3 +232,73 @@ def test_esquina_distinta_en_una_sola_nota_es_tolerable():
     assert ev.evaluar(_ficha(8, medio="Nueva", **base))[0] is True
     ev.fichas.append(mal)
     assert ev.evaluar(_ficha(7, medio="Otra", **base))[0] is True
+
+
+# ------------------------------------------------------------------ casos de la revisión del 20-11-2026
+
+def test_nota_de_seguimiento_dias_despues_se_une_solo_si_claude_lo_confirma(tmp_path):
+    # Pampa Almirón: la nota del 19 (fecha aproximada = publicación) habla del despiste del 14
+    original = _ficha(1, fecha_hecho="2026-11-14", hora="2026-11-14T12:00:00+00:00")
+    seguimiento = _ficha(2, fecha_hecho="2026-11-19", fecha_aproximada=True, hora="2026-11-19T12:00:00+00:00")
+    assert len(agrupar([original, seguimiento])) == 2            # con todo igual, tampoco se fusiona sola
+    claude = _ClaudeFalso({"mismo_evento": 1, "seguridad": "alta"})
+    eventos = agrupar([original, seguimiento], Desempate(claude, archivo=tmp_path / "d.json"))
+    assert len(eventos) == 1 and claude.llamadas == 1
+    registro = consolidar(eventos[0], "ev")
+    assert registro["fecha_hecho"] == "2026-11-14" and registro["fallecidos"] == 1   # una muerte, no dos
+
+
+def test_seguimiento_sin_coincidencia_fuerte_o_con_fecha_clara_no_se_consulta(tmp_path):
+    original = _ficha(1, fecha_hecho="2026-11-14", hora="2026-11-14T12:00:00+00:00")
+    claude = _ClaudeFalso({"mismo_evento": 1, "seguridad": "alta"})
+    # otra localidad y otra calle: ni se pregunta
+    flojo = _ficha(2, fecha_hecho="2026-11-19", fecha_aproximada=True, hora="2026-11-19T12:00:00+00:00",
+                   localidad="Las Cejas", via="Av. Mitre", vehiculos=["camion"], geo=_geo("90021010", "Las Cejas", "90021"))
+    assert len(agrupar([original, flojo], Desempate(claude, archivo=tmp_path / "a.json"))) == 2 and claude.llamadas == 0
+    # fecha clara cinco días después: es otro siniestro aunque todo lo demás coincida
+    otro = _ficha(3, fecha_hecho="2026-11-19", hora="2026-11-19T12:00:00+00:00")
+    assert comparar(original, otro)[0] is False
+    # la fecha aproximada es anterior a la clara: el hecho no pudo pasar después de publicarse
+    previo = _ficha(4, fecha_hecho="2026-11-10", fecha_aproximada=True, hora="2026-11-10T12:00:00+00:00")
+    assert comparar(original, previo)[0] is False
+
+
+def test_provincia_inferida_no_separa_el_mismo_siniestro(tmp_path):
+    # Canals (Córdoba): un titular sin lugar llegó por una búsqueda de La Pampa
+    real = _ficha(1, via="RN 8 km 473", localidad="Canals", vehiculos=["camion"],
+                  geo=_geo("14182040", "Canals", "14182", prov="14"))
+    inferida = _ficha(2, fuente="titulo", via="RN 8", localidad=None, vehiculos=["camion"], hora_franja="desconocida",
+                      geo={"provincia_id": "42", "provincia": "La Pampa", "nivel": "provincia",
+                           "provincia_inferida": True, "inferida_de": "busqueda"})
+    assert comparar(real, inferida)[0] is True
+    claude = _ClaudeFalso({"mismo_evento": 1, "seguridad": "alta"})
+    eventos = agrupar([real, inferida], Desempate(claude, archivo=tmp_path / "d.json"))
+    assert len(eventos) == 1
+    assert consolidar(eventos[0], "ev")["provincia_id"] == "14"      # gana la provincia confirmada
+    confirmada = _ficha(3, geo=_geo(prov="42"))
+    assert comparar(real, confirmada)[0] is False                    # dos provincias confirmadas: distintos
+
+
+def test_calles_numeradas_son_esquinas_distintas():
+    from radar_vial.eventos import palabras_via
+
+    pico = dict(localidad="General Pico", geo=_geo("42021030", "General Pico", "42021", prov="42"))
+    a, b = _ficha(1, via="Calles 19 y 46", **pico), _ficha(2, via="Calles 21 y 20", **pico)
+    assert palabras_via("Calles 19 y 46") == {"19", "46"}
+    assert comparar(a, b)[0] is False and len(agrupar([a, b])) == 2
+    assert comparar(a, _ficha(3, via="calle 19 esquina 46", **pico))[0] is True
+    assert palabras_via("RN 8 km 473") == set()                      # en una ruta los números no son calles
+
+
+def test_km_lejanos_con_una_localidad_sin_ubicar_no_separan():
+    ubicada = _ficha(1, via="RN 8 km 172", localidad="Canals", geo=_geo("14182040", "Canals", "14182", prov="14"))
+    sin_ubicar = _ficha(2, via="RN 8 km 473", localidad="entre Canals y La Carlota", geo=_geo(prov="14"))
+    assert comparar(ubicada, sin_ubicar)[0] is True
+
+
+def test_una_nota_posterior_no_borra_una_muerte():
+    from radar_vial.eventos import Evento
+
+    ev = Evento(_ficha(1, fallecidos=1, hora="2026-11-18T10:00:00+00:00"))
+    ev.fichas.append(_ficha(2, medio="Otro", fallecidos=0, hora="2026-11-18T15:00:00+00:00"))
+    assert consolidar(ev, "ev")["fallecidos"] == 1

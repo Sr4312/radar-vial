@@ -71,6 +71,11 @@ Cada ficha se compara con los siniestros ya armados:
 
 - **Candidatos**: misma provincia (o provincia sin identificar en una de las fichas), fecha del hecho a un
   día o menos (dos si alguna fecha es aproximada).
+- **Notas de seguimiento**: una nota de fecha aproximada publicada hasta 14 días después (la persona murió
+  días más tarde, detuvieron al conductor) puede ser el mismo siniestro. Solo se considera si coincide el
+  lugar o hay otra coincidencia fuerte, y nunca se une sola: lo decide el modelo con las fichas a la vista.
+- **Provincia inferida**: es una pista, no un dato. No alcanza para separar dos notas del mismo siniestro;
+  si otra nota confirma la provincia, vale la confirmada.
 - **Nunca se fusionan**: provincias distintas, fechas fuera de esa ventana, rutas con distinto número,
   kilómetros muy separados en localidades distintas, o dos siniestros que una misma nota describe por
   separado. Basta que una sola nota del siniestro lo contradiga.
@@ -82,8 +87,9 @@ Cada ficha se compara con los siniestros ya armados:
   que la ficha se haya armado solo con el título) decide el modelo de lenguaje con las fichas y los títulos
   a la vista; solo se fusiona si lo considera el mismo siniestro con seguridad alta o media.
 - **Al fusionar**: de cada dato se toma el más completo (notas con texto completo y mayor confianza
-  primero). Las cifras de víctimas se toman de la nota más reciente que las informa, porque suben con el
-  paso de los días (un herido que muere después). Se conservan todas las fuentes del siniestro.
+  primero). Las personas fallecidas son la cifra más alta informada por las notas con texto
+  completo (una nota posterior que no las menciona no borra una muerte ya informada); las personas heridas,
+  las de la nota más reciente que las informa. Se conservan todas las fuentes del siniestro.
 
 Ejemplo real (primeras corridas, 20-11-2026): 380 fichas de notas publicadas entre el 13 y el 20 de
 noviembre se agruparon en 169 siniestros; 77 llegaron por más de un medio y el que más, por 12.
