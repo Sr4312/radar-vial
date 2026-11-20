@@ -399,15 +399,7 @@
     const vias = contar(eventos, (e) => (e.tipo_via && e.tipo_via !== "desconocida" ? e.tipo_via : null));
     tarjetaDistribucion(caja, { id: "d-via", titulo: "Tipo de vía", sub: "Dónde ocurrieron.", pares: ordenarPares(vias, ETIQUETAS.via),
       nota: `Sin dato: ${NUM.format(eventos.filter((e) => !e.tipo_via || e.tipo_via === "desconocida").length)} de ${NUM.format(total)}.` });
-    const franjas = contar(eventos, (e) => (e.franja && e.franja !== "desconocida" ? e.franja : null));
-    tarjetaDistribucion(caja, { id: "d-franja", titulo: "Franja horaria", sub: "Momento del día del siniestro.",
-      pares: ordenarPares(franjas, ETIQUETAS.franja, ["madrugada", "manana", "tarde", "noche"]),
-      nota: `Sin dato: ${NUM.format(eventos.filter((e) => !e.franja || e.franja === "desconocida").length)} de ${NUM.format(total)}.` });
-    const conFecha = eventos.filter((e) => !e.fecha_aproximada);
-    const dias = contar(conFecha, (e) => String(diaSemana(e.fecha)));
-    tarjetaDistribucion(caja, { id: "d-dia", titulo: "Día de la semana", sub: "Según la fecha del hecho.", horizontal: false,
-      pares: [0, 1, 2, 3, 4, 5, 6].map((d) => [DIAS_CORTOS[d], dias[String(d)] || 0]),
-      nota: `Sin fecha precisa: ${NUM.format(total - conFecha.length)} de ${NUM.format(total)}.` });
+    tarjetaCuando(caja, eventos);
     const factores = contar(eventos, (e) => e.factores.map((f) => f.factor));
     const presuntos = contar(eventos, (e) => e.factores.filter((f) => f.presunto).map((f) => f.factor));
     const conFactor = eventos.filter((e) => e.factores.length).length;
@@ -416,6 +408,112 @@
       pares: ordenarPares(factores, ETIQUETAS.factor),
       nota: `${NUM.format(conFactor)} de ${NUM.format(total)} siniestros mencionan algún factor. Presuntos: ${Object.entries(presuntos)
         .sort((a, b) => b[1] - a[1]).map(([k, v]) => `${(ETIQUETAS.factor[k] || k).toLowerCase()} ${NUM.format(v)}`).join(", ") || "ninguno"}.` });
+  }
+
+  /** Cuándo ocurren: día de la semana por franja horaria, en una sola grilla (más oscuro = más siniestros). */
+  function tarjetaCuando(caja, eventos) {
+    const FRANJAS = [["madrugada", "Madrugada", "0 a 6 h"], ["manana", "Mañana", "6 a 12 h"], ["tarde", "Tarde", "12 a 19 h"], ["noche", "Noche", "19 a 24 h"]];
+    const conFecha = eventos.filter((e) => !e.fecha_aproximada);
+    const grilla = DIAS.map(() => ({ madrugada: 0, manana: 0, tarde: 0, noche: 0, sin: 0 }));
+    for (const e of conFecha) grilla[diaSemana(e.fecha)][e.franja && e.franja !== "desconocida" ? e.franja : "sin"] += 1;
+    const maximo = Math.max(1, ...grilla.flatMap((g) => FRANJAS.map(([k]) => g[k])));
+    const celda = (n, titulo) => {
+      const nivel = n ? Math.min(4, Math.ceil((5 * n) / maximo) - 1) : -1;
+      return el("td", { clase: `calor${nivel === 4 ? " fuerte" : ""}`, title: titulo,
+        style: `background:${nivel < 0 ? C.bruma : C.secuencial[nivel]}`, texto: n ? NUM.format(n) : "" });
+    };
+    const mayus = (s) => s[0].toUpperCase() + s.slice(1);
+    const filas = grilla.map((g, d) => el("tr", {},
+      el("th", { scope: "row", texto: mayus(DIAS[d]) }),
+      FRANJAS.map(([k, nombre]) => celda(g[k], `${mayus(DIAS[d])}, ${nombre.toLowerCase()}: ${plural(g[k], "siniestro", "siniestros")}`)),
+      el("td", { clase: "num gris", texto: NUM.format(g.sin) }),
+      el("td", { clase: "num", texto: NUM.format(FRANJAS.reduce((s, [k]) => s + g[k], g.sin)) })));
+    const totales = el("tr", { clase: "totales" }, el("th", { scope: "row", texto: "Total" }),
+      FRANJAS.map(([k]) => el("td", { clase: "num", texto: NUM.format(grilla.reduce((s, g) => s + g[k], 0)) })),
+      el("td", { clase: "num gris", texto: NUM.format(grilla.reduce((s, g) => s + g.sin, 0)) }),
+      el("td", { clase: "num", texto: NUM.format(conFecha.length) }));
+    const tarjeta = el("article", { clase: "tarjeta ancha" },
+      el("h2", { texto: "Cuándo ocurren" }),
+      el("p", { clase: "sub", texto: "Día de la semana y momento del día. Cuanto más oscuro el casillero, más siniestros." }));
+    if (!conFecha.length) {
+      tarjeta.append(el("p", { clase: "nota", texto: "Sin datos en el período elegido." }));
+    } else {
+      tarjeta.append(el("div", { clase: "tabla-envoltura" }, el("table", { clase: "cuando" },
+        el("thead", {}, el("tr", {}, el("th", {}),
+          FRANJAS.map(([, nombre, horas]) => el("th", { scope: "col", clase: "num" }, nombre, el("small", { texto: horas }))),
+          el("th", { scope: "col", clase: "num", texto: "Sin horario" }), el("th", { scope: "col", clase: "num", texto: "Total" }))),
+        el("tbody", {}, filas, totales))));
+      tarjeta.append(el("p", { clase: "nota", texto: `Según la fecha del hecho. No entran ${plural(eventos.length - conFecha.length, "siniestro", "siniestros")} sin fecha precisa. "Sin horario": la nota no dice a qué hora fue.` }));
+    }
+    caja.append(tarjeta);
+  }
+
+  // ------------------------------------------------------------------ un punto por siniestro
+  function dibujarPuntos(eventos) {
+    const caja = vaciar($("puntos"));
+    ocultarGlobo();
+    const primerDia = sumarDias(estado.datos.meta.corte, -(estado.datos.meta.dias_eventos - 1));
+    const desde = estado.desde < primerDia ? primerDia : estado.desde;
+    const enCarga = new Set(estado.datos.resumen_semana.dias_en_carga || []);
+    const inicio = estado.datos.meta.inicio_cobertura;
+    const porDia = {};
+    for (const e of eventos) (porDia[e.fecha] || (porDia[e.fecha] = [])).push(e);
+    // sin los días vacíos del principio (en un rango largo, antes del inicio del registro, no hay nada que mostrar)
+    let dias = diasDelRango(desde, estado.hasta);
+    const primero = dias.findIndex((d) => porDia[d]);
+    if (primero > 0) dias = dias.slice(primero);
+    const chico = eventos.length > 400;
+    estado.puntos = [];
+    for (const d of dias) {
+      // abajo los que tuvieron personas fallecidas, después los de nota completa, arriba los de solo titular
+      const lista = (porDia[d] || []).slice().sort((a, b) => ((b.fallecidos || 0) > 0) - ((a.fallecidos || 0) > 0)
+        || (a.solo_titulos ? 1 : 0) - (b.solo_titulos ? 1 : 0) || b.n_fuentes - a.n_fuentes);
+      const pila = el("div", { clase: "pila" }, lista.map((e) => {
+        estado.puntos.push(e);
+        return el("span", { clase: `pt${(e.fallecidos || 0) > 0 ? " fatal" : e.solo_titulos ? " titular" : ""}${chico ? " chico" : ""}`, "data-i": estado.puntos.length - 1 });
+      }));
+      caja.append(el("div", { clase: `dia${enCarga.has(d) || d > estado.datos.meta.corte ? " en-carga" : ""}${inicio && d < inicio ? " previo" : ""}` },
+        el("div", { clase: "cuenta", texto: lista.length ? NUM.format(lista.length) : "" }), pila,
+        el("div", { clase: "rotulo" }, DIAS_CORTOS[diaSemana(d)], el("br"), fechaCorta(d))));
+    }
+    const fatales = eventos.filter((e) => (e.fallecidos || 0) > 0).length;
+    caja.setAttribute("aria-label", `${plural(eventos.length, "siniestro", "siniestros")} entre el ${fechaCorta(desde)} y el ${fechaCorta(estado.hasta)}, ${NUM.format(fatales)} con personas fallecidas. El detalle está en la lista de siniestros.`);
+    const partes = ["Los días con la fecha en gris todavía se están completando o son anteriores al inicio del registro."];
+    if (estado.desde < primerDia) partes.push(`Se muestran los siniestros desde el ${fechaCorta(primerDia)}.`);
+    $("nota-puntos").textContent = partes.join(" ");
+    caja.scrollLeft = caja.scrollWidth;   // si no entra a lo ancho (celular), arranca en los días más recientes
+  }
+
+  function ocultarGlobo() { $("globo").hidden = true; estado.puntoActivo = null; }
+
+  function mostrarGlobo(punto) {
+    const e = estado.puntos[Number(punto.dataset.i)];
+    if (!e) return;
+    const prov = estado.provincias[e.provincia];
+    const lugar = [e.localidad, prov ? prov.nombre : "Sin provincia identificada"].filter(Boolean).join(", ");
+    const globo = vaciar($("globo"));
+    globo.append(el("b", { texto: `${fechaCorta(e.fecha)} · ${ETIQUETAS.tipo[e.tipo] || "Siniestro"}` }),
+      el("div", { clase: "lugar", texto: lugar }), el("div", { texto: e.resumen || "" }),
+      el("div", { clase: "pie-globo", texto: [textoVictimas(e), plural(e.n_fuentes, "fuente", "fuentes"), e.solo_titulos ? "Solo titulares" : null].filter(Boolean).join(" · ") }));
+    globo.hidden = false;
+    const r = punto.getBoundingClientRect(), ancho = globo.offsetWidth, alto = globo.offsetHeight;
+    const x = Math.max(8, Math.min(window.innerWidth - ancho - 8, r.left + r.width / 2 - ancho / 2));
+    const arriba = r.top - alto - 8;
+    globo.style.left = `${x}px`;
+    globo.style.top = `${arriba < 8 ? r.bottom + 8 : arriba}px`;
+    estado.puntoActivo = punto;
+  }
+
+  function conectarPuntos() {
+    const caja = $("puntos");
+    caja.addEventListener("mouseover", (ev) => { if (ev.target.classList.contains("pt")) mostrarGlobo(ev.target); });
+    caja.addEventListener("mouseleave", ocultarGlobo);
+    // en pantallas táctiles: un toque muestra el punto, otro toque (o tocar afuera) lo cierra
+    document.addEventListener("click", (ev) => {
+      const punto = ev.target.classList && ev.target.classList.contains("pt") ? ev.target : null;
+      if (punto && punto !== estado.puntoActivo) mostrarGlobo(punto); else ocultarGlobo();
+    });
+    window.addEventListener("scroll", ocultarGlobo, { passive: true });
   }
 
   // ------------------------------------------------------------------ mapa
@@ -716,6 +814,7 @@
   function dibujarTodo() {
     const eventos = eventosDelRango();
     dibujarIndicadores();
+    dibujarPuntos(eventos);
     dibujarSeries();
     const filas = dibujarMapa(eventos);
     dibujarDistribuciones(eventos);
@@ -769,6 +868,7 @@
   }
 
   function conectarControles() {
+    conectarPuntos();
     $("rango").addEventListener("change", (ev) => { fijarRango(ev.target.value); estado.pagina = 0; dibujarTodo(); });
     for (const id of ["desde", "hasta"]) $(id).addEventListener("change", () => { fijarRango("personalizado"); estado.pagina = 0; dibujarTodo(); });
     $("incluir-titulos").addEventListener("change", (ev) => { estado.incluirTitulos = ev.target.checked; estado.pagina = 0; dibujarTodo(); });

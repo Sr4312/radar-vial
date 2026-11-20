@@ -64,6 +64,21 @@
       <div class="grilla-kpi" id="kpis" aria-live="polite"></div>
       <p class="aviso-carga" id="aviso-carga"></p>
 
+      <div class="seccion">
+        <article class="tarjeta">
+          <h2>Cada punto es un siniestro</h2>
+          <p class="sub">Un punto por siniestro, día por día. Pasá el cursor o tocá un punto para ver qué pasó.</p>
+          <div class="puntos" id="puntos" role="img"></div>
+          <div class="leyenda" aria-hidden="true">
+            <span><span class="punto" style="background:#C11F2A"></span>Con personas fallecidas</span>
+            <span><span class="punto" style="background:#fff;border:2px solid #E73743"></span>Sin personas fallecidas</span>
+            <span><span class="punto" style="background:#fff;border:2px solid #8A9399"></span>Solo se leyó el titular</span>
+          </div>
+          <p class="nota" id="nota-puntos"></p>
+        </article>
+      </div>
+      <div class="globo" id="globo" role="status" hidden></div>
+
       <div class="seccion grilla-2">
         <article class="tarjeta">
           <h2>Dónde ocurren</h2>
