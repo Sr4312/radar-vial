@@ -47,7 +47,7 @@ a:hover { color: var(--tinta); }
 .titulo { padding: 28px 0 8px; }
 .antetitulo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--rojo-texto); margin: 0 0 6px; }
 .antetitulo::before { content: ""; width: 24px; height: 3px; background: currentColor; display: inline-block; }
-h1 { font-weight: 900; font-size: clamp(36px, 6vw, 56px); line-height: 1.05; letter-spacing: -.02em; margin: 0; text-transform: lowercase; }
+h1 { font-weight: 900; font-size: clamp(36px, 6vw, 56px); line-height: 1.05; letter-spacing: -.02em; margin: 0; }
 .bajada { font-size: 18px; color: var(--pizarra); margin: 8px 0 0; max-width: 68ch; }
 
 .aviso-demo { background: var(--tinta); color: var(--blanco); font-weight: 700; text-align: center; padding: 10px 16px; letter-spacing: .04em; }
@@ -73,7 +73,7 @@ select, input[type="date"], input[type="search"] {
 /* ---------- Tarjetas ---------- */
 main { padding-bottom: 48px; }
 .seccion { margin-top: 28px; }
-.seccion > h2, .tarjeta h2 { font-weight: 900; text-transform: lowercase; letter-spacing: -.01em; }
+.seccion > h2, .tarjeta h2 { font-weight: 900; letter-spacing: -.01em; }
 .seccion > h2 { font-size: 26px; margin: 0 0 12px; }
 .tarjeta { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); box-shadow: var(--sombra); padding: 18px 20px; min-width: 0; }
 .tarjeta h2 { font-size: 19px; margin: 0 0 4px; }

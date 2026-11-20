@@ -21,7 +21,7 @@ from . import config
 from .eventos import cargar as cargar_eventos
 from .eventos import ruta_y_km
 from .notas import Notas
-from .texto import normalizar
+from .texto import mayuscula_inicial, nombre_medio, normalizar
 
 ART = timezone(timedelta(hours=-3))
 DIAS_EVENTOS = 31
@@ -41,17 +41,17 @@ MAX_FUENTES = 12
 
 def _evento_publicable(e: dict) -> dict:
     """Solo lo que muestra el tablero (sin claves internas de fichas ni campos vacíos, para que pese poco)."""
-    fuentes = [{"medio": f["medio"], "url": f["url"]} for f in e.get("fuentes") or []]
+    fuentes = [{"medio": nombre_medio(f["medio"]), "url": f["url"]} for f in e.get("fuentes") or []]
     completo = {
         "id": e["id_evento"], "fecha": e["fecha_hecho"], "fecha_aproximada": e["fecha_aproximada"],
-        "franja": e["hora_franja"], "provincia": e["provincia_id"], "localidad": e.get("localidad"),
-        "departamento": e.get("departamento"), "lat": e.get("lat"), "lon": e.get("lon"), "nivel_geo": e.get("nivel_geo"),
-        "via": e.get("via"), "ruta": etiqueta_ruta(e.get("via")), "tipo_via": e.get("tipo_via"),
+        "franja": e["hora_franja"], "provincia": e["provincia_id"], "localidad": mayuscula_inicial(e.get("localidad")),
+        "departamento": mayuscula_inicial(e.get("departamento")), "lat": e.get("lat"), "lon": e.get("lon"), "nivel_geo": e.get("nivel_geo"),
+        "via": mayuscula_inicial(e.get("via")), "ruta": etiqueta_ruta(e.get("via")), "tipo_via": e.get("tipo_via"),
         "tipo": e.get("tipo_siniestro"), "vehiculos": e.get("vehiculos") or [],
         "fallecidos": e.get("fallecidos"), "heridos_graves": e.get("heridos_graves"), "heridos_leves": e.get("heridos_leves"),
         "heridos_sin_detalle": e.get("heridos_sin_detalle"), "heridos": e.get("heridos_total"),
         "factores": e.get("factores_mencionados") or [], "grupos_etarios": e.get("grupos_etarios") or [],
-        "resumen": e.get("resumen"), "confianza": e.get("confianza"), "solo_titulos": e.get("solo_titulos", False),
+        "resumen": mayuscula_inicial(e.get("resumen")), "confianza": e.get("confianza"), "solo_titulos": e.get("solo_titulos", False),
         "provincia_inferida": e.get("provincia_inferida", False),
         "fuentes": fuentes[:MAX_FUENTES], "n_fuentes": len(fuentes),
     }
@@ -136,15 +136,16 @@ def agrupar_contexto(notas: list[dict], desde: str) -> list[dict]:
             if union and len(g["_palabras"] & palabras) / len(union) >= 0.25:
                 destino = g
                 break
-        fuente = {"medio": n.get("medio") or n.get("sitio"), "url": n["url"]}
+        fuente = {"medio": nombre_medio(n.get("medio") or n.get("sitio")), "url": n["url"]}
         if destino:
             if fuente["url"] not in {f["url"] for f in destino["fuentes"]}:
                 destino["fuentes"].append(fuente)
             destino["_palabras"] |= palabras
             continue
         grupos.append({"fecha": fecha, "subtipo": c.get("subtipo"), "ambito": c.get("ambito"),
-                       "provincia": c.get("provincia_id"), "organismo": c.get("organismo"),
-                       "dato_clave": c.get("dato_clave"), "resumen": c.get("resumen"), "fuentes": [fuente],
+                       "provincia": c.get("provincia_id"), "organismo": mayuscula_inicial(c.get("organismo")),
+                       "dato_clave": mayuscula_inicial(c.get("dato_clave")),
+                       "resumen": mayuscula_inicial(c.get("resumen")), "fuentes": [fuente],
                        "_palabras": palabras})
     for g in grupos:
         g.pop("_palabras")

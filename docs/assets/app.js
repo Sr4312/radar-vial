@@ -341,28 +341,28 @@
     const caja = vaciar($("distribuciones"));
     const total = eventos.length;
     const tipos = contar(eventos, (e) => e.tipo);
-    tarjetaDistribucion(caja, { id: "d-tipo", titulo: "tipo de siniestro", sub: "Siniestros según cómo ocurrieron.",
+    tarjetaDistribucion(caja, { id: "d-tipo", titulo: "Tipo de siniestro", sub: "Siniestros según cómo ocurrieron.",
       pares: ordenarPares(tipos, ETIQUETAS.tipo) });
     const vehiculos = contar(eventos, (e) => e.vehiculos);
-    tarjetaDistribucion(caja, { id: "d-vehiculos", titulo: "vehículos involucrados", sub: "Un siniestro puede involucrar varios tipos.",
+    tarjetaDistribucion(caja, { id: "d-vehiculos", titulo: "Vehículos involucrados", sub: "Un siniestro puede involucrar varios tipos.",
       pares: ordenarPares(vehiculos, ETIQUETAS.vehiculo),
       nota: `Sin dato de vehículos: ${NUM.format(eventos.filter((e) => !e.vehiculos.length).length)} de ${NUM.format(total)}.` });
     const vias = contar(eventos, (e) => (e.tipo_via && e.tipo_via !== "desconocida" ? e.tipo_via : null));
-    tarjetaDistribucion(caja, { id: "d-via", titulo: "tipo de vía", sub: "Dónde ocurrieron.", pares: ordenarPares(vias, ETIQUETAS.via),
+    tarjetaDistribucion(caja, { id: "d-via", titulo: "Tipo de vía", sub: "Dónde ocurrieron.", pares: ordenarPares(vias, ETIQUETAS.via),
       nota: `Sin dato: ${NUM.format(eventos.filter((e) => !e.tipo_via || e.tipo_via === "desconocida").length)} de ${NUM.format(total)}.` });
     const franjas = contar(eventos, (e) => (e.franja && e.franja !== "desconocida" ? e.franja : null));
-    tarjetaDistribucion(caja, { id: "d-franja", titulo: "franja horaria", sub: "Momento del día del siniestro.",
+    tarjetaDistribucion(caja, { id: "d-franja", titulo: "Franja horaria", sub: "Momento del día del siniestro.",
       pares: ordenarPares(franjas, ETIQUETAS.franja, ["madrugada", "manana", "tarde", "noche"]),
       nota: `Sin dato: ${NUM.format(eventos.filter((e) => !e.franja || e.franja === "desconocida").length)} de ${NUM.format(total)}.` });
     const conFecha = eventos.filter((e) => !e.fecha_aproximada);
     const dias = contar(conFecha, (e) => String(diaSemana(e.fecha)));
-    tarjetaDistribucion(caja, { id: "d-dia", titulo: "día de la semana", sub: "Según la fecha del hecho.", horizontal: false,
+    tarjetaDistribucion(caja, { id: "d-dia", titulo: "Día de la semana", sub: "Según la fecha del hecho.", horizontal: false,
       pares: [0, 1, 2, 3, 4, 5, 6].map((d) => [DIAS_CORTOS[d], dias[String(d)] || 0]),
       nota: `Sin fecha precisa: ${NUM.format(total - conFecha.length)} de ${NUM.format(total)}.` });
     const factores = contar(eventos, (e) => e.factores.map((f) => f.factor));
     const presuntos = contar(eventos, (e) => e.factores.filter((f) => f.presunto).map((f) => f.factor));
     const conFactor = eventos.filter((e) => e.factores.length).length;
-    tarjetaDistribucion(caja, { id: "d-factores", titulo: "factores mencionados",
+    tarjetaDistribucion(caja, { id: "d-factores", titulo: "Factores mencionados",
       sub: "Lo que mencionan las notas, muchas veces como hipótesis. No son causas confirmadas.",
       pares: ordenarPares(factores, ETIQUETAS.factor),
       nota: `${NUM.format(conFactor)} de ${NUM.format(total)} siniestros mencionan algún factor. Presuntos: ${Object.entries(presuntos)
@@ -408,7 +408,7 @@
         el("div", { texto: e.resumen || "" }),
         el("div", { style: "color:#5E686F", texto: plural(e.n_fuentes, "fuente", "fuentes") }));
     });
-    if (lista.length > 4) caja.append(el("div", { style: "margin-top:6px;color:#5E686F", texto: `y ${plural(lista.length - 4, "siniestro más", "siniestros más")} en este lugar` }));
+    if (lista.length > 4) caja.append(el("div", { style: "margin-top:6px;color:#5E686F", texto: `Y ${plural(lista.length - 4, "siniestro más", "siniestros más")} en este lugar` }));
     return caja;
   }
 
@@ -457,7 +457,7 @@
     C.secuencial.slice(0, cortes.length + 1).forEach((color, i) => {
       const desde = limites[i];
       escala.append(el("span", { clase: "paso", style: `background:${color}` }),
-        el("span", { texto: i < cortes.length ? ` hasta ${DEC2.format(cortes[i])} ` : ` más de ${DEC2.format(desde)} ` }));
+        el("span", { texto: i < cortes.length ? ` Hasta ${DEC2.format(cortes[i])} ` : ` Más de ${DEC2.format(desde)} ` }));
     });
     // Tabla del mapa (acceso sin mapa)
     tablaSimple($("tabla-mapa"), ["Provincia", "Siniestros", "Fallecidos", "Cada 100.000 hab."],
@@ -498,7 +498,7 @@
   function textoVictimas(e) {
     const partes = [];
     if (e.fallecidos != null) partes.push(e.fallecidos ? plural(e.fallecidos, "persona fallecida", "personas fallecidas") : "Sin personas fallecidas");
-    if (e.heridos != null) partes.push(e.heridos ? plural(e.heridos, "persona herida", "personas heridas") : "sin personas heridas");
+    if (e.heridos != null) partes.push(e.heridos ? plural(e.heridos, "persona herida", "personas heridas") : "Sin personas heridas");
     return partes.length ? partes.join(" · ") : "Sin datos de víctimas";
   }
 
@@ -526,7 +526,7 @@
         if (e.provincia_inferida) marcas.push(el("span", { clase: "marca", texto: "Provincia inferida" }));
         if (e.fecha_aproximada) marcas.push(el("span", { clase: "marca", texto: "Fecha aproximada" }));
         const fuentes = e.fuentes.slice(0, 6).map((f) => enlace(f.url, f.medio || "Nota"));
-        if (e.n_fuentes > 6) fuentes.push(el("span", { texto: `y ${e.n_fuentes - 6} más` }));
+        if (e.n_fuentes > 6) fuentes.push(el("span", { texto: plural(e.n_fuentes - 6, "fuente más", "fuentes más") }));
         return el("tr", {},
           el("td", { "data-titulo": "Fecha", clase: "num", texto: fechaCorta(e.fecha) }),
           el("td", { "data-titulo": "Lugar" }, el("div", { clase: "lugar", texto: lugar }), e.via ? el("div", { clase: "via", texto: e.via }) : null),

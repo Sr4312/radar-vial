@@ -109,6 +109,10 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   números con `Intl.NumberFormat("es-AR")`; texto chico en rojo con #C11F2A (AA), #E73743 solo para marcas
   de datos y filetes; un solo color de datos por gráfico; siniestros y fallecidos en gráficos separados (sin
   doble eje); cada gráfico tiene su tabla en "Ver datos"; casilla para excluir los siniestros solo de titulares.
+- Mayúscula inicial en todo lo que se muestra (pedido del equipo, 20-11-2026): títulos y etiquetas sin la
+  minúscula de los titulares de la marca (nada de `text-transform: lowercase`). `agregados` publica localidad,
+  vía, resumen, organismo y medio con `texto.mayuscula_inicial`; `texto.nombre_medio` limpia los medios que se
+  presentan con su dirección ("https://www.diarioya.ar/" -> "Diarioya.ar").
 - `inicio_cobertura` (config.yaml, 2026-11-18): desde cuándo registra el radar. Va en meta.json; el tablero no
   compara contra períodos que empiezan antes ("Sin datos completos"), pinta en gris los días y semanas previos y
   lo avisa. `resumen_semana.json` trae `periodo_completo` y `previo_completo`. La serie diaria tiene 6

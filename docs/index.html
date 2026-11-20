@@ -25,7 +25,7 @@
   <div class="contenedor">
     <section class="titulo">
       <p class="antetitulo">Laboratorio de Innovación · Observatorio Humanitario</p>
-      <h1>radar vial</h1>
+      <h1>Radar Vial</h1>
       <p class="bajada">Siniestros viales reportados en medios de prensa de todo el país, contados como hechos y no como notas: diez notas sobre el mismo choque son un solo siniestro.</p>
     </section>
 
@@ -58,7 +58,7 @@
 
       <div class="seccion grilla-2">
         <article class="tarjeta">
-          <h2>dónde ocurren</h2>
+          <h2>Dónde ocurren</h2>
           <p class="sub">Siniestros cada 100.000 habitantes por provincia (población del Censo 2022) y lugar de cada siniestro.</p>
           <div id="mapa" role="region" aria-label="Mapa de siniestros por provincia"></div>
           <div class="escala" id="escala-mapa" aria-hidden="true"></div>
@@ -71,13 +71,13 @@
         </article>
         <div style="display:grid;gap:16px;min-width:0">
           <article class="tarjeta">
-            <h2>siniestros por día</h2>
+            <h2>Siniestros por día</h2>
             <p class="sub">Según la fecha del hecho.</p>
             <div class="lienzo alto-s"><canvas id="g-siniestros-dia" role="img" aria-label="Siniestros por día"></canvas></div>
             <div class="leyenda" aria-hidden="true"><span><span class="muestra" style="background:#F6ACB1;border:2px solid #E73743"></span>Días que todavía se están completando</span><span><span class="muestra" style="background:#8A9399"></span>Antes del inicio del registro</span></div>
           </article>
           <article class="tarjeta">
-            <h2>personas fallecidas por día</h2>
+            <h2>Personas fallecidas por día</h2>
             <p class="sub">Las cifras de víctimas pueden subir con los días.</p>
             <div class="lienzo alto-s"><canvas id="g-fallecidos-dia" role="img" aria-label="Personas fallecidas por día"></canvas></div>
             <details class="datos"><summary>Ver datos por día</summary><div class="tabla-envoltura" id="tabla-dias"></div></details>
@@ -86,25 +86,25 @@
       </div>
 
       <section class="seccion">
-        <h2>cómo ocurren</h2>
+        <h2>Cómo ocurren</h2>
         <div class="grilla-3" id="distribuciones"></div>
       </section>
 
       <section class="seccion grilla-2">
         <article class="tarjeta">
-          <h2>provincias con más siniestros</h2>
+          <h2>Provincias con más siniestros</h2>
           <p class="sub">En el período elegido.</p>
           <div class="tabla-envoltura" id="ranking-provincias"></div>
         </article>
         <article class="tarjeta">
-          <h2>rutas con más siniestros</h2>
+          <h2>Rutas con más siniestros</h2>
           <p class="sub">Rutas nacionales y provinciales nombradas en las notas.</p>
           <div class="tabla-envoltura" id="ranking-rutas"></div>
         </article>
       </section>
 
       <section class="seccion">
-        <h2>siniestros reportados</h2>
+        <h2>Siniestros reportados</h2>
         <article class="tarjeta">
           <div class="filtros" aria-label="Filtros de la tabla">
             <label class="campo">Provincia <select id="f-provincia"><option value="">Todas</option></select></label>
@@ -118,7 +118,7 @@
       </section>
 
       <section class="seccion">
-        <h2>contexto vial</h2>
+        <h2>Contexto vial</h2>
         <article class="tarjeta contexto">
           <p class="sub">Controles, normas, estadísticas oficiales, estado de rutas y campañas. No se suman a los conteos de siniestros.</p>
           <ul id="lista-contexto"></ul>
@@ -135,7 +135,7 @@
     <section id="vista-historico" role="tabpanel" aria-labelledby="tab-historico" hidden>
       <div class="seccion">
         <article class="tarjeta">
-          <h2>siniestros por semana</h2>
+          <h2>Siniestros por semana</h2>
           <p class="sub">Semanas de lunes a domingo, según la fecha del hecho. La semana en curso todavía se está completando.</p>
           <div class="lienzo alto-l"><canvas id="g-semanas" role="img" aria-label="Siniestros por semana"></canvas></div>
           <div class="leyenda" aria-hidden="true"><span><span class="muestra" style="background:#F6ACB1;border:2px solid #E73743"></span>Semana en curso</span><span><span class="muestra" style="background:#8A9399"></span>Semana en la que empezó el registro</span></div>
@@ -143,7 +143,7 @@
       </div>
       <div class="seccion">
         <article class="tarjeta">
-          <h2>semana por semana</h2>
+          <h2>Semana por semana</h2>
           <p class="sub">La comparación con la misma semana del año anterior aparece cuando haya datos de ese período.</p>
           <div class="tabla-envoltura" id="tabla-semanas"></div>
         </article>
@@ -153,7 +153,7 @@
     <!-- ===================== Metodología ===================== -->
     <section id="vista-metodologia" role="tabpanel" aria-labelledby="tab-metodologia" hidden>
       <div class="seccion texto">
-        <h2>metodología</h2>
+        <h2>Metodología</h2>
         <div class="caja">
           <p class="antetitulo">Qué mide y qué no</p>
           <p>El Radar Vial cuenta los siniestros viales <strong>reportados en medios de prensa</strong> de Argentina. No es estadística oficial. Subestima los siniestros sin víctimas o sin cobertura y las zonas con poca prensa local, y las cifras de víctimas de un siniestro pueden cambiar con los días.</p>

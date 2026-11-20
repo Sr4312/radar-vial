@@ -56,7 +56,7 @@ def test_contexto_de_varios_medios_se_agrupa():
     grupos = agrupar_contexto(notas, "2026-11-01")
     assert len(grupos) == 3
     grande = next(g for g in grupos if len(g["fuentes"]) == 2)
-    assert {f["medio"] for f in grande["fuentes"]} == {"a.com", "b.com"} and "_palabras" not in grande
+    assert {f["medio"] for f in grande["fuentes"]} == {"A.com", "B.com"} and "_palabras" not in grande
 
 
 def test_generar_escribe_los_archivos_sin_datos_internos(tmp_path):
@@ -73,6 +73,18 @@ def test_generar_escribe_los_archivos_sin_datos_internos(tmp_path):
     assert "2026-09-01" in serie["dias"]                    # el histórico es completo
     meta = json.loads((tmp_path / "meta.json").read_text(encoding="utf-8"))
     assert sum(p["poblacion"] for p in meta["provincias"]) == 45892285
+
+
+def test_lugares_y_medios_se_publican_con_mayuscula_inicial(tmp_path):
+    ev = _ev(1, "2026-11-19")
+    ev["localidad"] = "barrio Los Pinares"
+    ev["fuentes"] = [{"medio": m, "url": f"https://m.com.ar/{i}", "publicada": "2026-11-19", "texto": "completo"}
+                     for i, m in enumerate(["https://www.diarioya.ar/", "eccos multimedios -", "lt9.com.ar", "Clarín"])]
+    generar(tmp_path, ahora=datetime(2026, 11, 20, 6, 17, tzinfo=ART), eventos=[ev], notas=[])
+    e = json.loads((tmp_path / "eventos.json").read_text(encoding="utf-8"))[0]
+    assert e["localidad"] == "Barrio Los Pinares"
+    assert [f["medio"] for f in e["fuentes"]] == ["Diarioya.ar", "Eccos multimedios", "Lt9.com.ar", "Clarín"]
+    assert e["via"] == "RN 9 km 1290"                       # lo que ya empieza bien no se toca
 
 
 def test_sin_comparacion_si_el_periodo_anterior_es_previo_al_registro():

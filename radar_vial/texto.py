@@ -23,6 +23,24 @@ def normalizar(texto: str) -> str:
     return re.sub(r"\s+", " ", t).strip()
 
 
+def mayuscula_inicial(texto: str | None) -> str | None:
+    """Primera letra en mayúscula, el resto como está ("barrio Los Pinares" -> "Barrio Los Pinares")."""
+    if not texto:
+        return texto
+    return texto[0].upper() + texto[1:] if texto[0].islower() else texto
+
+
+def nombre_medio(nombre: str | None) -> str | None:
+    """Nombre de medio para mostrar: algunos medios se presentan con su dirección, en minúscula o con restos
+    ("https://www.diarioya.ar/", "eccos multimedios -"). Queda "Diarioya.ar", "Eccos multimedios"."""
+    if not nombre:
+        return nombre
+    t = re.sub(r"^https?://", "", nombre.strip(), flags=re.I)
+    t = re.sub(r"^www\.", "", t, flags=re.I)
+    t = re.sub(r"[\s/\-|·:]+$", "", t).strip()
+    return mayuscula_inicial(t or nombre.strip())
+
+
 def log(*partes) -> None:
     """print que no falla en la consola de Windows (cp1252): reemplaza lo que no se puede mostrar."""
     texto = " ".join(str(p) for p in partes)
