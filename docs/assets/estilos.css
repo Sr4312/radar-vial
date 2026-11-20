@@ -117,6 +117,18 @@ table.cuando td.calor.fuerte { color: var(--blanco); }
 table.cuando td.num { text-align: center; font-variant-numeric: tabular-nums; }
 table.cuando td.gris { color: var(--pizarra); }
 table.cuando tr.totales th, table.cuando tr.totales td { border-top: 2px solid var(--tinta); font-weight: 700; }
+/* Pantalla de acceso */
+body.bloqueado > :not(#acceso) { display: none !important; }
+.acceso { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+.acceso[hidden] { display: none; }
+.acceso form { width: 100%; max-width: 380px; border-top: 4px solid var(--rojo); display: flex; flex-direction: column; gap: 12px; padding: 28px 24px; }
+.acceso img { width: 100%; max-width: 300px; height: auto; }
+.acceso h1 { font-size: 32px; margin-top: 8px; }
+.acceso .sub { margin: 0; font-size: 14px; }
+.acceso input { font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--linea-fuerte); border-radius: 6px; color: var(--tinta); }
+.acceso button { font: inherit; font-weight: 700; font-size: 16px; color: var(--blanco); background: var(--rojo-texto); border: 0; border-radius: 999px; padding: 11px 16px; cursor: pointer; min-height: 44px; }
+.acceso button:hover { background: var(--tinta); }
+.acceso .error { color: var(--rojo-texto); font-size: 14px; font-weight: 600; margin: 0; min-height: 20px; }
 .ayuda-titulos { margin: -2px 0 14px; max-width: 760px; }
 details.lista { margin-top: 4px; }
 details.lista > summary { cursor: pointer; color: var(--rojo-texto); font-weight: 700; font-size: 15px; padding: 10px 0; }

@@ -928,5 +928,40 @@
     if (location.hash) vistaDelEnlace();
   }
 
-  document.addEventListener("DOMContentLoaded", iniciar);
+  // ------------------------------------------------------------------ pantalla de acceso
+  // Una cortina para que el tablero no quede a la vista de cualquiera que reciba el enlace. No es seguridad:
+  // el código y los datos son públicos. Acá va la huella (SHA-256) de la clave, no la clave.
+  const HUELLA_CLAVE = "877400dccdd18db5b4abc0ac761b4d647259d8e06bace1cc908c80eaa9d4969d";
+  const LLAVE_ACCESO = "radar-vial-acceso";
+
+  async function huella(texto) {
+    const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
+    return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function abrir() {
+    document.body.classList.remove("bloqueado");
+    $("acceso").hidden = true;
+    iniciar();
+  }
+
+  function acceso() {
+    let recordada = null;
+    try { recordada = localStorage.getItem(LLAVE_ACCESO); } catch (e) { /* sin almacenamiento: se pide cada vez */ }
+    if (recordada === HUELLA_CLAVE) { abrir(); return; }
+    $("form-acceso").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const campo = $("clave");
+      if ((await huella(campo.value.trim().toLowerCase())) === HUELLA_CLAVE) {
+        try { localStorage.setItem(LLAVE_ACCESO, HUELLA_CLAVE); } catch (e) { /* igual se abre */ }
+        abrir();
+      } else {
+        $("error-acceso").textContent = "La clave no es correcta.";
+        campo.value = "";
+        campo.focus();
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", acceso);
 })();

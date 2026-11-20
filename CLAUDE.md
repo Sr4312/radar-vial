@@ -133,6 +133,11 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   fallecidas, sin, y solo titular), a lo ancho, con el total arriba y su tabla. El equipo descartó el mismo día la
   versión con un punto por siniestro: prefieren barras. "Cuándo ocurren" (`tarjetaCuando`): grilla de día de la
   semana por franja horaria, armada con `el` (es una tabla, no necesita "Ver datos"); reemplazó a las dos barras.
+- Pantalla de acceso (pedido del equipo, 20-11-2026): `acceso()` en app.js compara el SHA-256 de lo que se escribe
+  con `HUELLA_CLAVE` y recuerda el acceso en `localStorage`; recién ahí llama a `iniciar`. **Es una cortina, no
+  seguridad**: el repositorio y `docs/data/` son públicos. La clave no se escribe en ningún archivo del repo (solo
+  su huella); para cambiarla, reemplazar la huella. Protección real: repositorio privado y control de acceso del
+  hosting.
 - `inicio_cobertura` (config.yaml, 2026-11-18): desde cuándo registra el radar. Va en meta.json; el tablero no
   compara contra períodos que empiezan antes ("Sin datos completos"), pinta en gris los días y semanas previos y
   lo avisa. `resumen_semana.json` trae `periodo_completo` y `previo_completo`. La serie diaria tiene 6

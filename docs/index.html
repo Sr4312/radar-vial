@@ -18,7 +18,21 @@
         integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
   <link rel="stylesheet" href="assets/estilos.css">
 </head>
-<body>
+<body class="bloqueado">
+  <!-- Pantalla de acceso: es una cortina, no una protección. El repositorio y los datos son públicos. -->
+  <main class="acceso" id="acceso">
+    <form class="tarjeta" id="form-acceso" autocomplete="off">
+      <img src="assets/logo-observatorio-humanitario.png" alt="Cruz Roja Argentina · Observatorio Humanitario · IFRC · RC3">
+      <h1>Radar Vial</h1>
+      <p class="sub">Tablero del Observatorio Humanitario. Ingresá la clave para verlo.</p>
+      <label class="campo" for="clave">Clave
+        <input type="password" id="clave" required autofocus aria-describedby="error-acceso">
+      </label>
+      <p class="error" id="error-acceso" role="alert"></p>
+      <button type="submit">Entrar</button>
+    </form>
+  </main>
+
   <div id="aviso-demo" class="aviso-demo" hidden>DATOS DE EJEMPLO (modo demo): no son siniestros reales.</div>
 
   <header class="cabecera">
