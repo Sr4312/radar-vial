@@ -129,10 +129,10 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   `elegirProvincia`, `filaDia`): aplica a tarjetas, series, distribuciones, rutas, lista, contexto e histórico; el mapa
   sigue pintando todas, resalta y encuadra la elegida, y un clic en una provincia la elige. La lista de siniestros va
   plegada (`details.lista`) con filtros de tipo, vehículo, vía, víctimas fatales y cantidad de fuentes.
-- Visualizaciones propias (sin Chart.js, armadas con `el`): "Cada punto es un siniestro" (`dibujarPuntos`: columnas
-  por día, un punto por siniestro con la misma codificación que el mapa, relleno = con personas fallecidas, gris =
-  solo titular; globo con el resumen al pasar el cursor o tocar) y "Cuándo ocurren" (`tarjetaCuando`: grilla de día
-  de la semana por franja horaria, que reemplazó a las dos barras; es una tabla, así que no necesita "Ver datos").
+- "Siniestros por día" (`dibujarComposicion`, `graficoApilado`): barras apiladas en tres partes (con personas
+  fallecidas, sin, y solo titular), a lo ancho, con el total arriba y su tabla. El equipo descartó el mismo día la
+  versión con un punto por siniestro: prefieren barras. "Cuándo ocurren" (`tarjetaCuando`): grilla de día de la
+  semana por franja horaria, armada con `el` (es una tabla, no necesita "Ver datos"); reemplazó a las dos barras.
 - `inicio_cobertura` (config.yaml, 2026-11-18): desde cuándo registra el radar. Va en meta.json; el tablero no
   compara contra períodos que empiezan antes ("Sin datos completos"), pinta en gris los días y semanas previos y
   lo avisa. `resumen_semana.json` trae `periodo_completo` y `previo_completo`. La serie diaria tiene 6

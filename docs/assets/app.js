@@ -247,9 +247,12 @@
       ctx.save();
       ctx.fillStyle = C.tinta;
       ctx.font = "600 12px 'Encode Sans', Arial, sans-serif";
-      chart.getDatasetMeta(0).data.forEach((barra, i) => {
-        const v = chart.data.datasets[0].data[i];
+      const apilado = chart.data.datasets.length > 1;
+      chart.getDatasetMeta(0).data.forEach((barra0, i) => {
+        // en barras apiladas: el total del día, sobre el tope de la pila
+        const v = chart.data.datasets.reduce((s, d) => s + (d.data[i] || 0), 0);
         if (!v) return;
+        const barra = apilado ? { x: barra0.x, y: Math.min(...chart.data.datasets.map((_, k) => chart.getDatasetMeta(k).data[i].y)) } : barra0;
         const texto = NUM.format(v);
         if (horizontal) { ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText(texto, barra.x + 6, barra.y); }
         else { ctx.textAlign = "center"; ctx.textBaseline = "bottom"; ctx.fillText(texto, barra.x, barra.y - 4); }
@@ -325,6 +328,40 @@
     });
   }
 
+  /** Barras apiladas por día: `series` = [{nombre, color, valores}], de abajo hacia arriba. */
+  function graficoApilado(id, etiquetas, series, { titulos, colorEtiquetas, valoresVisibles = true } = {}) {
+    if (estado.graficos[id]) estado.graficos[id].destroy();
+    const totales = etiquetas.map((_, i) => series.reduce((s, x) => s + x.valores[i], 0));
+    estado.graficos[id] = new Chart($(id), {
+      type: "bar",
+      data: {
+        labels: etiquetas,
+        datasets: series.map((s) => ({
+          label: s.nombre, data: s.valores, backgroundColor: s.color, hoverBackgroundColor: s.color,
+          borderColor: "#FFFFFF", borderWidth: { top: 2 }, borderSkipped: false,   // filete blanco entre las partes
+          maxBarThickness: 56, categoryPercentage: 0.8, barPercentage: 0.9,
+        })),
+      },
+      options: {
+        layout: { padding: { top: 18 } },
+        scales: {
+          x: { stacked: true, grid: { display: false }, border: { color: C.linea },
+            ticks: { maxRotation: 0, autoSkip: true, autoSkipPadding: 8, color: (ctx) => (colorEtiquetas ? colorEtiquetas[ctx.index] : C.tinta) } },
+          y: { stacked: true, beginAtZero: true, suggestedMax: Math.max(1, ...totales) * 1.15, grid: { color: C.linea }, border: { display: false }, ticks: { precision: 0 } },
+        },
+        plugins: {
+          valores: { mostrar: valoresVisibles },
+          tooltip: {
+            callbacks: {
+              title: (items) => (titulos || etiquetas)[items[0].dataIndex],
+              label: (item) => `${item.dataset.label}: ${NUM.format(item.raw)} de ${NUM.format(totales[item.dataIndex])}`,
+            },
+          },
+        },
+      },
+    });
+  }
+
   function tablaSimple(contenedor, encabezados, filas, numericas = []) {
     const tabla = el("table", {},
       el("thead", {}, el("tr", {}, encabezados.map((h, i) => el("th", { clase: numericas.includes(i) ? "num" : null, texto: h })))),
@@ -345,7 +382,6 @@
     const etiquetas = dias.map(fechaCorta);
     const titulos = dias.map((d) => fechaLarga(d) + nota(d));
     const pocos = dias.length <= 14;
-    graficoBarras("g-siniestros-dia", etiquetas, serie.map((s) => s.siniestros), { colores, bordes, titulos, unidad: "siniestros", valoresVisibles: pocos });
     graficoBarras("g-fallecidos-dia", etiquetas, serie.map((s) => s.fallecidos), { colores, bordes, titulos, unidad: "personas fallecidas", valoresVisibles: pocos });
     tablaSimple($("tabla-dias"), ["Día", "Siniestros", "Personas fallecidas"],
       dias.map((d, i) => [fechaLarga(d) + nota(d), NUM.format(serie[i].siniestros), NUM.format(serie[i].fallecidos)]), [1, 2]);
@@ -448,72 +484,35 @@
     caja.append(tarjeta);
   }
 
-  // ------------------------------------------------------------------ un punto por siniestro
-  function dibujarPuntos(eventos) {
-    const caja = vaciar($("puntos"));
-    ocultarGlobo();
+  // ------------------------------------------------------------------ siniestros por día, en tres partes
+  function dibujarComposicion(eventos) {
     const primerDia = sumarDias(estado.datos.meta.corte, -(estado.datos.meta.dias_eventos - 1));
     const desde = estado.desde < primerDia ? primerDia : estado.desde;
+    const dias = diasDelRango(desde, estado.hasta);
     const enCarga = new Set(estado.datos.resumen_semana.dias_en_carga || []);
     const inicio = estado.datos.meta.inicio_cobertura;
-    const porDia = {};
-    for (const e of eventos) (porDia[e.fecha] || (porDia[e.fecha] = [])).push(e);
-    // sin los días vacíos del principio (en un rango largo, antes del inicio del registro, no hay nada que mostrar)
-    let dias = diasDelRango(desde, estado.hasta);
-    const primero = dias.findIndex((d) => porDia[d]);
-    if (primero > 0) dias = dias.slice(primero);
-    const chico = eventos.length > 400;
-    estado.puntos = [];
-    for (const d of dias) {
-      // abajo los que tuvieron personas fallecidas, después los de nota completa, arriba los de solo titular
-      const lista = (porDia[d] || []).slice().sort((a, b) => ((b.fallecidos || 0) > 0) - ((a.fallecidos || 0) > 0)
-        || (a.solo_titulos ? 1 : 0) - (b.solo_titulos ? 1 : 0) || b.n_fuentes - a.n_fuentes);
-      const pila = el("div", { clase: "pila" }, lista.map((e) => {
-        estado.puntos.push(e);
-        return el("span", { clase: `pt${(e.fallecidos || 0) > 0 ? " fatal" : e.solo_titulos ? " titular" : ""}${chico ? " chico" : ""}`, "data-i": estado.puntos.length - 1 });
-      }));
-      caja.append(el("div", { clase: `dia${enCarga.has(d) || d > estado.datos.meta.corte ? " en-carga" : ""}${inicio && d < inicio ? " previo" : ""}` },
-        el("div", { clase: "cuenta", texto: lista.length ? NUM.format(lista.length) : "" }), pila,
-        el("div", { clase: "rotulo" }, DIAS_CORTOS[diaSemana(d)], el("br"), fechaCorta(d))));
+    const marca = (d) => (inicio && d < inicio ? " (antes del inicio del registro)" : enCarga.has(d) || d > estado.datos.meta.corte ? " (todavía se completa)" : "");
+    const cuenta = Object.fromEntries(dias.map((d) => [d, [0, 0, 0]]));
+    for (const e of eventos) {
+      if (!cuenta[e.fecha]) continue;
+      // cada siniestro va en una sola parte: con personas fallecidas, solo titular, o el resto
+      cuenta[e.fecha][(e.fallecidos || 0) > 0 ? 0 : e.solo_titulos ? 2 : 1] += 1;
     }
-    const fatales = eventos.filter((e) => (e.fallecidos || 0) > 0).length;
-    caja.setAttribute("aria-label", `${plural(eventos.length, "siniestro", "siniestros")} entre el ${fechaCorta(desde)} y el ${fechaCorta(estado.hasta)}, ${NUM.format(fatales)} con personas fallecidas. El detalle está en la lista de siniestros.`);
+    const series = [
+      { nombre: "Con personas fallecidas", color: C.rojoTexto },
+      { nombre: "Sin personas fallecidas", color: C.secuencial[2] },
+      { nombre: "Solo se leyó el titular", color: C.previo },
+    ].map((s, i) => ({ ...s, valores: dias.map((d) => cuenta[d][i]) }));
+    graficoApilado("g-composicion", dias.map(fechaCorta), series, {
+      titulos: dias.map((d) => fechaLarga(d) + marca(d)),
+      colorEtiquetas: dias.map((d) => (marca(d) ? C.previo : C.tinta)),
+      valoresVisibles: dias.length <= 16,
+    });
+    tablaSimple($("tabla-composicion"), ["Día", ...series.map((s) => s.nombre), "Total"],
+      dias.map((d) => [fechaLarga(d) + marca(d), ...cuenta[d].map((n) => NUM.format(n)), NUM.format(cuenta[d][0] + cuenta[d][1] + cuenta[d][2])]), [1, 2, 3, 4]);
     const partes = ["Los días con la fecha en gris todavía se están completando o son anteriores al inicio del registro."];
     if (estado.desde < primerDia) partes.push(`Se muestran los siniestros desde el ${fechaCorta(primerDia)}.`);
-    $("nota-puntos").textContent = partes.join(" ");
-    caja.scrollLeft = caja.scrollWidth;   // si no entra a lo ancho (celular), arranca en los días más recientes
-  }
-
-  function ocultarGlobo() { $("globo").hidden = true; estado.puntoActivo = null; }
-
-  function mostrarGlobo(punto) {
-    const e = estado.puntos[Number(punto.dataset.i)];
-    if (!e) return;
-    const prov = estado.provincias[e.provincia];
-    const lugar = [e.localidad, prov ? prov.nombre : "Sin provincia identificada"].filter(Boolean).join(", ");
-    const globo = vaciar($("globo"));
-    globo.append(el("b", { texto: `${fechaCorta(e.fecha)} · ${ETIQUETAS.tipo[e.tipo] || "Siniestro"}` }),
-      el("div", { clase: "lugar", texto: lugar }), el("div", { texto: e.resumen || "" }),
-      el("div", { clase: "pie-globo", texto: [textoVictimas(e), plural(e.n_fuentes, "fuente", "fuentes"), e.solo_titulos ? "Solo titulares" : null].filter(Boolean).join(" · ") }));
-    globo.hidden = false;
-    const r = punto.getBoundingClientRect(), ancho = globo.offsetWidth, alto = globo.offsetHeight;
-    const x = Math.max(8, Math.min(window.innerWidth - ancho - 8, r.left + r.width / 2 - ancho / 2));
-    const arriba = r.top - alto - 8;
-    globo.style.left = `${x}px`;
-    globo.style.top = `${arriba < 8 ? r.bottom + 8 : arriba}px`;
-    estado.puntoActivo = punto;
-  }
-
-  function conectarPuntos() {
-    const caja = $("puntos");
-    caja.addEventListener("mouseover", (ev) => { if (ev.target.classList.contains("pt")) mostrarGlobo(ev.target); });
-    caja.addEventListener("mouseleave", ocultarGlobo);
-    // en pantallas táctiles: un toque muestra el punto, otro toque (o tocar afuera) lo cierra
-    document.addEventListener("click", (ev) => {
-      const punto = ev.target.classList && ev.target.classList.contains("pt") ? ev.target : null;
-      if (punto && punto !== estado.puntoActivo) mostrarGlobo(punto); else ocultarGlobo();
-    });
-    window.addEventListener("scroll", ocultarGlobo, { passive: true });
+    $("nota-composicion").textContent = partes.join(" ");
   }
 
   // ------------------------------------------------------------------ mapa
@@ -814,7 +813,7 @@
   function dibujarTodo() {
     const eventos = eventosDelRango();
     dibujarIndicadores();
-    dibujarPuntos(eventos);
+    dibujarComposicion(eventos);
     dibujarSeries();
     const filas = dibujarMapa(eventos);
     dibujarDistribuciones(eventos);
@@ -868,7 +867,6 @@
   }
 
   function conectarControles() {
-    conectarPuntos();
     $("rango").addEventListener("change", (ev) => { fijarRango(ev.target.value); estado.pagina = 0; dibujarTodo(); });
     for (const id of ["desde", "hasta"]) $(id).addEventListener("change", () => { fijarRango("personalizado"); estado.pagina = 0; dibujarTodo(); });
     $("incluir-titulos").addEventListener("change", (ev) => { estado.incluirTitulos = ev.target.checked; estado.pagina = 0; dibujarTodo(); });

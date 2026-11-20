@@ -66,18 +66,18 @@
 
       <div class="seccion">
         <article class="tarjeta">
-          <h2>Cada punto es un siniestro</h2>
-          <p class="sub">Un punto por siniestro, día por día. Pasá el cursor o tocá un punto para ver qué pasó.</p>
-          <div class="puntos" id="puntos" role="img"></div>
+          <h2>Siniestros por día</h2>
+          <p class="sub">Según la fecha del hecho. Cada barra separa los siniestros con personas fallecidas, los que no tuvieron y aquellos de los que solo se leyó el titular.</p>
+          <div class="lienzo alto-m"><canvas id="g-composicion" role="img" aria-label="Siniestros por día"></canvas></div>
           <div class="leyenda" aria-hidden="true">
-            <span><span class="punto" style="background:#C11F2A"></span>Con personas fallecidas</span>
-            <span><span class="punto" style="background:#fff;border:2px solid #E73743"></span>Sin personas fallecidas</span>
-            <span><span class="punto" style="background:#fff;border:2px solid #8A9399"></span>Solo se leyó el titular</span>
+            <span><span class="muestra" style="background:#C11F2A"></span>Con personas fallecidas</span>
+            <span><span class="muestra" style="background:#F1858B"></span>Sin personas fallecidas</span>
+            <span><span class="muestra" style="background:#8A9399"></span>Solo se leyó el titular</span>
           </div>
-          <p class="nota" id="nota-puntos"></p>
+          <p class="nota" id="nota-composicion"></p>
+          <details class="datos"><summary>Ver datos por día</summary><div class="tabla-envoltura" id="tabla-composicion"></div></details>
         </article>
       </div>
-      <div class="globo" id="globo" role="status" hidden></div>
 
       <div class="seccion grilla-2">
         <article class="tarjeta">
@@ -95,15 +95,10 @@
         </article>
         <div style="display:grid;gap:16px;min-width:0">
           <article class="tarjeta">
-            <h2>Siniestros por día</h2>
-            <p class="sub">Según la fecha del hecho.</p>
-            <div class="lienzo alto-s"><canvas id="g-siniestros-dia" role="img" aria-label="Siniestros por día"></canvas></div>
-            <div class="leyenda" aria-hidden="true"><span><span class="muestra" style="background:#F6ACB1;border:2px solid #E73743"></span>Días que todavía se están completando</span><span><span class="muestra" style="background:#8A9399"></span>Antes del inicio del registro</span></div>
-          </article>
-          <article class="tarjeta">
             <h2>Personas fallecidas por día</h2>
             <p class="sub">Las cifras de víctimas pueden subir con los días.</p>
-            <div class="lienzo alto-s"><canvas id="g-fallecidos-dia" role="img" aria-label="Personas fallecidas por día"></canvas></div>
+            <div class="lienzo alto-m"><canvas id="g-fallecidos-dia" role="img" aria-label="Personas fallecidas por día"></canvas></div>
+            <div class="leyenda" aria-hidden="true"><span><span class="muestra" style="background:#F6ACB1;border:2px solid #E73743"></span>Días que todavía se están completando</span><span><span class="muestra" style="background:#8A9399"></span>Antes del inicio del registro</span></div>
             <details class="datos"><summary>Ver datos por día</summary><div class="tabla-envoltura" id="tabla-dias"></div></details>
           </article>
         </div>
