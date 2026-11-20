@@ -105,6 +105,7 @@ main { padding-bottom: 48px; }
 .lienzo.alto-l { height: 300px; }
 details.datos { margin-top: 10px; font-size: 13px; }
 details.datos summary { cursor: pointer; color: var(--rojo-texto); font-weight: 600; }
+.ayuda-titulos { margin: -2px 0 14px; max-width: 760px; }
 details.lista { margin-top: 4px; }
 details.lista > summary { cursor: pointer; color: var(--rojo-texto); font-weight: 700; font-size: 15px; padding: 10px 0; }
 details.lista[open] > summary { margin-bottom: 4px; }

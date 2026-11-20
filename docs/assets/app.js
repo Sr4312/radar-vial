@@ -193,6 +193,15 @@
     ];
     const caja = vaciar($("kpis"));
     const prov = estado.provincias[estado.provincia];
+    // Cuántos siniestros del período se conocen solo por el titular (lo que suma o quita la casilla)
+    let todos = 0, soloTitular = 0;
+    for (const [dia, v] of Object.entries(estado.datos.serie_diaria.dias)) {
+      if (dia < desde || dia > hasta) continue;
+      const fila = filaDia(v);
+      todos += fila[0]; soloTitular += fila[3];
+    }
+    $("ayuda-titulos").textContent = !soloTitular ? "En este período todos los siniestros tienen al menos una nota leída completa."
+      : `De ${soloTitular === 1 ? "1 siniestro" : `${NUM.format(soloTitular)} siniestros`} de los ${NUM.format(todos)} del período solo se pudo leer el titular de la nota, no el texto: tienen menos datos (a veces sin lugar ni víctimas). ${estado.incluirTitulos ? "Están contados; desmarcá la casilla para dejarlos afuera." : "No están contados."}`;
     for (const [valor, etiqueta, valorCerrado, ant] of tarjetas) {
       if (prov && etiqueta === "Provincias con casos") {
         // con una provincia elegida, la cuarta tarjeta es su tasa (si hay casos suficientes para calcularla)
@@ -223,7 +232,6 @@
     }
     const primerDia = sumarDias(estado.datos.meta.corte, -(estado.datos.meta.dias_eventos - 1));
     if (desde < primerDia) partes.push(`El mapa de puntos, las distribuciones, los rankings de rutas y la tabla muestran los siniestros desde el ${fechaCorta(primerDia)}.`);
-    if (!estado.incluirTitulos) partes.push("Se excluyen los siniestros conocidos solo por titulares.");
     $("aviso-carga").textContent = partes.join(" ");
     $("aviso-carga").hidden = !partes.length;
   }

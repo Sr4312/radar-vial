@@ -57,8 +57,9 @@
         <label class="campo" id="campo-desde" hidden>Desde <input type="date" id="desde"></label>
         <label class="campo" id="campo-hasta" hidden>Hasta <input type="date" id="hasta"></label>
         <label class="campo">Provincia <select id="f-provincia"><option value="">Todo el país</option></select></label>
-        <label class="casilla"><input type="checkbox" id="incluir-titulos" checked> Incluir siniestros conocidos solo por titulares</label>
+        <label class="casilla"><input type="checkbox" id="incluir-titulos" aria-describedby="ayuda-titulos" checked> Contar también los siniestros de los que solo se pudo leer el titular</label>
       </div>
+      <p class="nota ayuda-titulos" id="ayuda-titulos"></p>
 
       <div class="grilla-kpi" id="kpis" aria-live="polite"></div>
       <p class="aviso-carga" id="aviso-carga"></p>
@@ -182,7 +183,7 @@
           <li>Los <strong>últimos días siempre están incompletos</strong>: las notas y las cifras de víctimas llegan con demora. Por eso la comparación con el período anterior usa solo los días ya cerrados, y con menos de 20 casos muestra la diferencia en cantidad y no en porcentaje.</li>
           <li>El <strong>mapa por provincia no mide peligrosidad</strong>: la cantidad de siniestros registrados depende de cuántos medios locales cubre el radar en cada provincia. Con menos de 5 siniestros no se calcula la tasa.</li>
           <li>Las <strong>personas fallecidas</strong> son las que informan las notas hasta el momento. No se sigue a cada persona herida, así que las muertes posteriores sin nota no se cuentan, y la cifra no es comparable con las estadísticas oficiales (que cuentan las muertes hasta 30 días después).</li>
-          <li>Algunos siniestros solo se conocen por titulares (no se pudo leer la nota completa); tienen menos datos y se pueden excluir con la casilla de arriba.</li>
+          <li>De algunos siniestros <strong>solo se pudo leer el titular</strong> de la nota, no el texto completo (el medio no deja bajarla o no se encontró su dirección). Tienen menos datos: a veces falta el lugar o la cantidad de víctimas, y la fecha es la de publicación. En la lista llevan la etiqueta "Solo titulares" y se pueden dejar afuera de todas las cifras con la casilla de arriba.</li>
           <li>Los <strong>factores</strong> son los que menciona la nota, muchas veces como hipótesis ("presuntos"). Nunca son causas confirmadas.</li>
           <li>Cuando una nota no dice la provincia y hay una pista clara (el medio local o la búsqueda por la que llegó), la provincia se completa y se marca como inferida.</li>
         </ul>
