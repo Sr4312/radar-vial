@@ -132,7 +132,8 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   job `publicar` (Pages desde Actions: Settings > Pages > Source: GitHub Actions) solo si cambió `docs/data`.
 - Secreto: `ANTHROPIC_API_KEY` (Settings > Secrets and variables > Actions). Nunca en el código ni en `.env.ejemplo`.
 - Vercel (opcional): `vercel.json` sirve `docs/` sin instalar ni compilar; `ignoreCommand` evita redesplegar si
-  el commit no cambió `docs/` ni `vercel.json`. El proyecto en Vercel lo crea el equipo (Import del repositorio).
+  `docs/` y `vercel.json` no cambiaron desde la última publicación de Vercel (`VERCEL_GIT_PREVIOUS_SHA`; sin
+  publicación anterior, publica siempre). El proyecto en Vercel lo crea el equipo (Import del repositorio).
 - Repositorio: `Sr4312/radar-vial`, **público** desde el 20-11-2026 (se creó privado; con el plan gratuito GitHub
   no permite Pages en privados y se pasó a público para publicar). Tablero: https://sr4312.github.io/radar-vial/.
   El job `publicar` corre si la variable del repositorio `PUBLICAR_PAGES` vale "true" (ya configurada) y la

@@ -4,7 +4,7 @@
   "installCommand": "echo 'Radar Vial: sitio estatico, sin dependencias'",
   "buildCommand": "echo 'Radar Vial: sitio estatico, sin compilacion'",
   "outputDirectory": "docs",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- docs/ vercel.json",
+  "ignoreCommand": "if [ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ]; then exit 1; fi; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- docs/ vercel.json",
   "headers": [
     {
       "source": "/data/(.*)",
