@@ -12,6 +12,17 @@ from urllib3.util.retry import Retry
 from . import config
 
 
+class _Reintento(Retry):
+    """Respeta el `Retry-After` de los servidores, pero con un tope: el 21-11-2026 una respuesta de espera larga
+    dejó la recuperación histórica parada más de diez minutos."""
+
+    TOPE_ESPERA = 60
+
+    def get_retry_after(self, response):
+        valor = super().get_retry_after(response)
+        return None if valor is None else min(valor, self.TOPE_ESPERA)
+
+
 class Red:
     """Sesión compartida por toda la corrida. Una fuente caída devuelve error, nunca cuelga la corrida."""
 
@@ -24,7 +35,7 @@ class Red:
             "User-Agent": rec["user_agent"],
             "Accept-Language": "es-AR,es;q=0.9",
         })
-        reintento = Retry(
+        reintento = _Reintento(
             total=reintentos if reintentos is not None else rec["reintentos"],
             backoff_factor=1.5,
             status_forcelist=(429, 500, 502, 503, 504),
