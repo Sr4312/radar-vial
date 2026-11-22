@@ -127,3 +127,20 @@ def test_procesar_se_frena_en_el_limite_y_retoma_sin_repetir(entorno):
     assert len(notas) == 10 and all(n["origen"] == "historico" for n in notas.values())
     # las fichas no guardan títulos (pueden traer nombres)
     assert "Volcó un camión" not in (entorno / "historico" / "notas.jsonl").read_text(encoding="utf-8")
+
+
+def test_cuenta_reintenta_los_cortes_de_red(monkeypatch):
+    respuestas = [NS(stdout="", stderr="API Error: Unable to connect to API (ENOTFOUND)", returncode=1),
+                  _salida(resultado={"categoria": "siniestro"})]
+    c = ClaudeCuenta(ejecutable="claude", ejecutar=lambda a, **k: respuestas.pop(0))
+    esperas = []
+    c.dormir = esperas.append
+    assert c.json("filtro", "m", "s", "x", {}) == {"categoria": "siniestro"} and esperas == [30]
+    # un error que no es de red no se reintenta
+    error = {"type": "result", "is_error": True, "result": "Invalid model"}
+    c2 = ClaudeCuenta(ejecutable="claude", ejecutar=lambda a, **k: NS(stdout=json.dumps(error), stderr="", returncode=1))
+    c2.dormir = esperas.append
+    from radar_vial.claude import ErrorClaude
+    with pytest.raises(ErrorClaude):
+        c2.json("filtro", "m", "s", "x", {})
+    assert esperas == [30]

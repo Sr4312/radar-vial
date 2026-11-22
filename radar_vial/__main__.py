@@ -204,6 +204,13 @@ def cmd_historico(args) -> None:
 
     from . import historico
 
+    with historico.sin_suspender():
+        _historico(args, historico)
+
+
+def _historico(args, historico) -> None:
+    from datetime import date
+
     if args.etapa == "recolectar":
         historico.recolectar_historico(date.fromisoformat(args.desde), date.fromisoformat(args.hasta), log=log)
     elif args.etapa == "procesar":

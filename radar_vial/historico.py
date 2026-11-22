@@ -78,6 +78,32 @@ def fecha_art(it: dict) -> date:
     return datetime.fromisoformat(it["publicada"]).astimezone(ART).date()
 
 
+# ------------------------------------------------------------------ computadora despierta
+
+class sin_suspender:
+    """Mientras corre, Windows no suspende la computadora por inactividad (como hace un reproductor de video).
+    Solo vale para este proceso y se suelta al terminar; no cambia la configuración. Cerrar la tapa igual la
+    suspende. El 20-11-2026 la computadora se suspendió de noche y el filtro quedó parado horas."""
+
+    def __enter__(self):
+        try:
+            import ctypes
+
+            ctypes.windll.kernel32.SetThreadExecutionState(0x80000000 | 0x00000001)   # CONTINUOUS | SYSTEM_REQUIRED
+        except (AttributeError, OSError):
+            pass   # no es Windows
+        return self
+
+    def __exit__(self, *exc):
+        try:
+            import ctypes
+
+            ctypes.windll.kernel32.SetThreadExecutionState(0x80000000)
+        except (AttributeError, OSError):
+            pass
+        return False
+
+
 # ------------------------------------------------------------------ 1. recolección
 
 def ventanas(desde: date, hasta: date, dias: int = DIAS_VENTANA) -> list[tuple[date, date]]:
@@ -181,13 +207,21 @@ def procesar_historico(log=log_consola, tope: int | None = None, claude: ClaudeC
         # 1. Filtro, de a lotes, guardando lo decidido
         sin_filtro = [it for it in items.values() if it.get("filtro") in (None, "sin_evaluar") and not hecha(it)]
         sin_filtro.sort(key=lambda it: it["publicada"], reverse=True)
+        tam = conf["limites"]["notas_por_lote_filtro"]
+        solo_errores = lambda *partes: log(*partes) if str(partes[0]).startswith("  !") else None  # noqa: E731
         for i in range(0, len(sin_filtro), 400):
             lote = sin_filtro[i:i + 400]
             for it in lote:
                 it.pop("filtro", None)
-            filtrar(claude, lote, log=log)
-            conteo["filtradas"] += sum(1 for it in lote if it.get("filtro") not in (None, "sin_evaluar"))
+            # de a varias llamadas a la vez: cada `claude -p` tarda, y en serie el filtro llevaba horas
+            partes = [lote[j:j + tam] for j in range(0, len(lote), tam)]
+            with ThreadPoolExecutor(max_workers=EN_PARALELO) as ex:
+                list(ex.map(lambda parte: filtrar(claude, parte, log=solo_errores), partes))
+            cuenta = {c: sum(1 for it in lote if it.get("filtro") == c) for c in ("siniestro", "contexto", "descartar", "sin_evaluar")}
+            conteo["filtradas"] += len(lote) - cuenta["sin_evaluar"]
             guardar_items(items)
+            log(f"Filtro {min(i + 400, len(sin_filtro))} de {len(sin_filtro)}: {cuenta['siniestro']} siniestros, "
+                f"{cuenta['contexto']} de contexto, {cuenta['descartar']} descartadas, {cuenta['sin_evaluar']} sin evaluar.")
         for it in items.values():
             if it.get("filtro") == "descartar" and historial.buscar(it) is None:
                 historial.registrar(it, "descartada")

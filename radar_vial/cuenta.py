@@ -21,6 +21,7 @@ import os
 import shutil
 import subprocess
 import threading
+import time
 from collections import Counter
 from datetime import datetime, timezone
 
@@ -28,6 +29,13 @@ from . import config
 from .claude import ErrorClaude
 
 ARCHIVO_USO = config.DIR_DATA / "historico" / "uso_cuenta.jsonl"
+ESPERAS = (30, 120, 300)   # segundos antes de cada reintento ante un corte de red o una saturación
+_TRANSITORIOS = ("enotfound", "econnreset", "etimedout", "econnrefused", "connection closed", "unable to connect",
+                 "overloaded", "529", "503", "502", "500 ", "internal server error", "socket hang up", "fetch failed")
+
+
+class ErrorTransitorio(Exception):
+    """Corte de red, saturación o demora: vale la pena reintentar."""
 
 
 class LimiteCuenta(Exception):
@@ -49,6 +57,7 @@ class ClaudeCuenta:
             raise ErrorClaude("No se encontró Claude Code (`claude`) en esta computadora.")
         self.comando = comando
         self.ejecutar = ejecutar
+        self.dormir = time.sleep
         self.entorno = {k: v for k, v in os.environ.items()
                         if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL")}
         self.carpeta = config.DIR_CACHE / "cuenta_vacia"     # sin CLAUDE.md ni configuración de proyecto
@@ -67,14 +76,26 @@ class ClaudeCuenta:
 
     def json(self, etapa: str, modelo: str, sistema: str, mensaje: str, schema: dict,
              esfuerzo: str = "low", max_tokens: int = 16000) -> dict:   # noqa: ARG002 - max_tokens no aplica
+        """Reintenta los cortes de red y las saturaciones (pasó: la computadora se suspendió a mitad de la corrida y
+        varias llamadas fallaron con ENOTFOUND o "Connection closed"); el resto de los errores no se reintenta."""
+        for intento in range(len(ESPERAS) + 1):
+            try:
+                return self._una_vez(etapa, modelo, sistema, mensaje, schema, esfuerzo)
+            except ErrorTransitorio as exc:
+                if intento == len(ESPERAS):
+                    raise ErrorClaude(f"{exc} (después de {intento + 1} intentos)") from exc
+                self.dormir(ESPERAS[intento])
+        raise AssertionError("no se llega")
+
+    def _una_vez(self, etapa: str, modelo: str, sistema: str, mensaje: str, schema: dict, esfuerzo: str) -> dict:
         if self.limite.is_set():
             raise LimiteCuenta("La cuenta llegó a su límite de uso.", self.reinicio)
         try:
             r = self.ejecutar(self._argumentos(modelo, sistema, schema, esfuerzo), input=mensaje, capture_output=True,
                               text=True, encoding="utf-8", errors="replace", env=self.entorno, cwd=self.carpeta,
-                              timeout=900)
+                              timeout=600)
         except subprocess.TimeoutExpired as exc:
-            raise ErrorClaude("Claude Code no respondió en 15 minutos") from exc
+            raise ErrorTransitorio("Claude Code no respondió en 10 minutos") from exc
         resultado, info_limite, fuente_clave = None, None, None
         for linea in (r.stdout or "").splitlines():
             try:
@@ -99,10 +120,16 @@ class ClaudeCuenta:
             self.limite.set()
             raise LimiteCuenta("La cuenta llegó a su límite de uso.", self.reinicio)
         if resultado is None:
-            raise ErrorClaude(f"Claude Code terminó sin respuesta (código {r.returncode}): {(r.stderr or '')[:200]}")
+            mensaje_error = f"Claude Code terminó sin respuesta (código {r.returncode}): {(r.stderr or '')[:200]}"
+            if any(x in texto_error.lower() for x in _TRANSITORIOS) or not (r.stderr or "").strip():
+                raise ErrorTransitorio(mensaje_error)
+            raise ErrorClaude(mensaje_error)
         self._sumar(etapa, modelo, resultado)
         if resultado.get("is_error"):
-            raise ErrorClaude(f"Claude Code respondió con error: {str(resultado.get('result'))[:200]}")
+            mensaje_error = f"Claude Code respondió con error: {str(resultado.get('result'))[:200]}"
+            if any(x in texto_error.lower() for x in _TRANSITORIOS):
+                raise ErrorTransitorio(mensaje_error)
+            raise ErrorClaude(mensaje_error)
         datos = resultado.get("structured_output")
         if not isinstance(datos, dict):
             try:
