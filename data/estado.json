@@ -1,13 +1,13 @@
 {
- "hora": "2026-11-22T14:40-03:00",
+ "hora": "2026-11-23T18:55-03:00",
  "publicado": true,
  "resumen": {
-  "duracion_min": 26.8,
-  "eventos": 392,
-  "extraidas": 368,
-  "nuevas": 1353,
-  "postergadas": 287,
-  "recolectadas": 1922
+  "duracion_min": 25.4,
+  "eventos": 499,
+  "extraidas": 383,
+  "nuevas": 1804,
+  "postergadas": 585,
+  "recolectadas": 2205
  },
- "ultimo_diario": "2026-11-22"
+ "ultimo_diario": "2026-11-23"
 }
