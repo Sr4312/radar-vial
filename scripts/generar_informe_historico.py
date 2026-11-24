@@ -24,7 +24,7 @@ VIA = {"ruta_nacional": "Ruta nacional", "ruta_provincial": "Ruta provincial", "
        "urbana": "Calle o avenida", "rural": "Camino rural", "desconocida": "Sin dato", "sin dato": "Sin dato"}
 FRANJA = {"madrugada": "Madrugada (0 a 6 h)", "manana": "Mañana (6 a 12 h)", "tarde": "Tarde (12 a 19 h)",
           "noche": "Noche (19 a 24 h)", "desconocida": "Sin dato", "sin dato": "Sin dato"}
-GRUPO = {"ninez": "Niñez", "adolescente": "Adolescencia", "joven": "Juventud", "adulto": "Adultez",
+GRUPO = {"ninez": "Niñez", "adolescente": "Adolescencia", "adolescencia": "Adolescencia", "joven": "Juventud", "adulto": "Adultez",
          "persona_mayor": "Personas mayores", "sin dato": "Sin dato"}
 FACTOR = {"alcohol": "Alcohol", "velocidad": "Velocidad", "celular": "Celular", "clima": "Clima",
           "estado_de_la_ruta": "Estado de la ruta", "fatiga": "Fatiga o descompensación", "sobrepaso": "Maniobra de sobrepaso",

@@ -302,3 +302,16 @@ def test_una_nota_posterior_no_borra_una_muerte():
     ev = Evento(_ficha(1, fallecidos=1, hora="2026-11-18T10:00:00+00:00"))
     ev.fichas.append(_ficha(2, medio="Otro", fallecidos=0, hora="2026-11-18T15:00:00+00:00"))
     assert consolidar(ev, "ev")["fallecidos"] == 1
+
+
+def test_decision_guardada_se_encuentra_aunque_el_evento_cambie_de_ancla(tmp_path):
+    from radar_vial.eventos import Evento
+
+    ev = Evento(_ficha(5))
+    ev.fichas.append(_ficha(1))                   # sumó una ficha: el ancla pasa de n_5#0 a n_1#0
+    d = Desempate(None, archivo=tmp_path / "d.json")
+    d.cache["n_9#0"] = {"elegido": "n_5#0", "consultados": ["n_5#0"], "seguridad": "alta"}
+    assert d.previa(_ficha(9), [ev]) == (True, ev)
+    d.cache["n_9#0"] = {"elegido": None, "consultados": ["n_5#0"], "seguridad": "alta"}
+    assert d.previa(_ficha(9), [ev]) == (True, None)
+    assert d.previa(_ficha(9), [ev, Evento(_ficha(7))]) == (False, None)   # un candidato nuevo: se pregunta

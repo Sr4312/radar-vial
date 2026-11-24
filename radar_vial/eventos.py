@@ -391,13 +391,15 @@ Respondé con el número del evento que es el mismo siniestro, o null si no es n
         return texto
 
     def previa(self, ficha: dict, candidatos: list[Evento]) -> tuple[bool, Evento | None]:
-        """(ya decidido, evento elegido) según las decisiones guardadas."""
-        anclas = [sorted(ev.claves)[0] for ev in candidatos]
+        """(ya decidido, evento elegido) según las decisiones guardadas. Se busca por pertenencia: desde la decisión, el
+        evento elegido (o los consultados) pudo sumar fichas y cambiar de ancla, y sigue siendo el mismo siniestro."""
         previa = self.cache.get(ficha["_clave"])
         if previa:
-            if previa["elegido"] in anclas:
-                return True, candidatos[anclas.index(previa["elegido"])]
-            if previa["elegido"] is None and set(anclas) <= set(previa["consultados"]):
+            if previa["elegido"] is not None:
+                for ev in candidatos:
+                    if previa["elegido"] in ev.claves:
+                        return True, ev
+            elif all(ev.claves & set(previa["consultados"]) for ev in candidatos):
                 return True, None
         return False, None
 
