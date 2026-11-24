@@ -2,7 +2,7 @@
 import json
 from datetime import datetime, timedelta, timezone
 
-from radar_vial.agregados import _serie, agrupar_contexto, etiqueta_ruta, generar, resumen_semana
+from radar_vial.agregados import _serie, agrupar_contexto, cargar_todos, etiqueta_ruta, generar, resumen_semana
 
 ART = timezone(timedelta(hours=-3))
 
@@ -96,3 +96,24 @@ def test_sin_comparacion_si_el_periodo_anterior_es_previo_al_registro():
     assert all(v is None for v in r["variacion"].values())
     r2 = resumen_semana(_serie(eventos), corte=date(2026, 12, 9), inicio_cobertura=date(2026, 11, 18))
     assert r2["previo_completo"] is True and r2["periodo_completo"] is True
+
+
+def test_recuperados_hasta_el_inicio_del_diario_y_diario_desde_ahi():
+    general = {"inicio_cobertura": "2026-10-18", "inicio_diario": "2026-11-18"}
+    historico = [_ev("h1", "2026-10-17"), _ev("h2", "2026-10-18"), _ev("h3", "2026-11-17"), _ev("h4", "2026-11-18")]
+    diario = [_ev("d1", "2026-11-16"), _ev("d2", "2026-11-18")]   # d1: nota tardía de un día ya recuperado
+    ids = [e["id_evento"] for e in cargar_todos(general, diario=diario, historico=historico)]
+    assert ids == ["ev_h2", "ev_h3", "ev_d2"]          # cada día sale de una sola fuente
+    assert [e["id_evento"] for e in cargar_todos({"inicio_cobertura": "2026-11-18"}, diario=diario)] == ["ev_d1", "ev_d2"]
+
+
+def test_con_registro_largo_se_publican_todos_los_siniestros_desde_el_inicio(tmp_path):
+    from datetime import date
+
+    ahora = datetime(2026, 11, 24, 6, 17, tzinfo=ART)
+    generar(tmp_path, ahora=ahora, eventos=[_ev(1, "2026-11-23"), _ev(2, "2026-10-18"), _ev(3, "2026-10-17")], notas=[],
+            inicio_cobertura=date(2026, 10, 18))
+    eventos = json.loads((tmp_path / "eventos.json").read_text(encoding="utf-8"))
+    assert [e["id"] for e in eventos] == ["ev_1", "ev_2"]
+    meta = json.loads((tmp_path / "meta.json").read_text(encoding="utf-8"))
+    assert meta["dias_eventos"] == 37                      # del 18-10 al 23-11 (corte)

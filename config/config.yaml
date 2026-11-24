@@ -25,9 +25,12 @@ precios:
   claude-haiku-5-5: {entrada: 0.10, salida: 0.50, cache_lectura: 0.01, cache_escritura: 0.125}
   claude-sonnet-5-5: {entrada: 2.00, salida: 10.00, cache_lectura: 0.10, cache_escritura: 2.50}
 
-# Desde cuándo el radar registra siniestros (la primera corrida real leyó notas desde el 18-11-2026). Los días
-# anteriores tienen solo notas tardías sueltas: el tablero no compara contra ellos ni los muestra como datos.
-inicio_cobertura: "2026-11-18"
+# Desde cuándo muestra siniestros el tablero. Del 18-10 al 17-11-2026 son los recuperados con búsquedas por fecha
+# (`historico`, data/historico/eventos.jsonl); desde `inicio_diario`, los del radar diario. Los días anteriores
+# tienen solo notas tardías sueltas: el tablero no compara contra ellos ni los muestra como datos.
+inicio_cobertura: "2026-10-18"
+# Primera corrida real del radar diario (leyó notas desde el 18-11-2026)
+inicio_diario: "2026-11-18"
 
 recoleccion:
   # Ventana de cada corrida diaria: notas publicadas en las últimas N horas

@@ -126,8 +126,12 @@ El Radar Vial lo publica Cruz Roja Argentina. Por eso:
 
 - **Cobertura de prensa**: el radar ve lo que la prensa publica. Los siniestros sin víctimas, los de zonas
   rurales y los de provincias con poca prensa digital quedan subrepresentados.
-- **Desde cuándo**: el radar registra siniestros desde el 18 de noviembre de 2026. Los días anteriores solo
-  tienen notas tardías sueltas: el tablero los muestra aparte y no compara contra ellos.
+- **Desde cuándo**: el tablero muestra siniestros desde el 18 de octubre de 2026. Del 18 de octubre al 17 de
+  noviembre se recuperaron con búsquedas de Google News por fecha; desde el 18 de noviembre los registra la
+  corrida diaria. En lo recuperado, la mayoría de las notas solo se pudo leer por el titular (los enlaces de
+  Google News a notas de más de unas dos semanas ya no se pueden llevar a la nota original), y con solo el
+  titular es más difícil reconocer que dos notas hablan del mismo siniestro: las cifras de esas semanas,
+  sobre todo las de personas fallecidas, pueden estar infladas por siniestros contados más de una vez.
 - **Días recientes incompletos**: las notas y las cifras de víctimas llegan con demora. Los últimos días
   siempre están incompletos: el tablero compara solo los días ya cerrados y, con menos de 20 casos, muestra
   la diferencia en cantidad y no en porcentaje.

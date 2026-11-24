@@ -224,8 +224,14 @@ Reglas del historial y de la corrida (revisión del 20-11-2026; pruebas en `test
   "choque", 50 notas en 2 días contra 36 en una semana). Solo búsquedas de siniestros; los feeds y sitemaps no
   sirven para fechas viejas. Las notas de contexto no se extraen.
 - Archivos aparte: `data/historico/` (fichas, historial, siniestros, georef, decisiones, `uso_cuenta.jsonl` con
-  tokens, no dólares) y `data/cache/historico/` (notas con títulos, fuera de git). Actions no los lee; el tablero
-  publicado no los usa (`inicio_cobertura` sigue en 18-11). `historico tablero` arma una vista en salida/historico/.
+  tokens, no dólares) y `data/cache/historico/` (notas con títulos, fuera de git). `historico tablero` arma una vista
+  en salida/historico/. **Desde el 24-11-2026 el tablero los suma** (pedido del equipo para la presentación, sin
+  marcarlos distinto): `agregados.cargar_todos` toma los recuperados de `inicio_cobertura` (18-10) al día anterior a
+  `inicio_diario` (18-11) y los del diario desde ahí (cada día de una sola fuente); `eventos.json` lleva todo desde el
+  inicio (4 MB, 1,6 MB comprimido) y `meta.dias_eventos` los días publicados. Ojo: las muertes recuperadas están
+  infladas por duplicados de solo titular (205 por semana en la del 19-10 contra 70 a 85 del diario; un mismo
+  fallecido de Santa Fe del 2-11 aparece en 4 siniestros de 4 medios), así que la serie de fallecidos muestra una
+  caída que en buena parte no es real.
 - Calidad menor que la del diario: muchas notas quedan solo con el título. Las fichas llevan `origen: "historico"`.
   Medido el 22-11-2026: 15.544 notas recolectadas, 6.628 de siniestros, 6.032 con fichas. **Bing Noticias solo
   encuentra notas de las últimas ~2 semanas**: las publicadas más de 14 días antes de la corrida no se resuelven

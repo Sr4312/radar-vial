@@ -24,9 +24,26 @@ from .notas import Notas
 from .texto import mayuscula_inicial, nombre_medio, normalizar
 
 ART = timezone(timedelta(hours=-3))
-DIAS_EVENTOS = 31
+DIAS_EVENTOS = 31          # mínimo de días de siniestros con detalle; si el registro empezó antes, desde el inicio
+ARCHIVO_HISTORICO = config.DIR_DATA / "historico" / "eventos.jsonl"
 DIAS_CONTEXTO = 31
 DIAS_EN_CARGA = 2
+
+
+def cargar_todos(general: dict | None = None, diario: list[dict] | None = None,
+                 historico: list[dict] | None = None) -> list[dict]:
+    """Los siniestros del tablero: los recuperados (del inicio del registro hasta el día anterior a
+    `inicio_diario`) y los del radar diario desde `inicio_diario`. Cada día sale de una sola de las dos fuentes, para
+    no contar dos veces un mismo siniestro."""
+    general = general or config.general()
+    diario = cargar_eventos() if diario is None else diario
+    corte = general.get("inicio_diario")
+    if not corte:
+        return diario
+    historico = cargar_eventos(ARCHIVO_HISTORICO) if historico is None else historico
+    inicio = general.get("inicio_cobertura") or ""
+    return ([e for e in historico if inicio <= e["fecha_hecho"] < corte] +
+            [e for e in diario if e["fecha_hecho"] >= corte])
 
 
 def etiqueta_ruta(via: str | None) -> str | None:
@@ -157,18 +174,20 @@ def generar(destino: Path, ahora: datetime | None = None, eventos: list[dict] | 
     """Escribe los JSON del tablero en `destino` (una carpeta data/). Devuelve el resumen de la semana."""
     ahora = (ahora or datetime.now(timezone.utc)).astimezone(ART)
     corte = ahora.date() - timedelta(days=1)
-    eventos = eventos if eventos is not None else cargar_eventos()
+    eventos = eventos if eventos is not None else cargar_todos()
     notas = notas if notas is not None else Notas().todas()
     serie = _serie(eventos)
     inicio = inicio_cobertura or date.fromisoformat(config.general()["inicio_cobertura"])
     resumen = resumen_semana(serie, corte, inicio)
-    desde_ev = (ahora.date() - timedelta(days=DIAS_EVENTOS)).isoformat()
+    # con detalle: los últimos DIAS_EVENTOS días o, si el registro empezó antes, todo desde el inicio
+    desde_ev = min(ahora.date() - timedelta(days=DIAS_EVENTOS), inicio).isoformat()
+    dias_eventos = (corte - date.fromisoformat(desde_ev)).days + 1
     publicables = [_evento_publicable(e) for e in eventos if e["fecha_hecho"] >= desde_ev]
     fuentes_cfg = config.cargar_yaml("fuentes.yaml")
     meta = {
         "generado": ahora.isoformat(timespec="minutes"), "corte": corte.isoformat(), "demo": demo,
         "inicio_cobertura": inicio.isoformat(),
-        "dias_eventos": DIAS_EVENTOS, "dias_en_carga": DIAS_EN_CARGA,
+        "dias_eventos": dias_eventos, "dias_en_carga": DIAS_EN_CARGA,
         "provincias": [{"id": p["id"], "nombre": p["corto"], "nombre_oficial": p["nombre"], "poblacion": p["poblacion"]}
                        for p in config.provincias()],
         "fuente_poblacion": "INDEC, Censo Nacional de Población, Hogares y Viviendas 2022. Resultados definitivos.",
