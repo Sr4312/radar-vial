@@ -449,7 +449,14 @@
   /** Cuándo ocurren: día de la semana por franja horaria, en una sola grilla (más oscuro = más siniestros). */
   function tarjetaCuando(caja, eventos) {
     const FRANJAS = [["madrugada", "Madrugada", "0 a 6 h"], ["manana", "Mañana", "6 a 12 h"], ["tarde", "Tarde", "12 a 19 h"], ["noche", "Noche", "19 a 24 h"]];
-    const conFecha = eventos.filter((e) => !e.fecha_aproximada);
+    // Solo desde el inicio del registro: antes hay notas sueltas y esos días de la semana parecerían tranquilos
+    const inicio = estado.datos.meta.inicio_cobertura;
+    const desde = inicio && estado.desde < inicio ? inicio : estado.desde;
+    const veces = DIAS.map(() => 0);   // cuántas veces aparece cada día de la semana en el período
+    for (const d of diasDelRango(desde, estado.hasta)) veces[diaSemana(d)] += 1;
+    const sinFecha = eventos.filter((e) => e.fecha_aproximada).length;
+    const previos = eventos.filter((e) => !e.fecha_aproximada && e.fecha < desde).length;
+    const conFecha = eventos.filter((e) => !e.fecha_aproximada && e.fecha >= desde);
     const grilla = DIAS.map(() => ({ madrugada: 0, manana: 0, tarde: 0, noche: 0, sin: 0 }));
     for (const e of conFecha) grilla[diaSemana(e.fecha)][e.franja && e.franja !== "desconocida" ? e.franja : "sin"] += 1;
     const maximo = Math.max(1, ...grilla.flatMap((g) => FRANJAS.map(([k]) => g[k])));
@@ -460,10 +467,10 @@
     };
     const mayus = (s) => s[0].toUpperCase() + s.slice(1);
     const filas = grilla.map((g, d) => el("tr", {},
-      el("th", { scope: "row", texto: mayus(DIAS[d]) }),
+      el("th", { scope: "row" }, mayus(DIAS[d]), el("small", { texto: veces[d] ? plural(veces[d], "día", "días") : "Ningún día registrado" })),
       FRANJAS.map(([k, nombre]) => celda(g[k], `${mayus(DIAS[d])}, ${nombre.toLowerCase()}: ${plural(g[k], "siniestro", "siniestros")}`)),
-      el("td", { clase: "num gris", texto: NUM.format(g.sin) }),
-      el("td", { clase: "num", texto: NUM.format(FRANJAS.reduce((s, [k]) => s + g[k], g.sin)) })));
+      el("td", { clase: "num gris", texto: veces[d] ? NUM.format(g.sin) : "–" }),
+      el("td", { clase: "num", texto: veces[d] ? NUM.format(FRANJAS.reduce((s, [k]) => s + g[k], g.sin)) : "–" })));
     const totales = el("tr", { clase: "totales" }, el("th", { scope: "row", texto: "Total" }),
       FRANJAS.map(([k]) => el("td", { clase: "num", texto: NUM.format(grilla.reduce((s, g) => s + g[k], 0)) })),
       el("td", { clase: "num gris", texto: NUM.format(grilla.reduce((s, g) => s + g.sin, 0)) }),
@@ -479,7 +486,9 @@
           FRANJAS.map(([, nombre, horas]) => el("th", { scope: "col", clase: "num" }, nombre, el("small", { texto: horas }))),
           el("th", { scope: "col", clase: "num", texto: "Sin horario" }), el("th", { scope: "col", clase: "num", texto: "Total" }))),
         el("tbody", {}, filas, totales))));
-      tarjeta.append(el("p", { clase: "nota", texto: `Según la fecha del hecho. No entran ${plural(eventos.length - conFecha.length, "siniestro", "siniestros")} sin fecha precisa. "Sin horario": la nota no dice a qué hora fue.` }));
+      const afuera = [sinFecha ? `${plural(sinFecha, "siniestro", "siniestros")} sin fecha precisa` : "",
+        previos ? `${plural(previos, "siniestro anterior", "siniestros anteriores")} al inicio del registro (${fechaCompleta(inicio)})` : ""].filter(Boolean);
+      tarjeta.append(el("p", { clase: "nota", texto: `Según la fecha del hecho. Debajo de cada día, cuántas veces aparece en el período: un día que aparece más veces suma más siniestros. ${afuera.length ? `No entran ${afuera.join(" ni ")}. ` : ""}"Sin horario": la nota no dice a qué hora fue.` }));
     }
     caja.append(tarjeta);
   }
@@ -617,14 +626,13 @@
     })).addTo(estado.mapa);
     // Escala del mapa
     const escala = vaciar($("escala-mapa"));
-    escala.append(el("span", { texto: "Siniestros cada 100.000 hab.:" }), " ",
-      el("span", { clase: "paso", style: `background:${C.bruma}` }), el("span", { texto: " 0 " }),
-      el("span", { clase: "paso", style: `background:${C.pocos}` }), el("span", { texto: ` Menos de ${MIN_CASOS_TASA} siniestros ` }));
+    const paso = (color, texto) => el("span", { clase: "item" }, el("span", { clase: "paso", style: `background:${color}` }), el("span", { texto }));
+    escala.append(el("span", { clase: "titulo-escala", texto: "Siniestros cada 100.000 hab.:" }),
+      paso(C.bruma, "0"), paso(C.pocos, `Menos de ${MIN_CASOS_TASA} siniestros`));
     const limites = [0, ...cortes];
     C.secuencial.slice(0, cortes.length + 1).forEach((color, i) => {
       const desde = limites[i];
-      escala.append(el("span", { clase: "paso", style: `background:${color}` }),
-        el("span", { texto: i < cortes.length ? ` Hasta ${DEC2.format(cortes[i])} ` : desde ? ` Más de ${DEC2.format(desde)} ` : " Con siniestros " }));
+      escala.append(paso(color, i < cortes.length ? `Hasta ${DEC2.format(cortes[i])}` : desde ? `Más de ${DEC2.format(desde)}` : "Con siniestros"));
     });
     // Tabla del mapa (acceso sin mapa)
     tablaSimple($("tabla-mapa"), ["Provincia", "Siniestros", "Fallecidos", "Cada 100.000 hab."],
@@ -756,7 +764,7 @@
     }
     const faltan = items.length - estado.contextoVisibles;
     if (faltan > 0) {
-      const mas = el("button", { type: "button", texto: `Ver ${NUM.format(Math.min(faltan, CONTEXTO_POR_TANDA))} más (${faltan === 1 ? "queda 1 novedad" : `quedan ${NUM.format(faltan)} novedades`})` });
+      const mas = el("button", { type: "button", clase: "boton", texto: `Ver ${NUM.format(Math.min(faltan, CONTEXTO_POR_TANDA))} más (${faltan === 1 ? "queda 1 novedad" : `quedan ${NUM.format(faltan)} novedades`})` });
       mas.addEventListener("click", () => { estado.contextoVisibles += CONTEXTO_POR_TANDA; dibujarContexto(); });
       lista.append(el("li", { clase: "nota" }, mas));
     }

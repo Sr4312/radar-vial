@@ -11,7 +11,8 @@ conservan: cada evento nuevo hereda el id del evento anterior con el que compart
 Claude se guardan en data/cache/decisiones_eventos.json para no volver a preguntar lo mismo.
 
 Al fusionar: se queda el dato más completo (notas con texto completo y mayor confianza primero) y, para las
-fallecidos, la cifra más alta de las notas completas; para los heridos, la de la nota más reciente.
+fallecidos, la cifra más alta de las notas completas (salvo que la dé una sola nota y la desmientan las notas
+posteriores: ver _fallecidos); para los heridos, la de la nota más reciente.
 """
 from __future__ import annotations
 
@@ -268,6 +269,29 @@ def _calidad(f: dict) -> tuple:
     return (f.get("_fuente_texto") == "completo", {"alta": 2, "media": 1, "baja": 0}.get(f.get("confianza"), 0), f["_publicada"])
 
 
+DESMIENTEN_FALLECIDOS = 3   # notas completas posteriores con una cifra menor que dejan afuera la de una sola nota
+
+
+def _fallecidos(fichas: list[dict]) -> int | None:
+    """La cifra de fallecidos más alta, salvo que la dé una sola nota y la desmientan las posteriores.
+
+    Las muertes no bajan: una nota posterior que no las menciona, o que dice 0, no borra una ya informada (alguien
+    puede morir días después). Pero si la cifra sale de una sola nota y al menos DESMIENTEN_FALLECIDOS notas
+    publicadas después dan una menor, lo más probable es que esa nota hable de otro siniestro que se fusionó de más
+    (por ejemplo, por una fecha mal leída): se descarta y se mira la cifra siguiente. Caso real: el choque con
+    incendio en la Panamericana del 21-11-2026 le pasaba sus 3 muertes al choque sin víctimas fatales del 22-11.
+    """
+    informados = sorted((f["_publicada"], f["fallecidos"]) for f in fichas if f.get("fallecidos") is not None)
+    cifras = sorted({c for _, c in informados}, reverse=True)
+    for cifra in cifras:
+        con = [p for p, c in informados if c >= cifra]
+        if cifra == cifras[-1] or len(con) > 1:
+            return cifra
+        if sum(1 for p, c in informados if c < cifra and p > con[0]) < DESMIENTEN_FALLECIDOS:
+            return cifra
+    return None
+
+
 def consolidar(ev: Evento, id_evento: str) -> dict:
     """Arma el registro publicable del evento a partir de sus fichas."""
     fichas = sorted(ev.fichas, key=lambda f: f["_publicada"])
@@ -283,10 +307,8 @@ def consolidar(ev: Evento, id_evento: str) -> dict:
     # Tipo: el más repetido entre los específicos (no "choque_sin_detalle" ni "otro")
     tipos = [f["tipo_siniestro"] for f in completas if f.get("tipo_siniestro") not in _GENERICOS]
     tipo = Counter(tipos).most_common(1)[0][0] if tipos else primero("tipo_siniestro", (None, ""))
-    # Fallecidos: la cifra más alta entre las notas de texto completo (si no hay, entre los titulares). Las
-    # muertes no bajan: una nota posterior que no las menciona, o que dice 0, no borra una ya informada.
-    informados = [f["fallecidos"] for f in completas if f.get("fallecidos") is not None]
-    fallecidos = max(informados) if informados else None
+    # Fallecidos: la cifra más alta entre las notas de texto completo (si no hay, entre los titulares)
+    fallecidos = _fallecidos(completas)
     # Heridos: de la nota más reciente que los informa (las cifras cambian con los días)
     con_heridos = next((f for f in reversed(completas) if _heridos(f) is not None), None)
     heridos = {c: (con_heridos or {}).get(c) for c in ("heridos_graves", "heridos_leves", "heridos_sin_detalle")}

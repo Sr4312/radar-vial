@@ -112,6 +112,7 @@ table.cuando th, table.cuando td { border: 0; padding: 0 8px; height: 34px; }
 table.cuando thead th { text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--tinta); text-align: center; vertical-align: bottom; padding-bottom: 4px; height: auto; }
 table.cuando thead th small { display: block; font-weight: 400; color: var(--pizarra); font-size: 11px; }
 table.cuando tbody th { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 600; color: var(--tinta); text-align: left; white-space: nowrap; }
+table.cuando tbody th small { display: block; font-weight: 400; color: var(--pizarra); font-size: 11px; line-height: 1.2; }
 table.cuando td.calor { text-align: center; font-weight: 700; font-size: 14px; color: var(--tinta); border-radius: 4px; min-width: 48px; }
 table.cuando td.calor.fuerte { color: var(--blanco); }
 table.cuando td.num { text-align: center; font-variant-numeric: tabular-nums; }
@@ -141,7 +142,8 @@ details.lista[open] > summary { margin-bottom: 4px; }
 .leaflet-container { font-family: var(--fuente); }
 .leaflet-popup-content { font-size: 13px; line-height: 1.45; margin: 12px 14px; }
 .leaflet-popup-content b { font-weight: 700; }
-.escala { display: flex; align-items: center; gap: 2px; font-size: 12px; color: var(--pizarra); margin-top: 8px; flex-wrap: wrap; }
+.escala { display: flex; align-items: center; gap: 6px 14px; font-size: 12px; color: var(--pizarra); margin-top: 8px; flex-wrap: wrap; }
+.escala .item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }   /* color y etiqueta no se separan */
 .escala span.paso { width: 34px; height: 10px; display: inline-block; }
 
 /* ---------- Tablas ---------- */

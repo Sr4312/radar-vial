@@ -304,6 +304,30 @@ def test_una_nota_posterior_no_borra_una_muerte():
     assert consolidar(ev, "ev")["fallecidos"] == 1
 
 
+def test_muertes_de_una_sola_nota_desmentida_por_las_posteriores_no_cuentan():
+    """Panamericana, 21 y 22-11-2026: una nota del choque fatal del día anterior quedó con la fecha del siguiente."""
+    from radar_vial.eventos import Evento
+
+    ev = Evento(_ficha(1, fallecidos=3, hora="2026-11-22T08:00:00+00:00"))
+    for i in range(2, 5):
+        ev.fichas.append(_ficha(i, medio=f"Medio {i}", fallecidos=0, hora=f"2026-11-22T1{i}:00:00+00:00"))
+    assert consolidar(ev, "ev")["fallecidos"] == 0
+    # dos notas que lo dicen bastan para creerlo
+    ev.fichas.append(_ficha(5, medio="Otro", fallecidos=3, hora="2026-11-22T16:00:00+00:00"))
+    assert consolidar(ev, "ev")["fallecidos"] == 3
+
+
+def test_muerte_informada_despues_queda_aunque_la_mayoria_diga_cero():
+    from radar_vial.eventos import Evento
+
+    ev = Evento(_ficha(1, fallecidos=0, hora="2026-11-18T08:00:00+00:00"))
+    ev.fichas.append(_ficha(2, medio="Dos", fallecidos=0, hora="2026-11-18T09:00:00+00:00"))
+    ev.fichas.append(_ficha(3, medio="Tres", fallecidos=0, hora="2026-11-18T10:00:00+00:00"))
+    ev.fichas.append(_ficha(4, medio="Cuatro", fallecidos=1, hora="2026-11-19T10:00:00+00:00"))  # murió en el hospital
+    ev.fichas.append(_ficha(5, medio="Cinco", fallecidos=0, hora="2026-11-19T12:00:00+00:00"))
+    assert consolidar(ev, "ev")["fallecidos"] == 1
+
+
 def test_decision_guardada_se_encuentra_aunque_el_evento_cambie_de_ancla(tmp_path):
     from radar_vial.eventos import Evento
 

@@ -65,7 +65,9 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   `DIAS_SEGUIMIENTO` (14): candidata solo con puntaje >= 3 y siempre por `Desempate`; (2) la provincia inferida no
   contradice (`_prov_segura`), con la misma exigencia; al consolidar gana la provincia confirmada; (3) los
   números son calles si la vía no es ruta ("Calles 19 y 46"); (4) localidad sin ubicar que contiene a la otra
-  cuenta como la misma; (5) fallecidos = máximo entre notas completas. Sin lugar y sin puntaje la comparación
+  cuenta como la misma; (5) fallecidos = máximo entre notas completas, salvo que lo dé una sola nota y al menos 3
+  notas completas publicadas después den una cifra menor (`_fallecidos`, 24-11-2026: una nota del choque fatal de la
+  Panamericana del 21-11 quedó con fecha 22-11 y le pasaba 3 muertes al choque sin víctimas del día siguiente). Sin lugar y sin puntaje la comparación
   es `NEUTRA` (ni suma ni contradice). Contradicciones duras: provincias distintas, más de 1 día (2 si la fecha
   es aproximada), rutas con distinto número, km a más de 30 entre localidades distintas, dos esquinas distintas
   (cada una con 2 calles y ninguna en común; se ignoran palabras genéricas como bulevar o rotonda, el nombre de
@@ -133,6 +135,9 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   fallecidas, sin, y solo titular), a lo ancho, con el total arriba y su tabla. El equipo descartó el mismo día la
   versión con un punto por siniestro: prefieren barras. "Cuándo ocurren" (`tarjetaCuando`): grilla de día de la
   semana por franja horaria, armada con `el` (es una tabla, no necesita "Ver datos"); reemplazó a las dos barras.
+  Solo cuenta desde `inicio_cobertura` y muestra debajo de cada día cuántas veces aparece en el período (24-11-2026: con
+  el registro empezado un miércoles, lunes y martes parecían días tranquilos). En la escala del mapa cada color va
+  pegado a su etiqueta (`.escala .item`, sin corte de renglón entre los dos).
 - Pantalla de acceso (pedido del equipo, 20-11-2026): `acceso()` en app.js compara el SHA-256 de lo que se escribe
   con `HUELLA_CLAVE` y recuerda el acceso en `localStorage`; recién ahí llama a `iniciar`. **Es una cortina, no
   seguridad**: el repositorio y `docs/data/` son públicos. La clave no se escribe en ningún archivo del repo (solo
