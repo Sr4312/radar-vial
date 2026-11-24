@@ -230,8 +230,12 @@ Reglas del historial y de la corrida (revisión del 20-11-2026; pruebas en `test
   `inicio_diario` (18-11) y los del diario desde ahí (cada día de una sola fuente); `eventos.json` lleva todo desde el
   inicio (4 MB, 1,6 MB comprimido) y `meta.dias_eventos` los días publicados. Ojo: las muertes recuperadas están
   infladas por duplicados de solo titular (205 por semana en la del 19-10 contra 70 a 85 del diario; un mismo
-  fallecido de Santa Fe del 2-11 aparece en 4 siniestros de 4 medios), así que la serie de fallecidos muestra una
-  caída que en buena parte no es real.
+  fallecido de Santa Fe del 2-11 aparecía en 8 siniestros de 8 medios). **Revisión manual del 24-11-2026**
+  (`radar_vial/revision.py`, `data/historico/revision.json`, se aplica en `cargar_todos`): 564 siniestros recuperados
+  con muertes leídos uno por uno; se excluyen 47 de otros países (con medio extranjero o masivos sin ubicar, con la
+  provincia deducida del medio: "Córdoba" de Veracruz, Colombia o España, "Misiones" de Paraguay, "San Luis" Potosí),
+  15 balances, 11 seguimientos o no choques, y se fusionan 73 duplicados. Muertes por semana: 205 -> 143 (19-10),
+  163 -> 103, 161 -> 90, 110 -> 85. Si se rehace `historico eventos`, revisar que los ids sigan existiendo.
 - Calidad menor que la del diario: muchas notas quedan solo con el título. Las fichas llevan `origen: "historico"`.
   Medido el 22-11-2026: 15.544 notas recolectadas, 6.628 de siniestros, 6.032 con fichas. **Bing Noticias solo
   encuentra notas de las últimas ~2 semanas**: las publicadas más de 14 días antes de la corrida no se resuelven

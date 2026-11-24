@@ -117,3 +117,16 @@ def test_con_registro_largo_se_publican_todos_los_siniestros_desde_el_inicio(tmp
     assert [e["id"] for e in eventos] == ["ev_1", "ev_2"]
     meta = json.loads((tmp_path / "meta.json").read_text(encoding="utf-8"))
     assert meta["dias_eventos"] == 37                      # del 18-10 al 23-11 (corte)
+
+
+def test_revision_manual_excluye_y_suma_duplicados():
+    from radar_vial import revision
+
+    eventos = [_ev("a", "2026-10-20", muertos=1), _ev("b", "2026-10-21", muertos=2), _ev("c", "2026-10-20", muertos=14),
+               _ev("d", "2026-10-22", muertos=1)]
+    rev = {"excluir": [{"id": "ev_c", "motivo": "fuera_del_pais"}],
+           "fusionar": [{"id": "ev_b", "en": "ev_a"}, {"id": "ev_d", "en": "ev_b"}]}   # d -> b -> a
+    r = revision.aplicar(eventos, rev)
+    assert [e["id_evento"] for e in r] == ["ev_a"]
+    assert r[0]["fallecidos"] == 2 and r[0]["n_fuentes"] == 3
+    assert eventos[0]["fallecidos"] == 1                    # no modifica los originales

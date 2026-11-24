@@ -1,0 +1,845 @@
+{
+ "fecha": "2026-11-24",
+ "alcance": "Siniestros recuperados del 18-10 al 17-11-2026 (data/historico/eventos.jsonl) con personas fallecidas, revisados uno por uno.",
+ "motivos": {
+  "fuera_del_pais": "Choque de otro país (medio extranjero) o con muchas víctimas, un solo medio y la provincia deducida del medio: no se pudo ubicar en Argentina.",
+  "balance": "Nota de balance que suma muertes de varios siniestros que ya están contados uno por uno.",
+  "no_es_siniestro_nuevo": "No es un siniestro de esa fecha: seguimiento judicial o reclamo por un hecho anterior, o no fue un choque.",
+  "duplicado": "El mismo siniestro contado dos veces (otro medio, otro día de publicación u otra provincia deducida del medio)."
+ },
+ "excluir": [
+  {
+   "id": "ev_20261023_02_e9c99f",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre un colectivo con muchos pasajeros y un camión: 14 personas murieron y 30 resultaron heridas."
+  },
+  {
+   "id": "ev_20261103_14_cf93e8",
+   "motivo": "fuera_del_pais",
+   "resumen": "Atropello en Veracruz, provincia de Córdoba: una persona murió al ser embestida por un conductor."
+  },
+  {
+   "id": "ev_20261105_14_4c8a55",
+   "motivo": "fuera_del_pais",
+   "resumen": "Atropello en la ruta Córdoba-Veracruz: un hombre murió tras ser embestido por un vehículo que se retiró del lugar."
+  },
+  {
+   "id": "ev_20261027_42_26d5f3",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque en el que murieron cinco personas: una pareja y sus tres hijos."
+  },
+  {
+   "id": "ev_20261107_42_aa41f7",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre un camión y un colectivo que dejó 13 personas muertas y 15 heridas."
+  },
+  {
+   "id": "ev_20261031_54_1048e1",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial fatal sobre la calle Mariscal López en el que murió una persona joven."
+  },
+  {
+   "id": "ev_20261116_54_875665",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial en Misiones: una persona joven murió y otras tres resultaron heridas."
+  },
+  {
+   "id": "ev_20261026_66_0d5990",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre un vehículo que transportaba a personas que volvían de un velorio y un camión: al menos 22 personas murieron."
+  },
+  {
+   "id": "ev_20261105_70_bf8b36",
+   "motivo": "fuera_del_pais",
+   "resumen": "Un peatón murió tras ser arrollado por un tráiler en San Juan Evangelista."
+  },
+  {
+   "id": "ev_20261106_70_fc8850",
+   "motivo": "fuera_del_pais",
+   "resumen": "Una persona murió atropellada por un camión tras un desperfecto del vehículo en la Ruta T-606."
+  },
+  {
+   "id": "ev_20261107_70_cfd9be",
+   "motivo": "fuera_del_pais",
+   "resumen": "Atropello a un bebé, que murió tras ser embestido por un vehículo conducido por un adulto."
+  },
+  {
+   "id": "ev_20261113_70_b9ca0a",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque seguido de incendio en la Autopista Siglo XXI: dos personas murieron."
+  },
+  {
+   "id": "ev_20261115_70_fdefe1",
+   "motivo": "fuera_del_pais",
+   "resumen": "Atropello en Lares en el que murió una persona que iba a pie."
+  },
+  {
+   "id": "ev_20261021_74_85276c",
+   "motivo": "fuera_del_pais",
+   "resumen": "Un vehículo cayó por un barranco tras un choque y dos personas murieron."
+  },
+  {
+   "id": "ev_20261102_74_6f5a95",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre dos motocicletas en La Unión: una persona murió."
+  },
+  {
+   "id": "ev_20261030_78_80da09",
+   "motivo": "fuera_del_pais",
+   "resumen": "Atropello a un peatón por un camión en Colón: una persona mayor murió."
+  },
+  {
+   "id": "ev_20261029_82_401a84",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque frontal entre una van y un camión en la Ruta 9, en San Gregorio: el conductor de la van murió."
+  },
+  {
+   "id": "ev_20261108_86_3f3ac7",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque múltiple en el que murieron 13 personas y otras 15 resultaron heridas."
+  },
+  {
+   "id": "ev_20261022_94_67df41",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial en una ruta de la Patagonia en el que murió una persona."
+  },
+  {
+   "id": "ev_20261026_94_9bbb7d",
+   "motivo": "fuera_del_pais",
+   "resumen": "Un hombre murió tras caer al pavimento en un siniestro con un cuatriciclo."
+  },
+  {
+   "id": "ev_20261023_00_8fd9da",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial en la avenida Centenario en el que un motociclista perdió el control de su moto y murió."
+  },
+  {
+   "id": "ev_20261031_14_048049",
+   "motivo": "balance",
+   "resumen": "Dos siniestros viales con motos en Córdoba dejaron como saldo la muerte de una adolescente y de una mujer."
+  },
+  {
+   "id": "ev_20261031_14_d1e92f",
+   "motivo": "balance",
+   "resumen": "Cuatro personas murieron en distintos siniestros viales ocurridos en calles y rutas de Córdoba."
+  },
+  {
+   "id": "ev_20261031_14_d7f59e",
+   "motivo": "balance",
+   "resumen": "Tres motociclistas murieron en distintos siniestros viales ocurridos en la provincia de Córdoba, entre ellos una adolescente."
+  },
+  {
+   "id": "ev_20261031_14_e23730",
+   "motivo": "balance",
+   "resumen": "Cuatro motociclistas murieron en siniestros viales ocurridos a lo largo de dos días en la provincia de Córdoba."
+  },
+  {
+   "id": "ev_20261018_34_c3b7fc",
+   "motivo": "balance",
+   "resumen": "Siniestro vial en Formosa en el que murió un motociclista, uno de tres hechos distintos ocurridos el domingo."
+  },
+  {
+   "id": "ev_20261018_34_cdd72d",
+   "motivo": "balance",
+   "resumen": "Siniestro vial en Formosa en el que murió un motociclista, uno de tres hechos distintos ocurridos el domingo."
+  },
+  {
+   "id": "ev_20261018_34_edd0e3",
+   "motivo": "balance",
+   "resumen": "Siniestro vial en Formosa en el que murió un motociclista, uno de tres hechos distintos ocurridos el domingo."
+  },
+  {
+   "id": "ev_20261021_54_ba9f52",
+   "motivo": "balance",
+   "resumen": "Hechos viales en Misiones con presunto alcohol al volante dejaron dos personas fallecidas y varias heridas de gravedad."
+  },
+  {
+   "id": "ev_20261019_66_a5464a",
+   "motivo": "balance",
+   "resumen": "Siniestros en rutas de Salta: murieron un conductor y un motociclista."
+  },
+  {
+   "id": "ev_20261022_66_210111",
+   "motivo": "balance",
+   "resumen": "Dos personas murieron en siniestros viales en Salta en las últimas 24 horas, con lo que ya suman 107 las víctimas fatales en la provincia en 2026."
+  },
+  {
+   "id": "ev_20261020_82_e4083a",
+   "motivo": "balance",
+   "resumen": "Serie de siniestros viales en Rafaela en pocos días, con una persona fallecida y un joven herido de gravedad."
+  },
+  {
+   "id": "ev_20261023_86_50fe10",
+   "motivo": "balance",
+   "resumen": "Cuatro personas murieron en pocas horas en Santiago del Estero, en hechos de los que no se precisan lugar ni vehículos involucrados."
+  },
+  {
+   "id": "ev_20261105_86_0df949",
+   "motivo": "balance",
+   "resumen": "Tres personas murieron en siniestros viales ocurridos en días recientes."
+  },
+  {
+   "id": "ev_20261107_86_b87c53",
+   "motivo": "balance",
+   "resumen": "Siniestros viales en Santiago del Estero: tres jóvenes murieron en menos de doce horas, en una serie que suma cinco víctimas fatales en lo que va de noviembre."
+  },
+  {
+   "id": "ev_20261026_90_a56594",
+   "motivo": "balance",
+   "resumen": "Siniestros viales en rutas de Tucumán durante el fin de semana: un motociclista murió, una persona resultó gravemente herida y hubo varios choques."
+  },
+  {
+   "id": "ev_20261104_06_4c29bc",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Choque con resultado fatal sobre el que un perito determinó la velocidad a la que se produjo el impacto."
+  },
+  {
+   "id": "ev_20261112_22_383ca3",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Una persona que conducía un camión murió dentro de su vehículo en Sáenz Peña, mientras viajaba desde Tucumán hacia Formosa."
+  },
+  {
+   "id": "ev_20261103_30_89a47c",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Choque en Paraná, Entre Ríos, en el que murió una persona y por el cual hay un conductor acusado en el proceso judicial."
+  },
+  {
+   "id": "ev_20261108_38_b61ef4",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Atropello a un peatón que murió, según el reclamo de su entorno, que denuncia que el conductor responsable continúa en libertad."
+  },
+  {
+   "id": "ev_20261029_54_4457c9",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Dos personas fueron encontradas muertas en Misiones junto a un auto en el que había un niño pequeño."
+  },
+  {
+   "id": "ev_20261020_58_fb8df8",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Vuelco en el que murieron dos jóvenes, mientras se reclaman avances en la investigación judicial del caso."
+  },
+  {
+   "id": "ev_20261111_58_fdfe16",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Siniestro vial en la Ruta Nacional 3 en el que murió una persona y cuya familia reclama avances a la justicia."
+  },
+  {
+   "id": "ev_20261029_62_5a0445",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Choque con al menos un auto en Roca que tuvo un desenlace fatal; la defensa del conductor del auto sostiene que no fue el responsable."
+  },
+  {
+   "id": "ev_20261117_62_a80482",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Choque en la Ruta 151 ocurrido hace casi un mes, cuya persona involucrada recibió muestras de cariño durante su recuperación."
+  },
+  {
+   "id": "ev_20261105_82_159f1e",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Choque fatal en el que murió una persona; el conductor involucrado habló públicamente sobre lo vivido tras el siniestro."
+  },
+  {
+   "id": "ev_20261104_90_53d12f",
+   "motivo": "no_es_siniestro_nuevo",
+   "resumen": "Choque en el que murió un joven; su familiar reclama justicia y denuncia presuntas irregularidades en la investigación."
+  },
+  {
+   "id": "ev_20261018_14_679088",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial en el que una persona murió."
+  },
+  {
+   "id": "ev_20261020_30_d3e6a5",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre dos motocicletas que terminó en incendio y dejó tres personas heridas."
+  },
+  {
+   "id": "ev_20261021_74_2f4734",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre un vehículo y un camión tráiler en el que varias personas resultaron lesionadas."
+  },
+  {
+   "id": "ev_20261024_74_b78872",
+   "motivo": "fuera_del_pais",
+   "resumen": "Vuelco que derivó en una investigación judicial por homicidio."
+  },
+  {
+   "id": "ev_20261027_50_43a581",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre un automóvil y una moto, en el que el automóvil impactó al motociclista."
+  },
+  {
+   "id": "ev_20261030_14_8d5b31",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre dos taxis en Córdoba que dejó a un conductor lesionado."
+  },
+  {
+   "id": "ev_20261101_74_0a42ee",
+   "motivo": "fuera_del_pais",
+   "resumen": "Un motociclista se estrelló contra el cercado de un domicilio frente a un instituto en San Luis."
+  },
+  {
+   "id": "ev_20261102_00_8675ce",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial en el que un conductor que habría consumido alcohol provocó la muerte de una persona adolescente; hubo una persona sobreviviente."
+  },
+  {
+   "id": "ev_20261103_14_a2b01a",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque entre un camión y un auto en la avenida Compositor Rafael Castro, en la ciudad de Córdoba: una persona resultó herida."
+  },
+  {
+   "id": "ev_20261103_14_e2fbea",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial en el puente San Jorge en el que murió una mujer."
+  },
+  {
+   "id": "ev_20261103_82_b1b4d4",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque en la autopista, en Rosario: dos personas murieron y un bebé resultó herido."
+  },
+  {
+   "id": "ev_20261104_94_ac0db0",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro en el Cuarto Cinturón Vial que dejó a un motociclista herido de gravedad, quien según se informa circulaba a alta velocidad."
+  },
+  {
+   "id": "ev_20261105_14_77eb20",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial en el que murió una persona joven."
+  },
+  {
+   "id": "ev_20261107_14_d08082",
+   "motivo": "fuera_del_pais",
+   "resumen": "Atropello de una peatón por un auto en Córdoba; el conductor dio positivo en un test de drogas."
+  },
+  {
+   "id": "ev_20261108_74_2bd16b",
+   "motivo": "fuera_del_pais",
+   "resumen": "Colisión entre vehículos que dejó a nueve personas con lesiones leves."
+  },
+  {
+   "id": "ev_20261110_54_e8cc2a",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque de un camión de transporte de personal en el viaducto Mártires del 68, en Juárez."
+  },
+  {
+   "id": "ev_20261110_78_b17421",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque en un puente de la avenida Brasil que dejó tres personas heridas."
+  },
+  {
+   "id": "ev_20261114_00_d3a9bb",
+   "motivo": "fuera_del_pais",
+   "resumen": "Choque múltiple en la Autopista del Sur con cuatro vehículos implicados: dos personas mayores resultaron heridas."
+  },
+  {
+   "id": "ev_20261114_74_a3d730",
+   "motivo": "fuera_del_pais",
+   "resumen": "Vuelco de un camión tráiler que transportaba pollos en la ruta 57, en San Luis."
+  },
+  {
+   "id": "ev_20261115_50_ef523b",
+   "motivo": "fuera_del_pais",
+   "resumen": "Un motociclista murió tras ser embestido por un camión en una autopista."
+  },
+  {
+   "id": "ev_20261115_74_074bc7",
+   "motivo": "fuera_del_pais",
+   "resumen": "Siniestro vial en la carretera que une San Luis con Riito, en San Luis: cinco personas resultaron heridas."
+  },
+  {
+   "id": "ev_20261116_14_15d0d8",
+   "motivo": "fuera_del_pais",
+   "resumen": "Nuevo siniestro vial con consecuencias trágicas en una vía de la provincia de Córdoba, sin precisión sobre el lugar ni las víctimas."
+  },
+  {
+   "id": "ev_20261116_30_0c21d1",
+   "motivo": "fuera_del_pais",
+   "resumen": "Vuelco de un camión cargado de arroz en Carmen del Paraná, sin heridos: el conductor salió ileso."
+  },
+  {
+   "id": "ev_20261116_74_8907d2",
+   "motivo": "fuera_del_pais",
+   "resumen": "Un vehículo chocó contra un árbol en Salvador Nava, provincia de San Luis, y una persona resultó lesionada."
+  },
+  {
+   "id": "ev_20261117_70_e0b3e7",
+   "motivo": "fuera_del_pais",
+   "resumen": "Atropello de dos hijos de una mujer que lo denunció públicamente; no se precisan el lugar, el vehículo ni el estado de las víctimas."
+  },
+  {
+   "id": "ev_20261117_78_d26408",
+   "motivo": "fuera_del_pais",
+   "resumen": "Fuerte choque entre tres vehículos en Santa Cruz, registrado en un video."
+  }
+ ],
+ "fusionar": [
+  {
+   "id": "ev_20261021_06_d57fb8",
+   "en": "ev_20261021_06_e798ff",
+   "resumen": "Atropello de una bebé por una camioneta en Villa Rosario: la niña murió.",
+   "resumen_en": "Atropello de una beba por un auto al ingresar a un garaje en Bahía Blanca, en un hecho descripto como una tragedia."
+  },
+  {
+   "id": "ev_20261026_06_b240c6",
+   "en": "ev_20261023_06_1d46f8",
+   "resumen": "Una moto chocó contra una vivienda tras un tiroteo y las dos personas que iban en ella murieron.",
+   "resumen_en": "Dos adolescentes murieron tras chocar contra una casa en Quilmes Oeste, en un hecho que incluyó un tiroteo previo."
+  },
+  {
+   "id": "ev_20261102_06_33e61f",
+   "en": "ev_20261102_82_7772f4",
+   "resumen": "Siniestro vial en una ruta en el que murió una persona, horas después de una celebración deportiva.",
+   "resumen_en": "Siniestro vial en una ruta de Santa Fe en el que murió una persona, horas después de haber salido campeona junto a su equipo en un torneo de fútbol."
+  },
+  {
+   "id": "ev_20261105_06_f7be45",
+   "en": "ev_20261105_06_476e86",
+   "resumen": "Siniestro vial cerca de Benito Juárez en el que murieron dos personas.",
+   "resumen_en": "Choque frontal entre una camioneta y un camión en la RN 3, cerca de Benito Juárez: murieron un adulto y un niño, y otros ocupantes y el camionero resultaron heridos."
+  },
+  {
+   "id": "ev_20261108_06_8cb5f6",
+   "en": "ev_20261107_06_2c859e",
+   "resumen": "Un motociclista murió tras ser atropellado por una camioneta en la Panamericana.",
+   "resumen_en": "Choque entre una moto y una camioneta en la autopista Panamericana, ramal Pilar, km 43: el motociclista murió en el lugar y se investiga si circulaba en sentido contrario."
+  },
+  {
+   "id": "ev_20261108_10_5740ac",
+   "en": "ev_20261113_10_378e4a",
+   "resumen": "Choque entre una moto y una camioneta en la intersección de las calles La Pampa y Mendoza, en la zona oeste de la Capital: el motociclista murió días después.",
+   "resumen_en": "Choque entre una moto y una camioneta en la intersección de las calles La Pampa y Mendoza, en la ciudad Capital: el motociclista murió días después en el hospital."
+  },
+  {
+   "id": "ev_20261019_26_bdf351",
+   "en": "ev_20261019_26_f6237b",
+   "resumen": "Atropello mortal en el barrio Inta, por el que se realizó un allanamiento y se secuestraron celulares en el marco de la investigación.",
+   "resumen_en": "Atropello en Trelew, Chubut: un peatón murió tras ser embestido por un vehículo."
+  },
+  {
+   "id": "ev_20261021_14_056426",
+   "en": "ev_20261021_14_a85043",
+   "resumen": "Un motociclista murió en Córdoba tras rozar un auto y estrellarse contra un poste y un árbol.",
+   "resumen_en": "Un motociclista murió en la provincia de Córdoba tras chocar contra un poste y un árbol."
+  },
+  {
+   "id": "ev_20261023_14_a21019",
+   "en": "ev_20261022_14_58c3b7",
+   "resumen": "Un conductor murió al chocar de lleno contra un poste frente al Parque Las Heras.",
+   "resumen_en": "Un conductor murió tras chocar contra un poste frente al Parque Las Heras, en la ciudad de Córdoba."
+  },
+  {
+   "id": "ev_20261030_00_22ebec",
+   "en": "ev_20261030_14_5e0173",
+   "resumen": "Choque entre una moto y un camión cisterna: el motociclista murió.",
+   "resumen_en": "Choque contra un camión en Villa Nueva, Córdoba: un hombre adulto murió."
+  },
+  {
+   "id": "ev_20261101_30_8a7708",
+   "en": "ev_20261031_30_c6fe2e",
+   "resumen": "Choque entre un vehículo y una moto en el que murió el motociclista; el conductor del otro vehículo quedó con prisión domiciliaria.",
+   "resumen_en": "Choque entre una camioneta y una motocicleta en calle Rondeau, Paraná: el motociclista murió y el conductor de la camioneta, que se retiró y luego se presentó, dio 0,16 g/l de alcoholemia."
+  },
+  {
+   "id": "ev_20261019_34_2dc0bf",
+   "en": "ev_20261019_34_8d8b1c",
+   "resumen": "Un motociclista murió tras chocar con su moto contra un poste de alumbrado público en la provincia de Formosa.",
+   "resumen_en": "Un joven murió tras chocar contra un poste en el barrio La Nueva Formosa, en la ciudad de Formosa."
+  },
+  {
+   "id": "ev_20261022_38_5dfcbe",
+   "en": "ev_20261022_38_f5806c",
+   "resumen": "Siniestro vial en el que murió un motociclista.",
+   "resumen_en": "Siniestro vial en la Ruta 2, en Jujuy, en el que murió un motociclista."
+  },
+  {
+   "id": "ev_20261023_38_ce056f",
+   "en": "ev_20261023_38_33fbdb",
+   "resumen": "Siniestro vial en el que murió un motociclista.",
+   "resumen_en": "Un motociclista murió al chocar contra un guardarraíl en Jujuy."
+  },
+  {
+   "id": "ev_20261103_38_f8a631",
+   "en": "ev_20261102_38_e9d79c",
+   "resumen": "Vuelco de una camioneta en el que murió una persona.",
+   "resumen_en": "Vuelco de una camioneta con cinco ocupantes en la RP 71, a unos 10 kilómetros de Abra Pampa: el conductor murió y los otros cuatro ocupantes quedaron en observación con estado reservado."
+  },
+  {
+   "id": "ev_20261112_38_3094eb",
+   "en": "ev_20261112_38_f20e67",
+   "resumen": "Choque frontal en la provincia de Jujuy en el que murió una persona.",
+   "resumen_en": "Choque frontal entre una camioneta y un auto en la RP 41, cerca de El Lobatón: el conductor del auto murió y el de la camioneta fue hospitalizado en observación."
+  },
+  {
+   "id": "ev_20261113_38_3741c0",
+   "en": "ev_20261112_38_f20e67",
+   "resumen": "Choque frontal que dejó como saldo una persona fallecida.",
+   "resumen_en": "Choque frontal entre una camioneta y un auto en la RP 41, cerca de El Lobatón: el conductor del auto murió y el de la camioneta fue hospitalizado en observación."
+  },
+  {
+   "id": "ev_20261031_42_193bb8",
+   "en": "ev_20261031_42_a0f35d",
+   "resumen": "Siniestro vial en el cruce de las calles 115 y 8, en el que un motociclista fue trasladado a un hospital en estado crítico.",
+   "resumen_en": "Choque fatal entre una moto y una bicicleta en General Pico, La Pampa, con al menos una persona fallecida."
+  },
+  {
+   "id": "ev_20261101_42_6bc577",
+   "en": "ev_20261031_42_a0f35d",
+   "resumen": "Un motociclista murió tras chocar con su moto en Pico, La Pampa.",
+   "resumen_en": "Choque fatal entre una moto y una bicicleta en General Pico, La Pampa, con al menos una persona fallecida."
+  },
+  {
+   "id": "ev_20261018_50_7bae1c",
+   "en": "ev_20261018_50_7d06a7",
+   "resumen": "Atropello en Mendoza en el que murió un hombre adulto.",
+   "resumen_en": "Atropello de un peatón en San Martín, Mendoza, que murió a raíz del siniestro."
+  },
+  {
+   "id": "ev_20261019_50_3aa3f6",
+   "en": "ev_20261019_50_f296a3",
+   "resumen": "Violento choque en una ciudad que dejó una persona fallecida.",
+   "resumen_en": "Despiste de un auto que chocó contra un árbol en calle San Juan, en la Ciudad de Mendoza: el conductor murió y el acompañante resultó con heridas leves."
+  },
+  {
+   "id": "ev_20261019_50_53cc8e",
+   "en": "ev_20261019_50_f296a3",
+   "resumen": "Choque en una zona céntrica de Mendoza en el que murió un joven.",
+   "resumen_en": "Despiste de un auto que chocó contra un árbol en calle San Juan, en la Ciudad de Mendoza: el conductor murió y el acompañante resultó con heridas leves."
+  },
+  {
+   "id": "ev_20261020_50_22060e",
+   "en": "ev_20261020_50_f06651",
+   "resumen": "Caída de un motociclista en medio de la lluvia en Mendoza: la persona murió.",
+   "resumen_en": "Un motociclista murió tras una caída sobre el Acceso Este, en Guaymallén."
+  },
+  {
+   "id": "ev_20261027_00_212927",
+   "en": "ev_20261027_50_012b22",
+   "resumen": "Choque en el que murieron dos mujeres.",
+   "resumen_en": "Despiste de una camioneta que perdió el control y chocó contra un árbol en la RN 7, en San Martín, bajo lluvia y granizo: dos pasajeras murieron y tres personas resultaron heridas sin gravedad."
+  },
+  {
+   "id": "ev_20261027_50_206114",
+   "en": "ev_20261027_50_012b22",
+   "resumen": "Vuelco de un micro en el que murieron dos personas.",
+   "resumen_en": "Despiste de una camioneta que perdió el control y chocó contra un árbol en la RN 7, en San Martín, bajo lluvia y granizo: dos pasajeras murieron y tres personas resultaron heridas sin gravedad."
+  },
+  {
+   "id": "ev_20261031_50_816ca9",
+   "en": "ev_20261101_50_c15c44",
+   "resumen": "Siniestro vial en la provincia de Mendoza que dejó como saldo dos personas muertas.",
+   "resumen_en": "Choque entre una moto y un camión cisterna en el que murieron dos mujeres."
+  },
+  {
+   "id": "ev_20261104_50_1ab096",
+   "en": "ev_20261104_50_424ece",
+   "resumen": "Atropello de una niña por un camión en Mendoza: la niña murió tras el impacto.",
+   "resumen_en": "Atropello de una niña que circulaba en bicicleta por un camión en Junín, Mendoza: la niña murió horas después del impacto."
+  },
+  {
+   "id": "ev_20261106_50_833f5f",
+   "en": "ev_20261106_50_199437",
+   "resumen": "Un conductor chocó contra un caballo en Mendoza y murió.",
+   "resumen_en": "Un automóvil chocó contra un caballo que cruzó la calle Santa Rita, en la zona rural de El Resguardo, Las Heras: el conductor murió y el animal también."
+  },
+  {
+   "id": "ev_20261106_50_8565e6",
+   "en": "ev_20261106_50_199437",
+   "resumen": "Un automovilista murió tras impactar contra un caballo en Las Heras.",
+   "resumen_en": "Un automóvil chocó contra un caballo que cruzó la calle Santa Rita, en la zona rural de El Resguardo, Las Heras: el conductor murió y el animal también."
+  },
+  {
+   "id": "ev_20261019_54_d3ceda",
+   "en": "ev_20261019_54_3dbc52",
+   "resumen": "Choque fatal en San Martín, Misiones, en el que murió un hombre y el conductor de una camioneta Amarok quedó demorado.",
+   "resumen_en": "Choque frontal entre un auto y una camioneta en la RP 103, en el departamento San Martín: una persona murió y cuatro resultaron heridas, entre ellas dos menores de edad."
+  },
+  {
+   "id": "ev_20261021_54_cc29b2",
+   "en": "ev_20261020_54_fa495f",
+   "resumen": "Choque de una moto durante la madrugada: dos personas que iban en el vehículo murieron.",
+   "resumen_en": "Choque sobre la ruta 221, en Colonia Aurora, en el que murieron dos motociclistas."
+  },
+  {
+   "id": "ev_20261106_58_bbfc23",
+   "en": "ev_20261106_58_769c86",
+   "resumen": "Dos vuelcos en la RN 237 en medio de una lluvia torrencial: una persona murió y varias resultaron heridas.",
+   "resumen_en": "Vuelco de un auto en la RN 237, en Picún Leufú, bajo lluvia torrencial: el acompañante murió en el lugar y el conductor sufrió politraumatismos severos."
+  },
+  {
+   "id": "ev_20261109_58_1ffd6e",
+   "en": "ev_20261108_58_b48f64",
+   "resumen": "Siniestro vial en la RN 40, tramo Ruta de los Siete Lagos, a la altura de la laguna Bailey Willis, en el que murió un motociclista.",
+   "resumen_en": "Despiste de una moto en una curva de la RN 40, en el Camino de los Siete Lagos cerca de Villa La Angostura: el motociclista chocó contra un guardarraíl y murió en el lugar."
+  },
+  {
+   "id": "ev_20261110_58_30e02f",
+   "en": "ev_20261110_58_2e6c2b",
+   "resumen": "Choque entre una moto y una camioneta en la Cuesta de los Andes: murió el motociclista.",
+   "resumen_en": "Choque entre una camioneta que hacía un giro en U y una moto en la RN 40, en el acceso a San Martín de los Andes: el motociclista murió en el lugar."
+  },
+  {
+   "id": "ev_20261102_62_18b42a",
+   "en": "ev_20261102_82_7772f4",
+   "resumen": "Siniestro vial en el que murió una persona joven, horas después de haber celebrado un campeonato deportivo.",
+   "resumen_en": "Siniestro vial en una ruta de Santa Fe en el que murió una persona, horas después de haber salido campeona junto a su equipo en un torneo de fútbol."
+  },
+  {
+   "id": "ev_20261018_66_dcb5bd",
+   "en": "ev_20261018_66_aa0d6c",
+   "resumen": "Siniestro de una moto en el barrio San José, de J. V. González: una joven motociclista con graves lesiones cerebrales murió un mes después en un hospital de la ciudad de Salta.",
+   "resumen_en": "Choque entre dos motos en una esquina del barrio San José, en Joaquín Víctor González: una joven motociclista herida murió semanas después en un hospital de la ciudad de Salta."
+  },
+  {
+   "id": "ev_20261019_38_6d2e75",
+   "en": "ev_20261019_66_3f7071",
+   "resumen": "Choque de un colectivo que se dirigía a Jujuy: una persona murió en el lugar.",
+   "resumen_en": "Choque entre un colectivo que viajaba hacia Jujuy y una motocicleta: murió el conductor de la moto."
+  },
+  {
+   "id": "ev_20261019_66_995b5d",
+   "en": "ev_20261019_66_3f7071",
+   "resumen": "Choque con un colectivo en el que murió un joven.",
+   "resumen_en": "Choque entre un colectivo que viajaba hacia Jujuy y una motocicleta: murió el conductor de la moto."
+  },
+  {
+   "id": "ev_20261104_86_4a28ef",
+   "en": "ev_20261103_66_fe601a",
+   "resumen": "Siniestro vial en la Ruta 68: bolsas de cemento cayeron sobre un auto y una persona murió.",
+   "resumen_en": "Bolsas de cemento se desprendieron de un camión y cayeron sobre un auto en la RN 68, en la zona de Osma: una persona murió y otras tres resultaron heridas."
+  },
+  {
+   "id": "ev_20261114_66_fd7037",
+   "en": "ev_20261115_66_818298",
+   "resumen": "Tres personas murieron en un siniestro ocurrido en el límite entre Salta y Formosa: un adulto y sus dos hijas.",
+   "resumen_en": "Una moto habría volcado en un camino vecinal a unos 20 kilómetros del paraje Bragado, en Salta: sus cuatro ocupantes murieron por insolación y deshidratación tras quedar sin agua en el monte."
+  },
+  {
+   "id": "ev_20261115_66_c05834",
+   "en": "ev_20261114_06_ea3396",
+   "resumen": "Choque entre un camión que cruzó de carril y una camioneta en la Ruta 2: dos personas murieron.",
+   "resumen_en": "Choque frontal entre un camión cisterna y una camioneta en la Autovía 2 km 95, partido de Chascomús: el camión cruzó el cantero central, dos personas murieron y una resultó gravemente herida."
+  },
+  {
+   "id": "ev_20261115_66_052eb9",
+   "en": "ev_20261115_70_af5968",
+   "resumen": "Choque contra un colectivo en Salta: una persona murió tras escapar de un control y cruzar un semáforo en rojo.",
+   "resumen_en": "Choque contra un colectivo en San Juan: una persona murió tras, según se informa, evadir un control policial y cruzar un semáforo en rojo."
+  },
+  {
+   "id": "ev_20261115_74_242fd8",
+   "en": "ev_20261115_70_af5968",
+   "resumen": "Una persona murió tras un choque luego de escapar de un control policial y cruzar un semáforo en rojo.",
+   "resumen_en": "Choque contra un colectivo en San Juan: una persona murió tras, según se informa, evadir un control policial y cruzar un semáforo en rojo."
+  },
+  {
+   "id": "ev_20261020_06_398e3e",
+   "en": "ev_20261020_70_6f1cc5",
+   "resumen": "Un conductor que intentó evadir un control de tránsito chocó contra un árbol y murió.",
+   "resumen_en": "Un joven que se habría fugado de un control chocó contra un árbol y murió en San Juan."
+  },
+  {
+   "id": "ev_20261019_46_1d4805",
+   "en": "ev_20261020_70_6f1cc5",
+   "resumen": "Una persona joven murió tras chocar contra un árbol luego de evadir un control de tránsito.",
+   "resumen_en": "Un joven que se habría fugado de un control chocó contra un árbol y murió en San Juan."
+  },
+  {
+   "id": "ev_20261102_82_3bf680",
+   "en": "ev_20261102_82_7772f4",
+   "resumen": "Siniestro vial en la provincia de Santa Fe en el que murió una persona, horas después de haber salido campeón en un torneo de fútbol.",
+   "resumen_en": "Siniestro vial en una ruta de Santa Fe en el que murió una persona, horas después de haber salido campeona junto a su equipo en un torneo de fútbol."
+  },
+  {
+   "id": "ev_20261102_82_89ef61",
+   "en": "ev_20261102_82_7772f4",
+   "resumen": "Siniestro vial en la provincia de Santa Fe en el que murió una persona, horas después de haber salido campeona con su club en un torneo de fútbol.",
+   "resumen_en": "Siniestro vial en una ruta de Santa Fe en el que murió una persona, horas después de haber salido campeona junto a su equipo en un torneo de fútbol."
+  },
+  {
+   "id": "ev_20261102_82_b97e79",
+   "en": "ev_20261102_82_7772f4",
+   "resumen": "Siniestro vial en una ruta de Santa Fe: una persona murió horas después de haber salido campeona en un torneo de fútbol.",
+   "resumen_en": "Siniestro vial en una ruta de Santa Fe en el que murió una persona, horas después de haber salido campeona junto a su equipo en un torneo de fútbol."
+  },
+  {
+   "id": "ev_20261102_82_cdec85",
+   "en": "ev_20261102_82_7772f4",
+   "resumen": "Una persona murió en un siniestro vial pocas horas después de que su equipo se consagrara campeón.",
+   "resumen_en": "Siniestro vial en una ruta de Santa Fe en el que murió una persona, horas después de haber salido campeona junto a su equipo en un torneo de fútbol."
+  },
+  {
+   "id": "ev_20261102_00_be4afe",
+   "en": "ev_20261102_82_7772f4",
+   "resumen": "Vuelco en el que murió una persona, horas después de haber salido campeón con su equipo de fútbol.",
+   "resumen_en": "Siniestro vial en una ruta de Santa Fe en el que murió una persona, horas después de haber salido campeona junto a su equipo en un torneo de fútbol."
+  },
+  {
+   "id": "ev_20261104_82_c4d145",
+   "en": "ev_20261103_82_58de3c",
+   "resumen": "Vuelco de un auto en la autopista Rosario-Santa Fe: murió el conductor.",
+   "resumen_en": "Vuelco de un auto en la Autopista Brigadier López, a la altura de Coronda, sentido a Rosario: el conductor quedó atrapado, fue trasladado en estado grave y murió horas después."
+  },
+  {
+   "id": "ev_20261106_82_c1bc12",
+   "en": "ev_20261106_82_5882cd",
+   "resumen": "Choque entre dos motos en la provincia de Santa Fe: un joven murió.",
+   "resumen_en": "Choque entre dos motos en la esquina de avenida Blas Parera y Larrea, en la ciudad de Santa Fe: una persona murió y otras dos resultaron heridas."
+  },
+  {
+   "id": "ev_20261115_82_7b2bea",
+   "en": "ev_20261114_82_4d5e09",
+   "resumen": "Choque frontal entre dos vehículos en la RN 34, en Santa Fe: un conductor murió y el otro resultó ileso.",
+   "resumen_en": "Choque frontal entre una camioneta y un camión cisterna con asfalto en la RN 34, km 91, en Centeno: el conductor de la camioneta murió y el del camión resultó ileso."
+  },
+  {
+   "id": "ev_20261019_86_e59bd0",
+   "en": "ev_20261018_86_7ab7e5",
+   "resumen": "Vuelco en la RN 34 en el que murieron dos personas.",
+   "resumen_en": "Vuelco de una camioneta en la RN 34, en Santiago del Estero, tras salirse hacia la banquina: dos personas murieron."
+  },
+  {
+   "id": "ev_20261021_86_17bf9d",
+   "en": "ev_20261020_70_6f1cc5",
+   "resumen": "Un conductor joven chocó contra un árbol cuando intentaba evadir un control de tránsito y murió.",
+   "resumen_en": "Un joven que se habría fugado de un control chocó contra un árbol y murió en San Juan."
+  },
+  {
+   "id": "ev_20261021_86_1d7569",
+   "en": "ev_20261021_66_a02145",
+   "resumen": "Choque contra un colectivo en el que murieron dos niños que viajaban en un vehículo con una persona adulta.",
+   "resumen_en": "Choque que involucró a una moto en la que viajaban una persona adulta y dos niños: los dos niños murieron."
+  },
+  {
+   "id": "ev_20261022_86_755e2b",
+   "en": "ev_20261021_14_a85043",
+   "resumen": "Un motociclista murió tras rozar un auto y chocar contra un poste y un árbol, en un siniestro registrado en Santiago del Estero.",
+   "resumen_en": "Un motociclista murió en la provincia de Córdoba tras chocar contra un poste y un árbol."
+  },
+  {
+   "id": "ev_20261106_86_6f60ff",
+   "en": "ev_20261107_86_58f83f",
+   "resumen": "Siniestro vial fatal en Santiago del Estero: dos personas murieron y una tercera resultó herida.",
+   "resumen_en": "Choque frontal entre dos motos en la Costanera nueva de La Banda, barrio Parque Industrial: dos personas murieron, una resultó herida de gravedad y los rodados quedaron en llamas."
+  },
+  {
+   "id": "ev_20261108_86_0afeb0",
+   "en": "ev_20261107_86_85da35",
+   "resumen": "Choque entre una moto que intentaba cruzar la RN 34 y un camión en Icaño: la conductora de la moto murió y su acompañante resultó herida de gravedad.",
+   "resumen_en": "Choque entre una moto con dos ocupantes y un camión en la RN 34, en Icaño: una joven acompañante murió y la otra ocupante resultó herida de gravedad."
+  },
+  {
+   "id": "ev_20261115_00_cd8864",
+   "en": "ev_20261115_70_af5968",
+   "resumen": "Choque entre una moto y un colectivo: el motociclista murió cuando intentaba escapar de un control policial.",
+   "resumen_en": "Choque contra un colectivo en San Juan: una persona murió tras, según se informa, evadir un control policial y cruzar un semáforo en rojo."
+  },
+  {
+   "id": "ev_20261103_90_2f1f63",
+   "en": "ev_20261103_90_769f7f",
+   "resumen": "Choque entre una moto y un auto: el motociclista murió tras el impacto.",
+   "resumen_en": "Choque entre una moto y un auto en la zona norte de la capital tucumana: el motociclista murió."
+  },
+  {
+   "id": "ev_20261116_00_10f9df",
+   "en": "ev_20261115_90_000089",
+   "resumen": "Una motociclista murió tras quedar enredada en un cable del alumbrado público mientras circulaba en moto.",
+   "resumen_en": "Una motociclista murió en la RP 302, en El Cardenal, tras quedar enredada en un cable del alumbrado público caído sobre la calzada y caer de la moto."
+  },
+  {
+   "id": "ev_20261023_00_b42292",
+   "en": "ev_20261022_00_8ed4fc",
+   "resumen": "Siniestro vial en el que murió una persona en la región patagónica, en una ruta donde años atrás había muerto un familiar suyo.",
+   "resumen_en": "Siniestro vial en una ruta en el que murió una persona, en el mismo tramo donde años atrás había muerto un familiar suyo."
+  },
+  {
+   "id": "ev_20261022_00_8f2a48",
+   "en": "ev_20261022_70_23fd30",
+   "resumen": "Vuelco en una ruta en el que murió una persona que conducía.",
+   "resumen_en": "Vuelco de un auto deportivo en una ruta de San Juan: el conductor murió."
+  },
+  {
+   "id": "ev_20261108_00_84f965",
+   "en": "ev_20261113_10_378e4a",
+   "resumen": "Un motociclista joven murió tras permanecer cinco días internado a causa de un siniestro vial en el que se vio involucrada su moto.",
+   "resumen_en": "Choque entre una moto y una camioneta en la intersección de las calles La Pampa y Mendoza, en la ciudad Capital: el motociclista murió días después en el hospital."
+  },
+  {
+   "id": "ev_20261110_00_385523",
+   "en": "ev_20261108_58_b48f64",
+   "resumen": "Un motociclista murió tras chocar contra un guardarraíl en la Ruta Nacional 40.",
+   "resumen_en": "Despiste de una moto en una curva de la RN 40, en el Camino de los Siete Lagos cerca de Villa La Angostura: el motociclista chocó contra un guardarraíl y murió en el lugar."
+  },
+  {
+   "id": "ev_20261112_00_ecd328",
+   "en": "ev_20261111_82_02bbe3",
+   "resumen": "Choque entre una moto y un camión en un camino rural de la región de Rafaela: el motociclista murió.",
+   "resumen_en": "Choque entre una moto y un camión en un camino rural de Santa Clara de Saguier: el motociclista murió."
+  },
+  {
+   "id": "ev_20261114_00_1cfba5",
+   "en": "ev_20261115_66_818298",
+   "resumen": "Habría ocurrido el vuelco de un vehículo en una zona de monte limítrofe entre Salta y Formosa: las tres personas que viajaban fueron halladas muertas tras quedar sin agua.",
+   "resumen_en": "Una moto habría volcado en un camino vecinal a unos 20 kilómetros del paraje Bragado, en Salta: sus cuatro ocupantes murieron por insolación y deshidratación tras quedar sin agua en el monte."
+  },
+  {
+   "id": "ev_20261020_82_62286b",
+   "en": "ev_20261020_82_a9ee37",
+   "resumen": "Siniestro vial en Rafaela en el que murió un motociclista, una de las dos muertes registradas en tres días en la ciudad.",
+   "resumen_en": "Choque entre una moto y un camión en Rafaela: el motociclista murió."
+  },
+  {
+   "id": "ev_20261020_82_c8554c",
+   "en": "ev_20261020_82_a9ee37",
+   "resumen": "Choque entre una moto y un camión en el que murió el motociclista.",
+   "resumen_en": "Choque entre una moto y un camión en Rafaela: el motociclista murió."
+  },
+  {
+   "id": "ev_20261019_82_f7d4f4",
+   "en": "ev_20261018_82_d82641",
+   "resumen": "Siniestro vial en una ruta en el que murieron tres personas.",
+   "resumen_en": "Atropello en una ruta a tres jóvenes que cambiaban una rueda pinchada: las tres personas murieron."
+  },
+  {
+   "id": "ev_20261020_82_e140c9",
+   "en": "ev_20261018_82_d82641",
+   "resumen": "Atropello en una ruta a dos personas que cambiaban una rueda en la calzada: ambas murieron.",
+   "resumen_en": "Atropello en una ruta a tres jóvenes que cambiaban una rueda pinchada: las tres personas murieron."
+  },
+  {
+   "id": "ev_20261021_82_b9f412",
+   "en": "ev_20261021_82_73f647",
+   "resumen": "Siniestro fatal durante una picada en las inmediaciones de un autódromo, con una moto involucrada: una persona murió.",
+   "resumen_en": "Siniestro fatal frente a un autódromo en el que participó un motociclista durante una picada; el conductor de la moto fue imputado."
+  }
+ ],
+ "medios_de_otros_paises": {
+  "dominios": [
+   ".mx",
+   ".cl",
+   ".co",
+   ".py",
+   ".bo",
+   ".hn",
+   ".pe",
+   ".ec",
+   ".ve",
+   ".uy",
+   ".es",
+   ".gt",
+   ".sv",
+   ".ni",
+   ".cr",
+   ".pa",
+   ".do",
+   ".cu",
+   "elmagallanico.com",
+   "1plana.com",
+   "noticel.com",
+   "planoinformativo.com",
+   "notiuno.com"
+  ],
+  "regla": "Se excluye todo siniestro recuperado cuyas notas vienen solo de medios de otros países."
+ }
+}

@@ -17,7 +17,7 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-from . import config
+from . import config, revision
 from .eventos import cargar as cargar_eventos
 from .eventos import ruta_y_km
 from .notas import Notas
@@ -40,7 +40,8 @@ def cargar_todos(general: dict | None = None, diario: list[dict] | None = None,
     corte = general.get("inicio_diario")
     if not corte:
         return diario
-    historico = cargar_eventos(ARCHIVO_HISTORICO) if historico is None else historico
+    if historico is None:
+        historico = revision.aplicar(cargar_eventos(ARCHIVO_HISTORICO), revision.cargar())
     inicio = general.get("inicio_cobertura") or ""
     return ([e for e in historico if inicio <= e["fecha_hecho"] < corte] +
             [e for e in diario if e["fecha_hecho"] >= corte])

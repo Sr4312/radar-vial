@@ -130,8 +130,12 @@ El Radar Vial lo publica Cruz Roja Argentina. Por eso:
   noviembre se recuperaron con búsquedas de Google News por fecha; desde el 18 de noviembre los registra la
   corrida diaria. En lo recuperado, la mayoría de las notas solo se pudo leer por el titular (los enlaces de
   Google News a notas de más de unas dos semanas ya no se pueden llevar a la nota original), y con solo el
-  titular es más difícil reconocer que dos notas hablan del mismo siniestro: las cifras de esas semanas,
-  sobre todo las de personas fallecidas, pueden estar infladas por siniestros contados más de una vez.
+  titular es más difícil reconocer que dos notas hablan del mismo siniestro y en qué país ocurrió. Por eso los
+  siniestros recuperados con personas fallecidas se revisaron uno por uno (24-11-2026): se sacaron choques de otros
+  países (medios de México, Chile, Paraguay y otros que Google News muestra en español), notas de balance que suman
+  muertes ya contadas, seguimientos judiciales de hechos anteriores y siniestros contados dos veces. La lista, con
+  el motivo de cada caso, está en `data/historico/revision.json`. Aun así, en esas semanas puede quedar algún
+  duplicado entre las notas que no dicen el lugar.
 - **Días recientes incompletos**: las notas y las cifras de víctimas llegan con demora. Los últimos días
   siempre están incompletos: el tablero compara solo los días ya cerrados y, con menos de 20 casos, muestra
   la diferencia en cantidad y no en porcentaje.
