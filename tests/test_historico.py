@@ -144,3 +144,44 @@ def test_cuenta_reintenta_los_cortes_de_red(monkeypatch):
     with pytest.raises(ErrorClaude):
         c2.json("filtro", "m", "s", "x", {})
     assert esperas == [30]
+
+
+# ------------------------------------------------------------------ desempates adelantados en paralelo
+
+def test_desempates_adelantados_dan_lo_mismo_que_en_serie(tmp_path):
+    import threading
+
+    from radar_vial.eventos import Desempate, armar_eventos
+
+    geo = {"provincia_id": "66", "provincia": "Salta", "localidad_id": "66028050", "localidad": "Cafayate",
+           "departamento_id": "66028", "departamento": None, "lat": -26.07, "lon": -65.97, "nivel": "localidad"}
+
+    def nota(i, fuente, **cambios):
+        ficha = {**FICHA, "geo": geo, "provincia_id": "66", **cambios}
+        return {"id_nota": f"n_{i}", "categoria": "siniestro", "url": f"https://medio{i}.com.ar/{i}", "medio": f"Medio {i}",
+                "publicada": f"2026-11-10T1{i}:00:00+00:00", "fuente_texto": fuente, "siniestros": [ficha]}
+
+    debil = dict(fuente="titulo", confianza="baja", via=None, vehiculos=[], hora_franja="desconocida")
+    notas = NS(todas=lambda: [nota(1, "completo"), nota(2, **debil), nota(3, **debil)])
+
+    class Cuenta:
+        def __init__(self):
+            self.llamadas, self.limite, self._lock = 0, threading.Event(), threading.Lock()
+
+        def json(self, *a, **kw):
+            with self._lock:
+                self.llamadas += 1
+            return {"mismo_evento": 1, "seguridad": "alta"}
+
+    en_serie = Cuenta()
+    serie = armar_eventos(notas, en_serie, log=lambda *a: None, archivo=tmp_path / "s.jsonl",
+                          archivo_decisiones=tmp_path / "s.json")
+    adelantada = Cuenta()
+    archivo = tmp_path / "p.json"
+    hechas = historico.adelantar_desempates(notas, Desempate(adelantada, archivo=archivo), adelantada,
+                                            log=lambda *a: None, en_paralelo=2, minimo=1)
+    assert hechas == adelantada.llamadas > 0
+    despues = Cuenta()          # la agrupación final usa lo ya decidido y no vuelve a preguntar
+    final = armar_eventos(notas, despues, log=lambda *a: None, archivo=tmp_path / "p.jsonl", archivo_decisiones=archivo)
+    assert despues.llamadas == 0
+    assert [e["n_fuentes"] for e in final] == [e["n_fuentes"] for e in serie] == [3]

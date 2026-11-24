@@ -222,6 +222,20 @@ Reglas del historial y de la corrida (revisión del 20-11-2026; pruebas en `test
   tokens, no dólares) y `data/cache/historico/` (notas con títulos, fuera de git). Actions no los lee; el tablero
   publicado no los usa (`inicio_cobertura` sigue en 18-11). `historico tablero` arma una vista en salida/historico/.
 - Calidad menor que la del diario: muchas notas quedan solo con el título. Las fichas llevan `origen: "historico"`.
+  Medido el 22-11-2026: 15.544 notas recolectadas, 6.628 de siniestros, 6.032 con fichas. **Bing Noticias solo
+  encuentra notas de las últimas ~2 semanas**: las publicadas más de 14 días antes de la corrida no se resuelven
+  (del 18-10 al 7-11, un 5% con texto; del 8-11 en adelante, la mitad). Las del 12 al 15-11 se volvieron a resolver al
+  probar, las viejas no: es la ventana de Bing, no un error. Para otra recuperación, correr `procesar` en tandas a
+  medida que pasan los días (o resolver las notas dentro de las 2 semanas) si se quiere texto completo.
+- Desempates en paralelo (`historico.adelantar_desempates`): la agrupación va en serie y cada desempate con la
+  cuenta tarda unos 4,5 s; con fichas de solo título son unos 5.000 casos (6 h y media en serie). Se agrupa en seco,
+  se juntan las preguntas que no están en `decisiones_eventos.json` y se responden de a 4 (`Desempate.previa` y
+  `Desempate.preguntar`, mismas reglas y consigna); se repite con las que aparecen al fusionar, y `armar_eventos`
+  pregunta en serie lo que falte. Unos 30 casos por minuto.
+- Informe: `scripts/analizar_historico.py [eventos.jsonl] [cifras.json]` y `scripts/generar_informe_historico.py
+  cifras.json textos.json salida.html` (gráficos SVG, sin bibliotecas). La configuración `radar-vial-historico` de
+  `.claude/launch.json` sirve `salida/historico/` en el puerto 8002. No comparar a través del 8-11: la mayor parte
+  del cambio en cantidad es por la caída de notas con texto, no por los siniestros.
 
 ## Decisiones que no hay que romper
 - **Links de Google News**: no se decodifican con el servicio interno de Google (no documentado; el entorno lo

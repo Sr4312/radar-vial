@@ -18,6 +18,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import threading
 from collections import Counter
 from datetime import date
 
@@ -375,6 +376,7 @@ Respondé con el número del evento que es el mismo siniestro, o null si no es n
         self.archivo = archivo
         self.cache: dict[str, dict] = json.loads(archivo.read_text(encoding="utf-8")) if archivo.exists() else {}
         self.consultas = 0
+        self._lock = threading.Lock()   # `preguntar` se puede llamar desde varios hilos (recuperación histórica)
 
     @staticmethod
     def _describir(f: dict, titulo: str | None) -> str:
@@ -388,16 +390,28 @@ Respondé con el número del evento que es el mismo siniestro, o null si no es n
             texto += f"\n   Título de la nota: {titulo}"
         return texto
 
-    def decidir(self, ficha: dict, candidatos: list[Evento]) -> Evento | None:
+    def previa(self, ficha: dict, candidatos: list[Evento]) -> tuple[bool, Evento | None]:
+        """(ya decidido, evento elegido) según las decisiones guardadas."""
         anclas = [sorted(ev.claves)[0] for ev in candidatos]
         previa = self.cache.get(ficha["_clave"])
         if previa:
             if previa["elegido"] in anclas:
-                return candidatos[anclas.index(previa["elegido"])]
+                return True, candidatos[anclas.index(previa["elegido"])]
             if previa["elegido"] is None and set(anclas) <= set(previa["consultados"]):
-                return None
+                return True, None
+        return False, None
+
+    def decidir(self, ficha: dict, candidatos: list[Evento]) -> Evento | None:
+        sabida, elegido = self.previa(ficha, candidatos)
+        if sabida:
+            return elegido
         if self.claude is None:  # sin API (pruebas o demo): no se fusiona lo dudoso
             return None
+        return self.preguntar(ficha, candidatos)
+
+    def preguntar(self, ficha: dict, candidatos: list[Evento]) -> Evento | None:
+        """Pregunta a Claude y guarda la decisión (sin mirar las guardadas)."""
+        anclas = [sorted(ev.claves)[0] for ev in candidatos]
         lineas = ["FICHA NUEVA:", "   " + self._describir(ficha, self.titulos.get(ficha["_id_nota"])), "", "EVENTOS CANDIDATOS:"]
         for i, ev in enumerate(candidatos, 1):
             lineas.append(f"{i}.")
@@ -411,16 +425,19 @@ Respondé con el número del evento que es el mismo siniestro, o null si no es n
                                     esfuerzo=conf["esfuerzo"]["eventos"], max_tokens=8000)
         except ErrorClaude:
             return None  # ante la duda y sin respuesta, evento aparte (se vuelve a preguntar en la próxima corrida)
-        self.consultas += 1
         n = resp.get("mismo_evento")
         elegido = candidatos[n - 1] if isinstance(n, int) and 1 <= n <= len(candidatos) and resp.get("seguridad") in ("alta", "media") else None
-        self.cache[ficha["_clave"]] = {"elegido": sorted(elegido.claves)[0] if elegido else None, "consultados": anclas,
-                                       "seguridad": resp.get("seguridad")}
+        with self._lock:
+            self.consultas += 1
+            self.cache[ficha["_clave"]] = {"elegido": sorted(elegido.claves)[0] if elegido else None, "consultados": anclas,
+                                           "seguridad": resp.get("seguridad")}
         return elegido
 
     def guardar(self) -> None:
         self.archivo.parent.mkdir(parents=True, exist_ok=True)
-        self.archivo.write_text(json.dumps(self.cache, ensure_ascii=False, indent=0, sort_keys=True), encoding="utf-8")
+        with self._lock:
+            texto = json.dumps(self.cache, ensure_ascii=False, indent=0, sort_keys=True)
+        self.archivo.write_text(texto, encoding="utf-8")
 
 
 # ------------------------------------------------------------------ agrupación completa
