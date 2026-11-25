@@ -48,7 +48,6 @@ a:hover { color: var(--tinta); }
 .antetitulo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--rojo-texto); margin: 0 0 6px; }
 .antetitulo::before { content: ""; width: 24px; height: 3px; background: currentColor; display: inline-block; }
 h1 { font-weight: 900; font-size: clamp(36px, 6vw, 56px); line-height: 1.05; letter-spacing: -.02em; margin: 0; }
-.bajada { font-size: 18px; color: var(--pizarra); margin: 8px 0 0; max-width: 68ch; }
 
 .aviso-demo { background: var(--tinta); color: var(--blanco); font-weight: 700; text-align: center; padding: 10px 16px; letter-spacing: .04em; }
 
