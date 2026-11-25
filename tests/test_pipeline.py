@@ -243,6 +243,34 @@ def test_una_corrida_cortada_conserva_lo_extraido_y_la_cola(entorno, monkeypatch
     assert '"interrumpida": true' in costos
 
 
+def test_los_reintentos_de_solo_titulo_no_ocupan_el_tope(entorno, monkeypatch):
+    silencio = lambda *a: None  # noqa: E731
+    pipeline.correr_diario(log=silencio)                          # B queda con ficha de solo título
+    # Corrida cercana: B vuelve (sigue sin poder resolverse) junto con una nota nueva, más vieja que B
+    nueva = {**_items()[0], "id": "n_d", "titulo": "Chocaron dos autos en la avenida principal de Tartagal",
+             "gn_id": "D", "url": "https://news.google.com/rss/articles/D", "hash_titulo": "hd",
+             "sitio": "medio-d.com.ar", "publicada": "2026-11-18T10:00:00+00:00"}
+    monkeypatch.setattr(pipeline, "recolectar", lambda red, log=None: ([nueva] + _items(), []))
+    entorno["resolubles"].add("D")
+    r = pipeline.correr_diario(log=silencio, tope=1)
+    assert r["postergadas"] == 0 and r["reintentos"] == 1         # B se reintenta aparte del tope
+    assert "n_d" in Notas(entorno["tmp"] / "notas.jsonl").por_id   # y la nota nueva entra
+    assert Historial(entorno["tmp"] / "historial.jsonl").buscar({"gn_id": "B"})["intentos"] == 2
+
+
+def test_la_cola_avisa_lo_que_vence_sin_procesarse(entorno):
+    from datetime import datetime, timedelta, timezone
+    ahora = datetime.now(timezone.utc)
+    vieja = {**_items()[0], "filtro": "siniestro", "publicada": (ahora - timedelta(days=8)).isoformat()}
+    vieja_ctx = {**_items()[1], "filtro": "contexto", "publicada": (ahora - timedelta(days=9)).isoformat()}
+    fresca = {**_items()[2], "filtro": "siniestro", "publicada": (ahora - timedelta(days=1)).isoformat()}
+    pipeline.guardar_pendientes([vieja, vieja_ctx, fresca])
+    mensajes = []
+    cola = pipeline.cargar_pendientes(log=mensajes.append)
+    assert [p["id"] for p in cola] == ["n_c"]
+    assert len(mensajes) == 1 and "2 notas" in mensajes[0] and "1 de siniestros" in mensajes[0]
+
+
 def test_con_un_tope_chico_igual_entran_siniestros():
     rel = [{"id": f"s{i}", "filtro": "siniestro"} for i in range(100)] + [{"id": f"c{i}", "filtro": "contexto"} for i in range(60)]
     elegidas, _ = pipeline.elegir_para_extraer(rel, tope=10, cupo_contexto=50)

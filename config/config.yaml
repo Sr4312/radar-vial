@@ -64,8 +64,11 @@ historial:
 
 limites:
   # Tope de notas que pasan a la extracción (etapa cara) en cada corrida. Las que no entran quedan para la
-  # próxima (primero se extraen los siniestros y las notas más nuevas).
-  max_extraccion_por_corrida: 400
+  # próxima (primero se extraen los siniestros y las notas más nuevas). Los reintentos de notas con ficha de
+  # solo título no cuentan. Medido del 21 al 24-11-2026: el filtro marca de 440 a 640 notas relevantes por día
+  # (de 360 a 500 de siniestros) y GitHub dispara una sola corrida por día; con 400 la cola llegó a 835 notas.
+  # El costo lo pone el volumen real, no el tope: unos USD 0,0045 por nota extraída.
+  max_extraccion_por_corrida: 700
   # Lugar reservado dentro del tope para las notas de contexto vial (si no, los siniestros las dejan afuera)
   cupo_contexto: 50
   # Notas por llamada al filtro (título y bajada de cada una)

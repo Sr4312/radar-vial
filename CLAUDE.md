@@ -82,7 +82,13 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   (`ev_AAAAMMDD_<prov>_<hash>`). Salida: `data/eventos.jsonl`. Para revisar la agrupación: buscar eventos con
   fichas de localidades o vehículos distintos (fusión de más) y pares de eventos de la misma localidad y fecha
   (fusión faltante); así se encontraron los casos de Villa María, Canals, Posadas y Mocoretá del 20-11-2026.
-- Tope por corrida con `cupo_contexto` (50) reservado para las notas de contexto (`pipeline.elegir_para_extraer`).
+- Tope por corrida (`max_extraccion_por_corrida`, 700 desde el 25-11-2026) con `cupo_contexto` (50) reservado
+  para las notas de contexto (`pipeline.elegir_para_extraer`). Las notas con ficha de solo título (`previo`
+  en `solo_titulo`) se reintentan **fuera del tope** (`reintentos` en el resumen): solo vuelven a la extracción si
+  esta vez se consigue el texto. Con 400 y los reintentos adentro, la cola creció de 0 a 835 en cinco días (el
+  25-11 los reintentos sin texto se llevaron 146 de los 400 lugares, porque la corrida cayó 8 h después de la
+  anterior). El registro de la corrida dice cuántas postergadas son de siniestros y cuántas notas vencieron en la
+  cola (`cargar_pendientes(log=...)`): si vencen siniestros seguido, el tope no alcanza.
 - `tests/fixtures/notas_anotadas.yaml` - 20 notas reales (URL + anotación **borrador**, a validar por el equipo);
   `tests/medir_extraccion.py` baja los textos a la caché, extrae y reporta precisión por campo.
 
@@ -160,7 +166,8 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   `diario --si-no-corrio-hoy`: corre una sola vez por día (`data/estado.json`, `radar_vial/estado.py`), porque
   los cron de GitHub llegan tarde o no llegan (lección del Radar Humanitario). Disparo manual: siempre corre, con
   `sin_publicar` y `tope` (los inputs entran por `env`, no pegados en el script; el tope se valida numérico).
-- Pasos: pytest -> caché de Actions de `data/cache/textos` (clave por corrida, restaura la última) -> diario ->
+- Pasos: pytest -> caché de Actions de `data/cache/textos` (clave por corrida, restaura la última) -> diario (con
+  límite propio de 75 min, antes de los 90 del job, para que los pasos siguientes alcancen a guardar) ->
   commit de `data/` (historial, notas, eventos, costos, estado y cachés públicas) y de `docs/data` si se publicó,
   con reintentos de push -> resumen de costos en la página de la corrida -> artefacto `salida/` (14 días) ->
   job `publicar` (Pages desde Actions: Settings > Pages > Source: GitHub Actions) solo si cambió `docs/data`.
@@ -180,17 +187,19 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   para rehacer lo procesado en Actions, correrlo desde un workflow (o esperar a la corrida diaria).
 
 ## Pendientes conocidos
-- Primera corrida en Actions (20-11-2026, manual): Google News respondió desde las IP de GitHub (2 errores en 388
-  búsquedas y feeds), 69 notas extraídas, USD 0,50, sin errores; el despliegue de Pages falló por el artefacto
-  que no aparecía (ver Automatización) y se corrigió. La corrida programada del 21-11 es la primera con un día
-  completo: medir ahí el volumen diario. Verificar ahí que Google News no bloquee las 314 búsquedas desde las IP de Actions (desde la
-  oficina no hubo errores) y la duración real (una corrida de 400 notas tardó 29 min; el job tiene 90).
+- Corridas programadas del 21 al 25-11-2026 (revisión del 25-11): una por día, todas sin errores, de 21 a 31 min,
+  de USD 1,6 a 2,5; Google News no bloquea desde las IP de Actions (2 o 3 errores en 388 búsquedas y feeds). GitHub
+  dispara solo 1 o 2 de los 7 horarios y con horas de atraso (la del 25-11 llegó a la 01:17 de Argentina y dejó el
+  día marcado). Entre corridas pasaron de 23 a 28 h, dentro de la ventana de 48 h: vigilar que no se acerquen a 48.
+- Primera corrida con tope 700 y reintentos fuera del tope: comprobar duración (estimado: unos 45 min con la cola
+  llena; el job tiene 90), costo y que la cola baje ("Tope de extracción: ... (N de siniestros)" y "Cola: N notas
+  vencieron" en el registro).
 - Validar las 20 notas de `tests/fixtures/notas_anotadas.yaml` (borrador) y medir la precisión de la agrupación
   con las planillas de `auditoria`.
-- Medir el volumen diario real con el historial ya armado (estimado: unas 340 notas relevantes por día) y ajustar
-  `max_extraccion_por_corrida` (hoy 400) para que la cola no crezca.
 - 16 medios con `verificar: true` en `config/fuentes.yaml` (entre ellos La Voz, que bloquea lectores automáticos).
-- Peso de `docs/data/eventos.json` con el volumen real (ver Dashboard).
+- Peso de `docs/data/eventos.json` (ver Dashboard): desde que el tablero suma la recuperación histórica trae todo
+  desde el 18-10; el 25-11-2026 pesaba 4 MB (1,6 MB comprimido, 3.343 siniestros) y crece unos 100 KB por día. Ya
+  pasó el umbral de 2 MB: separar las fuentes en otro archivo que se cargue con la tabla.
 
 ## Estados del historial
 `descartada`, `siniestro`, `contexto`, `duplicada`, `sin_texto` son finales. `solo_titulo` (ficha hecha solo con
@@ -271,7 +280,8 @@ Reglas del historial y de la corrida (revisión del 20-11-2026; pruebas en `test
 ## Comandos
 - `.venv\Scripts\python.exe -m radar_vial demo [--sin-servidor]` - tablero con datos ficticios en http://localhost:8000.
 - `.venv\Scripts\python.exe -m radar_vial diario [--sin-publicar] [--tope N] [--si-no-corrio-hoy]` - corrida real
-  (usa la API); `--tope` limita las notas que pasan a la extracción en esa corrida (el resto queda en la cola).
+  (usa la API); `--tope` limita las notas que pasan a la extracción en esa corrida (el resto queda en la cola);
+  los reintentos de notas con ficha de solo título van aparte y se extraen de nuevo si consiguen el texto.
 - `.venv\Scripts\python.exe -m radar_vial reprocesar --desde AAAA-MM-DD [--sin-publicar]` - rehace fichas y
   eventos sin volver a bajar (textos de los últimos 14 días) y republica.
 - `.venv\Scripts\python.exe -m radar_vial auditoria --n 30 [--dias 7]` - CSV en `salida/` para revisión manual.

@@ -93,6 +93,9 @@ jobs:
       - name: Corrida diaria
         id: corrida
         if: steps.hoy.outputs.ya != 'true'
+        # Antes que el límite del job (90): si una corrida larga se pasa, se corta este paso (la corrida guarda su
+        # avance) y quedan minutos para que los pasos siguientes suban lo hecho y guarden la caché.
+        timeout-minutes: 75
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           EVENTO: ${{ github.event_name }}

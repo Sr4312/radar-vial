@@ -110,14 +110,23 @@ def guardar_pendientes(items: list[dict]) -> None:
 DIAS_EN_COLA = 7
 
 
-def cargar_pendientes() -> list[dict]:
-    """La cola, sin lo que lleva más de DIAS_EN_COLA días (no crece sin fin). Si no se puede leer, vacía."""
+def cargar_pendientes(log=None) -> list[dict]:
+    """La cola, sin lo que lleva más de DIAS_EN_COLA días (no crece sin fin). Si no se puede leer, vacía.
+
+    Con `log`, avisa cuántas vencieron sin procesarse: si pasa seguido, el tope no alcanza para el volumen."""
     try:
         datos = cargar_texto(_COLA)
     except Exception:  # noqa: BLE001 - un archivo de cola dañado no debe frenar todas las corridas
         return []
     limite = datetime.now(timezone.utc) - timedelta(days=DIAS_EN_COLA)
-    return [p for p in (datos or {}).get("items", []) if datetime.fromisoformat(p["publicada"]) >= limite]
+    items = (datos or {}).get("items", [])
+    vigentes = [p for p in items if datetime.fromisoformat(p["publicada"]) >= limite]
+    vencidas = [p for p in items if datetime.fromisoformat(p["publicada"]) < limite]
+    if vencidas and log:
+        siniestros = sum(1 for p in vencidas if p.get("filtro") == "siniestro")
+        log(f"Cola: {len(vencidas)} notas vencieron sin procesarse tras {DIAS_EN_COLA} días "
+            f"({siniestros} de siniestros).")
+    return vigentes
 
 
 def resolver_y_bajar(red: Red, resolvedor: Resolvedor, robots: Robots, it: dict) -> None:
@@ -152,7 +161,7 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
 
     # 1. Recolectar (más las que quedaron en la cola por el tope de la corrida anterior)
     items, resultados = recolectar(red, log=log)
-    pendientes = cargar_pendientes()
+    pendientes = cargar_pendientes(log=log)
     if pendientes:
         recolectadas = {it["id"] for it in items}
         fuera = sum(1 for p in pendientes if p["id"] not in recolectadas)
@@ -192,11 +201,22 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
     #    pendientes (caché temporal) para la próxima corrida, aunque ya haya salido de la ventana de 48 h.
     relevantes.sort(key=lambda it: (it["filtro"] != "siniestro", -datetime.fromisoformat(it["publicada"]).timestamp()))
     tope = tope if tope is not None else conf["limites"]["max_extraccion_por_corrida"]
-    a_procesar, postergadas = elegir_para_extraer(relevantes, tope, conf["limites"].get("cupo_contexto", 50))
+    # Las que ya tienen ficha de solo título se reintentan fuera del tope: solo vuelven a la extracción si esta vez
+    # se consigue el texto. Dentro del tope dejaban afuera notas nuevas cuando dos corridas caían cerca (el
+    # 25-11-2026, 146 de los 400 lugares se fueron en reintentos que siguieron sin texto).
+    reintentos = [it for it in relevantes if (previos.get(it["id"]) or {}).get("estado") == "solo_titulo"]
+    ids_reintento = {it["id"] for it in reintentos}
+    a_procesar, postergadas = elegir_para_extraer([it for it in relevantes if it["id"] not in ids_reintento], tope,
+                                                  conf["limites"].get("cupo_contexto", 50))
+    a_procesar += reintentos
     # Hasta que termine la corrida, la cola incluye también lo que se va a procesar: si se corta, no se pierde.
     guardar_pendientes(postergadas + a_procesar)
+    if reintentos:
+        log(f"Reintentos de notas con ficha de solo título (fuera del tope): {len(reintentos)}.")
     if postergadas:
-        log(f"Tope de extracción: {len(postergadas)} notas quedan en la cola para la próxima corrida.")
+        siniestros = sum(1 for it in postergadas if it["filtro"] == "siniestro")
+        log(f"Tope de extracción: {len(postergadas)} notas quedan en la cola para la próxima corrida "
+            f"({siniestros} de siniestros).")
 
     # 4. URL original y texto (en paralelo: distintos medios)
     resolvedor, robots = Resolvedor(red), Robots(red)
@@ -321,7 +341,8 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
         problemas.append(f"falló la extracción de {conteo['error']} de {len(para_extraer)} notas")
     resumen = {
         "recolectadas": len(items), "nuevas": len(nuevos), "relevantes_filtro": len(relevantes),
-        "extraidas": len(para_extraer), "postergadas": len(postergadas), **conteo, "eventos": len(eventos),
+        "extraidas": len(para_extraer), "postergadas": len(postergadas), "reintentos": len(reintentos),
+        **conteo, "eventos": len(eventos),
         "sin_evaluar": sin_evaluar, "incompleta": "; ".join(problemas) or None,
         "duracion_min": round((datetime.now(timezone.utc) - inicio).total_seconds() / 60, 1),
     }

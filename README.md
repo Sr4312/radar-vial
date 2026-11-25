@@ -187,11 +187,13 @@ Cada corrida anota tokens y costo estimado en `data/costos.jsonl` (y en el resum
 Actions). Referencias medidas en noviembre de 2026:
 
 - Filtro (Haiku): unos USD 0,05 por cada 1.800 notas candidatas.
-- Extracción (Sonnet): unos USD 0,006 por nota.
-- Una corrida con 400 notas extraídas costó USD 2,34 y tardó 29 minutos.
+- Extracción (Sonnet): unos USD 0,0045 por nota.
+- Corridas diarias del 21 al 24-11-2026: de 365 a 383 notas extraídas, de USD 2,34 a 2,50 y de 24 a 31 minutos.
+  En un día completo el filtro marca de 440 a 640 notas relevantes.
 
-El tope de notas por corrida (`limites.max_extraccion_por_corrida`) es el freno de costos: lo que no entra
-queda en cola para la corrida siguiente.
+El tope de notas por corrida (`limites.max_extraccion_por_corrida`, 700) es el freno de costos: lo que no entra
+queda en cola para la corrida siguiente, y lo que pasa 7 días en la cola se descarta (el registro de la corrida
+avisa cuántas notas vencieron). Los reintentos de notas que ya tienen ficha de solo título no ocupan el tope.
 
 ---
 
