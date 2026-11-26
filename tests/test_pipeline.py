@@ -1,5 +1,6 @@
 """Corrida diaria de punta a punta con red, medios y Claude simulados (sin conexión ni claves)."""
 import json
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace as NS
 
 import pytest
@@ -17,10 +18,15 @@ FICHA = {"fecha_hecho": "2026-11-18", "fecha_aproximada": False, "hora_franja": 
          "resumen": "Vuelco de un camión en la RN 40, cerca de Cafayate: una persona resultó gravemente herida.",
          "confianza": "alta"}
 
+# Publicación relativa al momento de la prueba, no una fecha fija: la cola descarta lo que tiene más de
+# DIAS_EN_COLA días contados desde hoy y, con "2026-11-18", estas pruebas empezaron a fallar solas una semana
+# después (y frenaron la corrida programada del 26-11-2026, que corre las pruebas antes del radar).
+PUBLICADA = datetime.now(timezone.utc) - timedelta(hours=6)
+
 
 def _items():
     base = {"bajada": "", "medio": "Medio", "provincia_medio": "66", "nivel_medio": "provincial",
-            "publicada": "2026-11-18T22:00:00+00:00", "tipo_busqueda": "siniestro", "titulo_provisional": False}
+            "publicada": PUBLICADA.isoformat(), "tipo_busqueda": "siniestro", "titulo_provisional": False}
     return [
         {**base, "id": "n_a", "titulo": "Volcó un camión en la Ruta 40 cerca de Cafayate y su chofer está grave",
          "url": "https://news.google.com/rss/articles/A", "gn_id": "A", "clave": None, "hash_titulo": "ha",
@@ -249,7 +255,7 @@ def test_los_reintentos_de_solo_titulo_no_ocupan_el_tope(entorno, monkeypatch):
     # Corrida cercana: B vuelve (sigue sin poder resolverse) junto con una nota nueva, más vieja que B
     nueva = {**_items()[0], "id": "n_d", "titulo": "Chocaron dos autos en la avenida principal de Tartagal",
              "gn_id": "D", "url": "https://news.google.com/rss/articles/D", "hash_titulo": "hd",
-             "sitio": "medio-d.com.ar", "publicada": "2026-11-18T10:00:00+00:00"}
+             "sitio": "medio-d.com.ar", "publicada": (PUBLICADA - timedelta(hours=12)).isoformat()}
     monkeypatch.setattr(pipeline, "recolectar", lambda red, log=None: ([nueva] + _items(), []))
     entorno["resolubles"].add("D")
     r = pipeline.correr_diario(log=silencio, tope=1)
@@ -259,7 +265,6 @@ def test_los_reintentos_de_solo_titulo_no_ocupan_el_tope(entorno, monkeypatch):
 
 
 def test_la_cola_avisa_lo_que_vence_sin_procesarse(entorno):
-    from datetime import datetime, timedelta, timezone
     ahora = datetime.now(timezone.utc)
     vieja = {**_items()[0], "filtro": "siniestro", "publicada": (ahora - timedelta(days=8)).isoformat()}
     vieja_ctx = {**_items()[1], "filtro": "contexto", "publicada": (ahora - timedelta(days=9)).isoformat()}
