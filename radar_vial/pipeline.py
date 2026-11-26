@@ -8,6 +8,7 @@ Las etapas de eventos y dashboard se suman después de la extracción (eventos.p
 """
 from __future__ import annotations
 
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
@@ -97,7 +98,8 @@ def geo_y_eventos(notas: Notas, claude: Claude | None, log=log_consola) -> list[
     notas.guardar()
     if hechas:
         log(f"Georef: {hechas} fichas normalizadas ({georef.consultas} consultas nuevas a la API).")
-    return armar_eventos(notas, claude, titulos=_TitulosEnCache(), log=log)
+    en_paralelo = config.general()["limites"].get("desempates_en_paralelo", 1)
+    return armar_eventos(notas, claude, titulos=_TitulosEnCache(), log=log, en_paralelo=en_paralelo)
 
 
 def guardar_pendientes(items: list[dict]) -> None:
@@ -159,8 +161,18 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
     if podados or borrados:
         log(f"Historial: {podados} registros viejos podados; caché de textos: {borrados} textos vencidos borrados.")
 
+    # Cuánto tarda cada etapa (minutos): queda en el resumen de la corrida y en data/costos.jsonl
+    tiempos: dict[str, float] = {}
+    reloj = [time.monotonic()]
+
+    def etapa_lista(nombre: str) -> None:
+        ahora = time.monotonic()
+        tiempos[nombre] = round((ahora - reloj[0]) / 60, 1)
+        reloj[0] = ahora
+
     # 1. Recolectar (más las que quedaron en la cola por el tope de la corrida anterior)
     items, resultados = recolectar(red, log=log)
+    etapa_lista("recoleccion")
     pendientes = cargar_pendientes(log=log)
     if pendientes:
         recolectadas = {it["id"] for it in items}
@@ -196,6 +208,7 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
         if it.get("filtro") == "descartar":
             historial.registrar(it, "descartada")
     relevantes = [it for it in nuevos if it.get("filtro") in ("siniestro", "contexto")]
+    etapa_lista("filtro")
 
     # 3. Tope de la etapa cara: primero siniestros, después lo más nuevo. El resto queda en la cola de
     #    pendientes (caché temporal) para la próxima corrida, aunque ya haya salido de la ventana de 48 h.
@@ -223,6 +236,7 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
     with ThreadPoolExecutor(max_workers=6) as ex:
         list(ex.map(lambda it: resolver_y_bajar(red, resolvedor, robots, it), a_procesar))
     resolvedor.guardar()
+    etapa_lista("resolucion")
 
     # 5. Deduplicar por URL canónica (la misma nota pudo llegar por dos vías que no se reconocieron antes)
     vistas: set[str] = set()
@@ -278,9 +292,16 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
             cola = postergadas + [it for it in a_procesar if not historial.ya_procesada(it)]
         guardar_pendientes(cola)
 
+    def extracciones(ex):
+        # La primera va sola: deja escrita la caché de la consigna (unos 5.000 tokens) y las demás la leen. Si
+        # arrancan varias juntas, cada una la escribe y la paga a precio de escritura (medido: 4 escrituras por corrida).
+        if para_extraer:
+            yield extraer(para_extraer[0])
+            yield from ex.map(extraer, para_extraer[1:])
+
     try:
         with ThreadPoolExecutor(max_workers=conf["limites"]["extracciones_en_paralelo"]) as ex:
-            for hechas, (it, ext, error) in enumerate(ex.map(extraer, para_extraer), 1):
+            for hechas, (it, ext, error) in enumerate(extracciones(ex), 1):
                 if hechas % 25 == 0:
                     guardar_avance()
                 if error:
@@ -319,14 +340,17 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
             historial.agregar_alias(original, {"gn_id": it.get("gn_id"), "hash_titulo": it.get("hash_titulo")})
 
     guardar_avance(final=True)
+    etapa_lista("extraccion")
 
     # 7. Geografía y eventos
     eventos = geo_y_eventos(notas, claude, log=log)
+    etapa_lista("geografia_y_eventos")
 
     # 8. Datos del tablero: docs/data/ (o salida/vista_previa/ con --sin-publicar)
     from .agregados import publicar as publicar_tablero
 
     publicar_tablero(publicar_en_docs=publicar, log=log)
+    etapa_lista("tablero")
 
     # Salud de la corrida: si falló más de la mitad de una etapa (API caída, sin crédito, Google News bloqueado),
     # la corrida no cuenta como hecha y el próximo intento del día la repite.
@@ -345,8 +369,10 @@ def correr_diario(publicar: bool = True, log=log_consola, tope: int | None = Non
         **conteo, "eventos": len(eventos),
         "sin_evaluar": sin_evaluar, "incompleta": "; ".join(problemas) or None,
         "duracion_min": round((datetime.now(timezone.utc) - inicio).total_seconds() / 60, 1),
+        "tiempos_min": tiempos,
     }
     costos = registro.guardar(extra={"notas": resumen})
+    log("Tiempo por etapa (min): " + ", ".join(f"{nombre.replace('_', ' ')} {minutos}" for nombre, minutos in tiempos.items()) + ".")
     log(f"Extracción: {conteo['siniestro']} notas de siniestros ({conteo['fichas_siniestro']} fichas), "
         f"{conteo['contexto']} de contexto, {conteo['descartar']} descartadas al leerlas, {conteo['error']} con error; "
         f"{conteo['solo_titulo']} solo con el título.")

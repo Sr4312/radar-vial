@@ -219,7 +219,9 @@ tests/           pruebas (sin red ni clave) y las 20 notas anotadas para medir l
 .github/         el workflow diario de GitHub Actions
 ```
 
-Pruebas: `.venv\Scripts\python.exe -m pytest -q`. Medición de precisión (usa la API, centavos):
+Pruebas: `.venv\Scripts\python.exe -m pytest -q`. Con la variable de entorno
+`RADAR_VIAL_DIAS_ADELANTE=40` corren como si hoy fuera 40 días más tarde, para encontrar fechas fijas antes de que
+venzan (las pruebas corren antes de cada corrida programada). Medición de precisión (usa la API, centavos):
 `.venv\Scripts\python.exe tests\medir_extraccion.py`.
 
 Para el detalle técnico, ver [CLAUDE.md](CLAUDE.md); para las definiciones y limitaciones,

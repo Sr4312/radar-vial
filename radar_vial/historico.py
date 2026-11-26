@@ -329,46 +329,14 @@ class _SinFrenar:
             raise ErrorClaude("límite de la cuenta") from exc
 
 
-class _Juntar:
-    """Desempate en seco: responde con las decisiones guardadas y anota las preguntas que faltan."""
-
-    def __init__(self, desempate):
-        self.desempate = desempate
-        self.pendientes: list[tuple[dict, list]] = []
-
-    def decidir(self, ficha, candidatos):
-        sabida, elegido = self.desempate.previa(ficha, candidatos)
-        if not sabida:
-            self.pendientes.append((ficha, list(candidatos)))
-        return elegido
-
-
 def adelantar_desempates(notas, desempate, cuenta: ClaudeCuenta, log=log_consola, rondas: int = RONDAS_DESEMPATE,
                          en_paralelo: int = EN_PARALELO, minimo: int = MINIMO_RONDA) -> int:
-    """La agrupación va en serie (cada fusión cambia los candidatos de las fichas siguientes) y cada desempate con la
-    cuenta tarda unos 4 s: con unos 5.000 casos dudosos serían más de 6 horas (medido el 22-11-2026, casi todos de
-    fichas de solo título). Así que antes se agrupa en seco, se juntan las preguntas que no están en las decisiones
-    guardadas y se las responde en paralelo; se repite con las nuevas que aparecen al fusionar. Las reglas y la
-    consigna son las mismas: la agrupación final (`armar_eventos`) usa esas decisiones y pregunta en serie lo que
-    falte. Devuelve cuántas preguntas se hicieron."""
-    from .eventos import agrupar, fichas_de
+    """Los casos dudosos de la agrupación, preguntados de a varios antes de agrupar (`eventos.adelantar_desempates`,
+    que es también lo que usa la corrida diaria). Con unos 5.000 casos, casi todos de fichas de solo título, en
+    serie serían más de 6 horas (medido el 22-11-2026). Se frena si la cuenta llegó a su límite de uso."""
+    from .eventos import adelantar_desempates as adelantar
 
-    hechas = 0
-    for ronda in range(1, rondas + 1):
-        juntar = _Juntar(desempate)
-        agrupar(fichas_de(notas), juntar)
-        pendientes = juntar.pendientes
-        if len(pendientes) < minimo or cuenta.limite.is_set():
-            break
-        log(f"Desempates, ronda {ronda}: {len(pendientes)} casos dudosos, de a {en_paralelo} a la vez.")
-        with ThreadPoolExecutor(en_paralelo) as ex:
-            for i, _ in enumerate(ex.map(lambda p: desempate.preguntar(*p), pendientes), 1):
-                if i % 250 == 0:
-                    desempate.guardar()
-                    log(f"  {i} de {len(pendientes)}")
-        desempate.guardar()
-        hechas += len(pendientes)
-    return hechas
+    return adelantar(notas, desempate, en_paralelo, log=log, rondas=rondas, minimo=minimo, cortar=cuenta.limite.is_set)
 
 
 def eventos_historico(log=log_consola, claude: ClaudeCuenta | None = None) -> list[dict]:

@@ -69,6 +69,11 @@ def test_generar_escribe_los_archivos_sin_datos_internos(tmp_path):
     assert [e["id"] for e in eventos] == ["ev_1"]          # solo los últimos 31 días
     assert "fichas" not in eventos[0] and eventos[0]["ruta"] == "RN 9" and eventos[0]["n_fuentes"] == 1
     assert "heridos_graves" not in eventos[0]          # los campos vacíos no se publican
+    # los enlaces a las notas van aparte, un archivo por día: son el 80% del peso y solo los usa la lista
+    assert "fuentes" not in eventos[0]
+    fuentes = json.loads((tmp_path / "fuentes" / "2026-11-19.json").read_text(encoding="utf-8"))
+    assert fuentes == {"ev_1": [["M", "https://m.com.ar/1"]]}
+    assert not (tmp_path / "fuentes" / "2026-09-01.json").exists()
     serie = json.loads((tmp_path / "serie_diaria.json").read_text(encoding="utf-8"))
     assert "2026-09-01" in serie["dias"]                    # el histórico es completo
     meta = json.loads((tmp_path / "meta.json").read_text(encoding="utf-8"))
@@ -83,7 +88,8 @@ def test_lugares_y_medios_se_publican_con_mayuscula_inicial(tmp_path):
     generar(tmp_path, ahora=datetime(2026, 11, 20, 6, 17, tzinfo=ART), eventos=[ev], notas=[])
     e = json.loads((tmp_path / "eventos.json").read_text(encoding="utf-8"))[0]
     assert e["localidad"] == "Barrio Los Pinares"
-    assert [f["medio"] for f in e["fuentes"]] == ["Diarioya.ar", "Eccos multimedios", "Lt9.com.ar", "Clarín"]
+    fuentes = json.loads((tmp_path / "fuentes" / "2026-11-19.json").read_text(encoding="utf-8"))[e["id"]]
+    assert [medio for medio, _ in fuentes] == ["Diarioya.ar", "Eccos multimedios", "Lt9.com.ar", "Clarín"]
     assert e["via"] == "RN 9 km 1290"                       # lo que ya empieza bien no se toca
 
 
@@ -130,3 +136,18 @@ def test_revision_manual_excluye_y_suma_duplicados():
     assert [e["id_evento"] for e in r] == ["ev_a"]
     assert r[0]["fallecidos"] == 2 and r[0]["n_fuentes"] == 3
     assert eventos[0]["fallecidos"] == 1                    # no modifica los originales
+
+
+def test_fuentes_por_dia_con_tope_y_sin_archivos_viejos(tmp_path):
+    (tmp_path / "fuentes").mkdir()
+    (tmp_path / "fuentes" / "2026-11-01.json").write_text("{}", encoding="utf-8")      # quedó de una corrida anterior
+    ev = _ev(1, "2026-11-19")
+    ev["fuentes"] = [{"medio": f"Medio {i}", "url": f"https://m{i}.com.ar/nota", "publicada": "2026-11-19", "texto": "completo"}
+                     for i in range(9)]
+    ev["n_fuentes"] = 9
+    generar(tmp_path, ahora=datetime(2026, 11, 20, 6, 17, tzinfo=ART), eventos=[ev, _ev(2, "2026-11-18")], notas=[])
+    assert sorted(p.name for p in (tmp_path / "fuentes").iterdir()) == ["2026-11-18.json", "2026-11-19.json"]
+    del_dia = json.loads((tmp_path / "fuentes" / "2026-11-19.json").read_text(encoding="utf-8"))
+    assert len(del_dia["ev_1"]) == 6                    # las que muestra la lista; el resto se cuenta
+    evento = next(e for e in json.loads((tmp_path / "eventos.json").read_text(encoding="utf-8")) if e["id"] == "ev_1")
+    assert evento["n_fuentes"] == 9

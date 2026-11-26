@@ -155,3 +155,19 @@ def test_anio_mal_puesto_se_corrige_y_los_hechos_viejos_no_se_cuentan():
     vieja = {**FICHA, "fecha_hecho": "2025-06-10"}
     claude, _ = _claude([_resp({"categoria": "siniestro", "siniestros": [vieja], "contexto": None})])
     assert extraer_nota(claude, _item(1, "Juicio por un choque"), "texto")["categoria"] == "descartar"
+
+
+def test_los_lotes_del_filtro_van_de_a_varios():
+    import threading
+
+    class Claude:
+        barrera = threading.Barrier(2, timeout=3)
+
+        def json(self, etapa, modelo, sistema, mensaje, schema, **kw):
+            self.barrera.wait()     # si los lotes fueran de a uno, la espera se vence y la prueba falla
+            n = sum(1 for linea in mensaje.splitlines() if linea[:1].isdigit() and ". " in linea)
+            return {"notas": [{"n": i, "argentina": True, "categoria": "siniestro"} for i in range(1, n + 1)]}
+
+    items = [_item(i, f"Choque número {i} en la ruta") for i in range(80)]     # dos lotes de 40
+    filtrar(Claude(), items, log=lambda *a: None)
+    assert all(it["filtro"] == "siniestro" for it in items)

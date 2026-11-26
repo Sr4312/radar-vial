@@ -339,3 +339,84 @@ def test_decision_guardada_se_encuentra_aunque_el_evento_cambie_de_ancla(tmp_pat
     d.cache["n_9#0"] = {"elegido": None, "consultados": ["n_5#0"], "seguridad": "alta"}
     assert d.previa(_ficha(9), [ev]) == (True, None)
     assert d.previa(_ficha(9), [ev, Evento(_ficha(7))]) == (False, None)   # un candidato nuevo: se pregunta
+
+
+# ------------------------------------------------------------------ desempates de a varios (optimización del 26-11-2026)
+
+def test_los_desempates_se_preguntan_de_a_varios_y_dan_lo_mismo_que_en_serie(tmp_path, monkeypatch):
+    import threading
+    from types import SimpleNamespace as NS
+
+    from radar_vial import eventos as modulo
+
+    def nota(i, fuente, **cambios):
+        return {"id_nota": f"n_{i}", "categoria": "siniestro", "url": f"https://medio{i}.com.ar/{i}", "medio": f"Medio {i}",
+                "publicada": f"2026-11-18T1{i}:00:00+00:00", "fuente_texto": fuente, "siniestros": [{**BASE, **cambios}]}
+
+    debil = dict(confianza="baja", via=None, vehiculos=[], hora_franja="desconocida")
+    notas = NS(todas=lambda: [nota(1, "completo"), nota(2, "titulo", **debil), nota(3, "titulo", **debil)])
+
+    class Claude:
+        def __init__(self, juntas=1):
+            self.llamadas, self._lock = 0, threading.Lock()
+            self.barrera = threading.Barrier(juntas, timeout=3)
+
+        def json(self, *a, **kw):
+            with self._lock:
+                self.llamadas += 1
+            self.barrera.wait()     # si las preguntas llegaran de a una, la espera se vence y la prueba falla
+            return {"mismo_evento": 1, "seguridad": "alta"}
+
+    silencio = lambda *a: None  # noqa: E731
+    serie = armar_eventos(notas, Claude(), log=silencio, archivo=tmp_path / "s.jsonl", archivo_decisiones=tmp_path / "s.json")
+    monkeypatch.setattr(modulo, "MINIMO_RONDA", 1)
+    de_a_dos = Claude(juntas=2)
+    varias = armar_eventos(notas, de_a_dos, log=silencio, archivo=tmp_path / "p.jsonl",
+                           archivo_decisiones=tmp_path / "p.json", en_paralelo=2)
+    assert [e["n_fuentes"] for e in varias] == [e["n_fuentes"] for e in serie] == [3]
+    assert de_a_dos.llamadas == 2      # las mismas preguntas que en serie, ninguna repetida
+
+
+def test_las_funciones_de_via_recuerdan_sin_cambiar_el_resultado():
+    from radar_vial.eventos import palabras_via
+
+    assert ruta_y_km("RN 9 km 1290") == ruta_y_km("RN 9 km 1290") == ("RN", 9, 1290)
+    assert palabras_via("Calles 19 y 46", "General Pico") == {"19", "46"}
+    assert palabras_via("Av. Belgrano y San Martín", "San Martín") == palabras_via("Av. Belgrano y San Martín", "San Martín")
+
+
+def test_una_pregunta_adelantada_no_se_repite_cuando_el_candidato_suma_fichas(tmp_path, monkeypatch):
+    """Al preguntar de a varios, la agrupación en seco ya terminó y el evento candidato puede haber sumado notas
+    posteriores. La decisión se anota con lo que el evento tenía cuando le tocó a la ficha: si no, en la pasada
+    siguiente no se la reconoce y la misma pregunta se vuelve a hacer (y a pagar) en cada ronda."""
+    import threading
+    from types import SimpleNamespace as NS
+
+    from radar_vial import eventos as modulo
+
+    def nota(i, hora, fuente, **cambios):
+        return {"id_nota": f"n_{i}", "categoria": "siniestro", "url": f"https://medio{i}.com.ar/{i}", "medio": f"Medio {i}",
+                "publicada": f"2026-11-18T{hora}:00:00+00:00", "fuente_texto": fuente, "siniestros": [{**BASE, **cambios}]}
+
+    debil = dict(confianza="baja", via=None, vehiculos=[], hora_franja="desconocida")
+    # n_5 arma el evento, n_6 (solo título) queda en duda, y n_1 llega después y se suma sola al evento de n_5
+    notas = NS(todas=lambda: [nota(5, 10, "completo"), nota(6, 11, "titulo", **debil), nota(1, 12, "completo")])
+
+    class Claude:
+        def __init__(self):
+            self.mensajes, self._lock = [], threading.Lock()
+
+        def json(self, etapa, modelo, sistema, mensaje, schema, **kw):
+            with self._lock:
+                self.mensajes.append(mensaje)
+            return {"mismo_evento": None, "seguridad": "alta"}
+
+    silencio = lambda *a: None  # noqa: E731
+    serie = Claude()
+    armar_eventos(notas, serie, log=silencio, archivo=tmp_path / "s.jsonl", archivo_decisiones=tmp_path / "s.json")
+    monkeypatch.setattr(modulo, "MINIMO_RONDA", 1)
+    varias = Claude()
+    armar_eventos(notas, varias, log=silencio, archivo=tmp_path / "p.jsonl", archivo_decisiones=tmp_path / "p.json",
+                  en_paralelo=2)
+    assert len(serie.mensajes) == 1
+    assert varias.mensajes == serie.mensajes       # una sola vez, y con la misma pregunta que en serie

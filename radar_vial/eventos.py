@@ -22,6 +22,7 @@ import re
 import threading
 from collections import Counter
 from datetime import date
+from functools import lru_cache
 
 from . import config
 from .texto import normalizar
@@ -59,6 +60,14 @@ def clave_ficha(id_nota: str, i: int) -> str:
     return f"{id_nota}#{i}"
 
 
+# La agrupación compara cada ficha con cientos de otras, y estas funciones dependen solo del texto que reciben:
+# se recuerdan los resultados. Sin eso, una pasada sobre 2.482 fichas normalizaba 5,7 millones de veces los mismos
+# textos y tardaba 24 s, sumando unos 3 s por cada día de historia (medido el 26-11-2026).
+_MEMORIA = 200_000
+_normalizar = lru_cache(maxsize=_MEMORIA)(normalizar)
+
+
+@lru_cache(maxsize=_MEMORIA)
 def ruta_y_km(via: str | None) -> tuple[str | None, int | None, int | None]:
     """("RN"|"RP"|"R", número, km) a partir de la vía extraída ("RN 9 km 320", "Ruta 153", "ruta provincial 2")."""
     v = normalizar(via or "")
@@ -71,7 +80,8 @@ def ruta_y_km(via: str | None) -> tuple[str | None, int | None, int | None]:
     return tipo, num, int(k.group(1)) if k else None
 
 
-def palabras_via(via: str | None, localidad: str | None = None) -> set[str]:
+@lru_cache(maxsize=_MEMORIA)
+def palabras_via(via: str | None, localidad: str | None = None) -> frozenset[str]:
     """Palabras que distinguen una vía (sin genéricas ni el nombre de la propia localidad).
 
     Los números cuentan solo si la vía no es una ruta: en General Pico o La Plata las calles se llaman por
@@ -79,12 +89,12 @@ def palabras_via(via: str | None, localidad: str | None = None) -> set[str]:
     """
     propias = set(normalizar(localidad or "").split())
     con_numeros = ruta_y_km(via)[1] is None
-    return {w for w in normalizar(via or "").split()
-            if w not in _VACIAS_VIA and w not in propias
-            and ((con_numeros and len(w) <= 4) if w.isdigit() else len(w) > 2)}
+    return frozenset(w for w in normalizar(via or "").split()
+                     if w not in _VACIAS_VIA and w not in propias
+                     and ((con_numeros and len(w) <= 4) if w.isdigit() else len(w) > 2))
 
 
-def _comparten_calle(wa: set[str], wb: set[str]) -> bool:
+def _comparten_calle(wa: frozenset[str], wb: frozenset[str]) -> bool:
     """Alguna palabra en común, tolerando errores de tipeo ("Chabacuco" por "Chacabuco")."""
     from difflib import SequenceMatcher
 
@@ -151,7 +161,7 @@ def comparar_detalle(a: dict, b: dict) -> tuple[bool, float, str | None]:
     misma_localidad = bool(ga.get("localidad_id")) and ga.get("localidad_id") == gb.get("localidad_id")
     if not misma_localidad and not (ga.get("localidad_id") and gb.get("localidad_id")) and a.get("localidad") and b.get("localidad"):
         # una de las dos no se pudo ubicar ("entre Canals y La Carlota"): vale el nombre contenido en el otro
-        la, lb = normalizar(a["localidad"]), normalizar(b["localidad"])
+        la, lb = _normalizar(a["localidad"]), _normalizar(b["localidad"])
         misma_localidad = bool(la and lb) and (la in lb or lb in la)
     # Lugar
     if ga.get("localidad_id") and gb.get("localidad_id"):
@@ -162,7 +172,7 @@ def comparar_detalle(a: dict, b: dict) -> tuple[bool, float, str | None]:
         else:
             puntaje -= 2
     elif a.get("localidad") and b.get("localidad"):
-        la, lb = normalizar(a["localidad"]), normalizar(b["localidad"])
+        la, lb = _normalizar(a["localidad"]), _normalizar(b["localidad"])
         puntaje += 2 if (la in lb or lb in la) else -1
     elif ga.get("departamento_id") and ga.get("departamento_id") == gb.get("departamento_id"):
         puntaje += 1
@@ -433,13 +443,24 @@ Respondé con el número del evento que es el mismo siniestro, o null si no es n
             return None
         return self.preguntar(ficha, candidatos)
 
-    def preguntar(self, ficha: dict, candidatos: list[Evento]) -> Evento | None:
-        """Pregunta a Claude y guarda la decisión (sin mirar las guardadas)."""
-        anclas = [sorted(ev.claves)[0] for ev in candidatos]
+    @staticmethod
+    def foto(candidatos: list[Evento]) -> list[tuple[str, list[dict]]]:
+        """(ancla, fichas que se muestran) de cada candidato tal como está en este momento de la agrupación."""
+        return [(sorted(ev.claves)[0], ev.fichas[:3]) for ev in candidatos]
+
+    def preguntar(self, ficha: dict, candidatos: list[Evento], vistos: list | None = None) -> Evento | None:
+        """Pregunta a Claude y guarda la decisión (sin mirar las guardadas).
+
+        `vistos`: la `foto` de los candidatos tomada cuando le tocó el turno a la ficha. Hace falta al preguntar de
+        a varios, porque para entonces la agrupación en seco ya terminó y los candidatos sumaron notas posteriores:
+        con el ancla de ese momento, la pasada siguiente no reconocía la decisión y repetía la pregunta en cada
+        ronda (en una simulación con los datos del 26-11-2026, 301 de 1.326 preguntas se hacían 5 veces)."""
+        vistos = vistos or self.foto(candidatos)
+        anclas = [ancla for ancla, _ in vistos]
         lineas = ["FICHA NUEVA:", "   " + self._describir(ficha, self.titulos.get(ficha["_id_nota"])), "", "EVENTOS CANDIDATOS:"]
-        for i, ev in enumerate(candidatos, 1):
+        for i, (_, fichas) in enumerate(vistos, 1):
             lineas.append(f"{i}.")
-            for f in ev.fichas[:3]:
+            for f in fichas:
                 lineas.append("   - " + self._describir(f, self.titulos.get(f["_id_nota"])))
         conf = config.general()
         from .claude import ErrorClaude
@@ -453,7 +474,7 @@ Respondé con el número del evento que es el mismo siniestro, o null si no es n
         elegido = candidatos[n - 1] if isinstance(n, int) and 1 <= n <= len(candidatos) and resp.get("seguridad") in ("alta", "media") else None
         with self._lock:
             self.consultas += 1
-            self.cache[ficha["_clave"]] = {"elegido": sorted(elegido.claves)[0] if elegido else None, "consultados": anclas,
+            self.cache[ficha["_clave"]] = {"elegido": anclas[n - 1] if elegido else None, "consultados": anclas,
                                            "seguridad": resp.get("seguridad")}
         return elegido
 
@@ -462,6 +483,60 @@ Respondé con el número del evento que es el mismo siniestro, o null si no es n
         with self._lock:
             texto = json.dumps(self.cache, ensure_ascii=False, indent=0, sort_keys=True)
         self.archivo.write_text(texto, encoding="utf-8")
+
+
+# ------------------------------------------------------------------ desempates de a varios
+
+RONDAS_DESEMPATE = 4      # rondas de desempates adelantados (ver `adelantar_desempates`)
+MINIMO_RONDA = 20         # con menos preguntas pendientes, se dejan para la agrupación final (en serie)
+
+
+class _Juntar:
+    """Desempate en seco: responde con las decisiones guardadas y anota las preguntas que faltan."""
+
+    def __init__(self, desempate: Desempate):
+        self.desempate = desempate
+        self.pendientes: list[tuple[dict, list, list]] = []
+
+    def decidir(self, ficha, candidatos):
+        sabida, elegido = self.desempate.previa(ficha, candidatos)
+        if not sabida:
+            self.pendientes.append((ficha, list(candidatos), Desempate.foto(candidatos)))
+        return elegido
+
+
+def adelantar_desempates(notas, desempate: Desempate, en_paralelo: int, log=print, rondas: int = RONDAS_DESEMPATE,
+                         minimo: int | None = None, cortar=None) -> int:
+    """La agrupación va en serie (cada fusión cambia los candidatos de las fichas siguientes), y preguntar de a un
+    caso dudoso por vez es lento: unos 2 s por caso con la API (13 min para los 440 de la corrida del 26-11-2026)
+    y unos 4 s con la cuenta. Así que antes se agrupa en seco, se juntan las preguntas que no están en las
+    decisiones guardadas y se las hace de a varias; se repite con las nuevas que aparecen al fusionar. Las reglas
+    y la consigna son las mismas: la agrupación final usa esas decisiones y pregunta en serie lo que falte.
+    `cortar()` verdadero frena las rondas (límite de uso de la cuenta). Devuelve cuántas preguntas se hicieron.
+
+    Es más rápido pero no más barato: las preguntas de una ronda se arman sin saber qué se fusionó en esa misma
+    ronda, y las que quedan viejas se repiten en la siguiente (simulado con los datos del 26-11-2026: hasta 72% más
+    preguntas que en serie). Por eso la corrida diaria, que paga cada consulta, va en serie
+    (`limites.desempates_en_paralelo: 1`) y esto lo usa la recuperación histórica, donde el tiempo es el límite."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    minimo = MINIMO_RONDA if minimo is None else minimo
+    hechas = 0
+    for ronda in range(1, rondas + 1):
+        juntar = _Juntar(desempate)
+        agrupar(fichas_de(notas), juntar)
+        pendientes = juntar.pendientes
+        if len(pendientes) < minimo or (cortar is not None and cortar()):
+            break
+        log(f"Desempates, ronda {ronda}: {len(pendientes)} casos dudosos, de a {en_paralelo} a la vez.")
+        with ThreadPoolExecutor(en_paralelo) as ex:
+            for i, _ in enumerate(ex.map(lambda p: desempate.preguntar(*p), pendientes), 1):
+                if i % 250 == 0:
+                    desempate.guardar()
+                    log(f"  {i} de {len(pendientes)}")
+        desempate.guardar()
+        hechas += len(pendientes)
+    return hechas
 
 
 # ------------------------------------------------------------------ agrupación completa
@@ -562,9 +637,13 @@ def guardar(eventos: list[dict], archivo=ARCHIVO) -> None:
 
 
 def armar_eventos(notas, claude=None, titulos: dict[str, str] | None = None, log=print,
-                  archivo=ARCHIVO, archivo_decisiones=ARCHIVO_DECISIONES) -> list[dict]:
-    """Rehace todos los eventos a partir de las fichas guardadas, conservando ids. Devuelve los eventos."""
+                  archivo=ARCHIVO, archivo_decisiones=ARCHIVO_DECISIONES, en_paralelo: int = 1) -> list[dict]:
+    """Rehace todos los eventos a partir de las fichas guardadas, conservando ids. Devuelve los eventos.
+
+    Con `en_paralelo` mayor que 1, los casos dudosos se preguntan antes de a varios (`adelantar_desempates`)."""
     desempate = Desempate(claude, titulos, archivo_decisiones)
+    if claude is not None and en_paralelo > 1:
+        adelantar_desempates(notas, desempate, en_paralelo, log=log)
     fichas = fichas_de(notas)
     eventos = agrupar(fichas, desempate)
     anteriores = cargar(archivo)

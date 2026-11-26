@@ -80,6 +80,17 @@ jobs:
         if: steps.hoy.outputs.ya != 'true'
         run: python -m pytest -q
 
+      # Las mismas pruebas como si hoy fuera más adelante (tests/conftest.py): si alguna depende de una fecha
+      # fija, avisa semanas antes de que empiece a fallar y frene las corridas (pasó el 26-11-2026). No frena.
+      - name: Pruebas con el reloj adelantado (solo avisa)
+        if: steps.hoy.outputs.ya != 'true'
+        continue-on-error: true
+        run: |
+          for DIAS in 10 40 400; do
+            RADAR_VIAL_DIAS_ADELANTE=$DIAS python -m pytest -q -x > /dev/null 2>&1 \
+              || echo "::warning::Las pruebas van a fallar dentro de $DIAS días o menos: hay una fecha fija que revisar (correr RADAR_VIAL_DIAS_ADELANTE=$DIAS python -m pytest -q)."
+          done
+
       # Texto completo de las notas y cola de pendientes: traen nombres de personas, así que nunca van al
       # repositorio. Se conservan entre corridas en la caché de Actions (se poda sola a los 14 días).
       - name: Recuperar la caché de textos

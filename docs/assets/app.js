@@ -686,11 +686,32 @@
       && (!fatales || (fatales === "con" ? (e.fallecidos || 0) > 0 : !(e.fallecidos > 0))));
   }
 
+  // Los enlaces a las notas no vienen en eventos.json (eran el 80% de la descarga): hay un archivo por día del
+  // hecho en data/fuentes/ y se pide recién cuando la lista, abierta, muestra siniestros de ese día.
+  const fuentesPorDia = {};   // fecha -> {id: [[medio, url], ...]} cuando llegó; "pidiendo" mientras tanto
+
+  function fuentesDe(e) {
+    if (e.fuentes.length) return e.fuentes.map((f) => [f.medio, f.url]);   // datos generados antes del cambio
+    const delDia = fuentesPorDia[e.fecha];
+    return delDia && delDia !== "pidiendo" ? (delDia[e.id] || []) : null;
+  }
+
+  function pedirFuentes(pagina) {
+    const dias = [...new Set(pagina.filter((e) => !e.fuentes.length && e.n_fuentes && !(e.fecha in fuentesPorDia)).map((e) => e.fecha))];
+    if (!dias.length) return;
+    for (const dia of dias) fuentesPorDia[dia] = "pidiendo";
+    Promise.all(dias.map((dia) => fetch(`data/fuentes/${dia}.json`, { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : {})).catch(() => ({}))     // si no llega, la fila muestra solo la cantidad
+      .then((delDia) => { fuentesPorDia[dia] = delDia; })))
+      .then(() => dibujarTabla(eventosDelRango()));
+  }
+
   function dibujarTabla(eventos) {
     const filtrados = filtrosTabla(eventos).sort((a, b) => b.fecha.localeCompare(a.fecha) || (b.n_fuentes - a.n_fuentes));
     const paginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
     estado.pagina = Math.min(estado.pagina, paginas - 1);
     const pagina = filtrados.slice(estado.pagina * POR_PAGINA, (estado.pagina + 1) * POR_PAGINA);
+    if (document.querySelector("details.lista").open) pedirFuentes(pagina);
     const caja = vaciar($("tabla-eventos"));
     $("n-lista").textContent = filtrados.length === eventos.length ? plural(eventos.length, "siniestro", "siniestros")
       : `${NUM.format(filtrados.length)} de ${plural(eventos.length, "siniestro", "siniestros")}`;
@@ -704,8 +725,15 @@
         if (e.solo_titulos) marcas.push(el("span", { clase: "marca", texto: "Solo titulares" }));
         if (e.provincia_inferida) marcas.push(el("span", { clase: "marca", texto: "Provincia inferida" }));
         if (e.fecha_aproximada) marcas.push(el("span", { clase: "marca", texto: "Fecha aproximada" }));
-        const fuentes = e.fuentes.slice(0, 6).map((f) => enlace(f.url, f.medio || "Nota"));
-        if (e.n_fuentes > 6) fuentes.push(el("span", { texto: plural(e.n_fuentes - 6, "fuente más", "fuentes más") }));
+        const lista = fuentesDe(e);
+        let fuentes;
+        if (lista && lista.length) {
+          fuentes = lista.slice(0, 6).map(([medio, url]) => enlace(url, medio || "Nota"));
+          if (e.n_fuentes > 6) fuentes.push(el("span", { texto: plural(e.n_fuentes - 6, "fuente más", "fuentes más") }));
+        } else {
+          // todavía no llegaron los enlaces de ese día (o no se pudieron cargar): queda la cantidad
+          fuentes = [el("span", { texto: plural(e.n_fuentes, "fuente", "fuentes") })];
+        }
         return el("tr", {},
           el("td", { "data-titulo": "Fecha", clase: "num", texto: fechaCorta(e.fecha) }),
           el("td", { "data-titulo": "Lugar" }, el("div", { clase: "lugar", texto: lugar }), e.via ? el("div", { clase: "via", texto: e.via }) : null),
@@ -883,6 +911,8 @@
     for (const id of ["f-tipo", "f-vehiculo", "f-fatales", "f-via", "f-fuentes"]) {
       $(id).addEventListener("change", () => { estado.pagina = 0; dibujarTabla(eventosDelRango()); });
     }
+    // al abrir la lista se piden los enlaces a las notas de la página que se ve
+    document.querySelector("details.lista").addEventListener("toggle", (ev) => { if (ev.target.open) dibujarTabla(eventosDelRango()); });
     const pestanas = ["semana", "historico", "metodologia"];
     pestanas.forEach((v, i) => {
       const boton = $(`tab-${v}`);

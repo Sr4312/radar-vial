@@ -110,8 +110,10 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   un factor.
 
 ## Dashboard (docs/)
-- `radar_vial/agregados.py` escribe `docs/data/`: `eventos.json` (últimos 31 días, campos vacíos omitidos,
-  hasta 12 fuentes por siniestro y `n_fuentes`), `serie_diaria.json` (todo el histórico por día y provincia:
+- `radar_vial/agregados.py` escribe `docs/data/`: `eventos.json` (últimos 31 días o todo desde el
+  inicio del registro, campos vacíos omitidos, con `n_fuentes` pero **sin los enlaces**), `fuentes/AAAA-MM-DD.json`
+  (los enlaces a las notas, un archivo por día del hecho: `{id: [[medio, url], ...]}`, hasta `MAX_FUENTES` = 6 por
+  siniestro, que es lo que muestra la lista; se borran los de días que ya no se publican), `serie_diaria.json` (todo el histórico por día y provincia:
   siniestros, fallecidos, heridos y lo mismo solo de titulares), `resumen_semana.json` (7 días completos hasta
   ayer contra los 7 anteriores; los 2 últimos días "en carga"), `contexto.json` (agrupado entre medios por
   subtipo, provincia, fecha y parecido del resumen) y `meta.json` (provincias con población, oficiales).
@@ -158,15 +160,20 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
 - `python -m radar_vial demo` arma `salida/demo/` con siniestros ficticios (lugares reales, enlaces a
   example.org, aviso fijo de datos de ejemplo) y lo sirve en http://localhost:8000. `.claude/launch.json` tiene
   `radar-vial-demo` y `radar-vial-docs` (sirve docs/ en el puerto 8001) para la vista previa.
-- Peso: con 169 siniestros, `eventos.json` pesa 175 KB (54 KB comprimido); los enlaces son el 37%. Si con el
-  volumen real pasa de unos 2 MB, separar las fuentes en otro archivo que se cargue con la tabla.
+- Peso (26-11-2026, 3.526 siniestros desde el 18-10): los enlaces a las notas eran el 58% de `eventos.json` y el
+  80% de lo que se descargaba (las direcciones de Google News no se comprimen). Se separaron por día: `eventos.json`
+  pasó de 4,2 MB (1,6 MB comprimido) a 1,7 MB (0,26 MB), y la descarga inicial de datos quedó en 0,38 MB. La lista
+  (`details.lista`, 20 filas por página) pide `data/fuentes/<día>.json` recién cuando está abierta y muestra ese día
+  (`pedirFuentes`, `fuentesDe` en app.js; mediana 30 KB comprimido por día); mientras tanto, o si no llega, la celda
+  muestra la cantidad ("3 fuentes"). app.js sigue aceptando eventos con `fuentes` adentro (datos viejos).
+  `eventos.json` sin enlaces crece unos 7 KB comprimidos por día: revisar si pasa de 1 MB comprimido.
 
 ## Automatización (GitHub Actions)
 - `.github/workflows/radar-vial.yml`: cron `17 9-21/2 * * *` (06:17 a 18:17 de Argentina, cada 2 h) con
   `diario --si-no-corrio-hoy`: corre una sola vez por día (`data/estado.json`, `radar_vial/estado.py`), porque
   los cron de GitHub llegan tarde o no llegan (lección del Radar Humanitario). Disparo manual: siempre corre, con
   `sin_publicar` y `tope` (los inputs entran por `env`, no pegados en el script; el tope se valida numérico).
-- Pasos: pytest -> caché de Actions de `data/cache/textos` (clave por corrida, restaura la última) -> diario (con
+- Pasos: pytest (y las mismas pruebas con el reloj adelantado, que solo avisan) -> caché de Actions de `data/cache/textos` (clave por corrida, restaura la última) -> diario (con
   límite propio de 75 min, antes de los 90 del job, para que los pasos siguientes alcancen a guardar) ->
   commit de `data/` (historial, notas, eventos, costos, estado y cachés públicas) y de `docs/data` si se publicó,
   con reintentos de push -> resumen de costos en la página de la corrida -> artefacto `salida/` (14 días) ->
@@ -191,15 +198,51 @@ la carga de config, el historial y los lectores de feeds; acá no hay mails.
   de USD 1,6 a 2,5; Google News no bloquea desde las IP de Actions (2 o 3 errores en 388 búsquedas y feeds). GitHub
   dispara solo 1 o 2 de los 7 horarios y con horas de atraso (la del 25-11 llegó a la 01:17 de Argentina y dejó el
   día marcado). Entre corridas pasaron de 23 a 28 h, dentro de la ventana de 48 h: vigilar que no se acerquen a 48.
-- Primera corrida con tope 700 y reintentos fuera del tope: comprobar duración (estimado: unos 45 min con la cola
-  llena; el job tiene 90), costo y que la cola baje ("Tope de extracción: ... (N de siniestros)" y "Cola: N notas
-  vencieron" en el registro).
+- Primera corrida con tope 700 (26-11-2026, manual): 48,5 min, USD 5,00 (695 extracciones USD 3,18; 440 desempates
+  USD 1,76), 264 reintentos fuera del tope, cola de 835 a 698 (152 de siniestros). Seguir mirando que la cola baje
+  y cuántas notas de contexto vencen ("Cola: N notas vencieron" en el registro).
+- Decisiones de costo que esperan al equipo (ver "Optimización"): Batch API, desempates con Haiku, ficha con salida
+  más corta, y más extracciones en paralelo si el nivel de la cuenta de la API lo permite.
+- Un tercio de las notas queda solo con el título (935 de 2.824 el 26-11-2026; generan el 63% de los desempates).
+  Causas vistas: medios sin feed ni sitemap de noticias (solo queda Bing), medios que responden 403 a lectores
+  automáticos, medios que no responden desde las IP de Actions pero sí desde la oficina (diarionorte.com,
+  alertaurbana.com.ar, libertaddigital.com.ar) y sitemaps generales o comprimidos (`.xml.gz`) que `dominios.descubrir`
+  no lee (solo toma los que dicen "news" o "noticia"). Los reintentos casi no rescatan: unos 28 de 700 (4%).
 - Validar las 20 notas de `tests/fixtures/notas_anotadas.yaml` (borrador) y medir la precisión de la agrupación
   con las planillas de `auditoria`.
 - 16 medios con `verificar: true` en `config/fuentes.yaml` (entre ellos La Voz, que bloquea lectores automáticos).
-- Peso de `docs/data/eventos.json` (ver Dashboard): desde que el tablero suma la recuperación histórica trae todo
-  desde el 18-10; el 25-11-2026 pesaba 4 MB (1,6 MB comprimido, 3.343 siniestros) y crece unos 100 KB por día. Ya
-  pasó el umbral de 2 MB: separar las fuentes en otro archivo que se cargue con la tabla.
+
+## Optimización (26-11-2026, con las corridas del 20 al 26-11 en la mano)
+- **Dónde se va la plata** (día normal, unos USD 2,35): extracción 73% (la salida, unos 270 tokens por nota, es el
+  42% del total; la consigna de 5.000 tokens se lee de la caché), desempates 25% (casi todo entrada: unos 1.860
+  tokens por consulta, hasta 6 candidatos con 3 fichas cada uno), filtro 2%. El razonamiento casi no pesa: la
+  salida es la ficha. Precios confirmados en la documentación el 26-11-2026 (Batch API: 50% menos, acumulable con
+  la caché).
+- **Dónde se va el tiempo**: no se sabía por etapa; ahora el resumen trae `tiempos_min` (recolección, filtro,
+  resolución, extracción, geografía y eventos, tablero) y el registro lo muestra. Lo medido por las marcas del
+  registro: recolección 5 min, filtro 2 a 5, resolución y extracción 10 a 25, eventos 3 a 13.
+- **Hecho**: (1) `ruta_y_km`, `palabras_via` y la normalización de localidades recuerdan sus resultados
+  (`lru_cache`): la agrupación normalizaba 5,7 millones de veces los mismos textos; una pasada sobre 2.482 fichas
+  bajó de 24 s a 6 s con el mismo resultado exacto (crecía 3 s por cada día de historia). (2) Los lotes del filtro
+  van de a 4 (`filtros_en_paralelo`). (3) La primera extracción va sola y deja escrita la caché de la consigna
+  (antes la escribían las 4 que arrancaban juntas). (4) Enlaces del tablero por día (ver Dashboard). (5) Pruebas
+  sin fechas fijas y reloj adelantado (`tests/conftest.py`, `RADAR_VIAL_DIAS_ADELANTE`): el arreglo de la mañana
+  había dejado otra fecha fija que iba a frenar las corridas entre el 16 y el 21-12. El workflow las corre a +10,
+  +40 y +400 días como aviso, sin frenar.
+- **Probado y descartado**: preguntar los desempates de a varios en la corrida diaria. Las preguntas de una ronda se
+  arman sin saber qué se fusionó en esa ronda y parte queda vieja: simulado con los datos reales y respuestas
+  ficticias, hasta 72% más consultas pagas (y el resultado puede diferir) para ahorrar unos 3 minutos. Queda en
+  serie (`desempates_en_paralelo: 1`); el mecanismo vive en `eventos.adelantar_desempates` y lo usa `historico`.
+  De paso se corrigió ahí un desperdicio: la decisión se anotaba con el ancla del candidato al momento de preguntar
+  (ya con notas posteriores) y la pasada siguiente no la reconocía; 301 de 1.326 preguntas se repetían en cada
+  ronda. Ahora se usa la `foto` del candidato de cuando le tocó a la ficha (`Desempate.foto`, `preguntar(vistos=)`).
+- **Sin decidir, porque cambian costo o calidad** (ninguna se aplicó): Batch API para la extracción (la mitad de
+  precio en el 73% de la cuenta; la corrida tendría que esperar el lote, sin plazo garantizado, y no admite el
+  respaldo por rechazo); desempates con Haiku (el 25% de la cuenta pasaría a casi nada; hay que medir contra las
+  decisiones de Sonnet); ficha con claves cortas o sin campos nulos (unos 100 tokens menos de salida por nota,
+  10 a 14% de la cuenta; medir con `tests/medir_extraccion.py`); `extracciones_en_paralelo` de 4 a 8 (la extracción
+  es la etapa más larga) si los límites de la cuenta lo permiten. Cualquier medición con la API cuesta plata: pedir
+  el visto bueno antes.
 
 ## Estados del historial
 `descartada`, `siniestro`, `contexto`, `duplicada`, `sin_texto` son finales. `solo_titulo` (ficha hecha solo con
@@ -288,7 +331,9 @@ Reglas del historial y de la corrida (revisión del 20-11-2026; pruebas en `test
 - `.venv\Scripts\python.exe tests\medir_extraccion.py [--sin-api salida\medicion_extraccion_<fecha>.json]` -
   precisión por campo (usa la API salvo con `--sin-api`).
 - `.venv\Scripts\python.exe -m radar_vial fuentes [--solo google|medios] [--muestra 15]` - diagnóstico.
-- `.venv\Scripts\python.exe -m pytest -q` - pruebas sin red ni claves. Correrlas después de cada cambio.
+- `.venv\Scripts\python.exe -m pytest -q` - pruebas sin red ni claves. Correrlas después de cada cambio. Con la
+  variable de entorno `RADAR_VIAL_DIAS_ADELANTE=40` corren como si hoy fuera 40 días más tarde: hacerlo al tocar
+  pruebas con fechas (una fecha fija frenó la corrida del 26-11-2026).
 - `.venv\Scripts\python.exe scripts\preparar_mapa.py` - regenera `docs/data/provincias.geojson` (necesita shapely).
 - `.venv\Scripts\python.exe scripts\descubrir_fuentes.py [dominio ...]` - descubrir feeds de medios nuevos
   (sin argumentos regenera `config/fuentes.yaml` a partir de la lista CANDIDATOS: pisa las ediciones a mano).

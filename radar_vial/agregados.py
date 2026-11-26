@@ -54,7 +54,7 @@ def etiqueta_ruta(via: str | None) -> str | None:
     return f"{tipo} {num}" if tipo in ("RN", "RP") else f"Ruta {num}"
 
 
-MAX_FUENTES = 12
+MAX_FUENTES = 6    # las que muestra la lista del tablero; las demás se cuentan ("3 fuentes más")
 
 
 def _evento_publicable(e: dict) -> dict:
@@ -184,6 +184,14 @@ def generar(destino: Path, ahora: datetime | None = None, eventos: list[dict] | 
     desde_ev = min(ahora.date() - timedelta(days=DIAS_EVENTOS), inicio).isoformat()
     dias_eventos = (corte - date.fromisoformat(desde_ev)).days + 1
     publicables = [_evento_publicable(e) for e in eventos if e["fecha_hecho"] >= desde_ev]
+    # Los enlaces a las notas van aparte, un archivo por día del hecho (data/fuentes/AAAA-MM-DD.json): eran el 58%
+    # de eventos.json y el 80% de lo que se descargaba (las direcciones de Google News no se comprimen), y solo
+    # los usa la lista de siniestros, de a 20 filas. Medido el 26-11-2026: de 1,6 MB a 0,26 MB comprimido.
+    fuentes_por_dia: dict[str, dict] = {}
+    for e in publicables:
+        fuentes = e.pop("fuentes", None)
+        if fuentes:
+            fuentes_por_dia.setdefault(e["fecha"], {})[e["id"]] = [[f["medio"], f["url"]] for f in fuentes]
     fuentes_cfg = config.cargar_yaml("fuentes.yaml")
     meta = {
         "generado": ahora.isoformat(timespec="minutes"), "corte": corte.isoformat(), "demo": demo,
@@ -203,6 +211,12 @@ def generar(destino: Path, ahora: datetime | None = None, eventos: list[dict] | 
         "resumen_semana.json": resumen,
         "contexto.json": agrupar_contexto(notas, (ahora.date() - timedelta(days=DIAS_CONTEXTO)).isoformat()),
     }
+    carpeta_fuentes = destino / "fuentes"
+    carpeta_fuentes.mkdir(exist_ok=True)
+    for viejo in carpeta_fuentes.glob("*.json"):
+        if viejo.stem not in fuentes_por_dia:
+            viejo.unlink()
+    archivos.update({f"fuentes/{dia}.json": del_dia for dia, del_dia in fuentes_por_dia.items()})
     for nombre, datos in archivos.items():
         (destino / nombre).write_text(json.dumps(datos, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     return resumen

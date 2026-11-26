@@ -6,6 +6,8 @@ reintenta en la próxima corrida.
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+
 from . import config
 from .claude import Claude, ErrorClaude
 
@@ -61,7 +63,8 @@ def filtrar(claude: Claude, items: list[dict], log=print) -> None:
     modelo = conf["modelos"]["filtro"]
     esfuerzo = conf["esfuerzo"]["filtro"]
     tam = conf["limites"]["notas_por_lote_filtro"]
-    for inicio in range(0, len(items), tam):
+
+    def filtrar_lote(inicio: int) -> None:
         lote = items[inicio:inicio + tam]
         mensaje = "Notas:\n\n" + "\n\n".join(_linea(i + 1, it) for i, it in enumerate(lote))
         try:
@@ -70,7 +73,7 @@ def filtrar(claude: Claude, items: list[dict], log=print) -> None:
             log(f"  ! filtro, lote {inicio // tam + 1}: {exc}")
             for it in lote:
                 it["filtro"] = "sin_evaluar"
-            continue
+            return
         por_n = {r["n"]: r for r in resp.get("notas", [])}
         for i, it in enumerate(lote):
             r = por_n.get(i + 1)
@@ -79,6 +82,10 @@ def filtrar(claude: Claude, items: list[dict], log=print) -> None:
                 continue
             it["argentina"] = bool(r["argentina"])
             it["filtro"] = r["categoria"] if r["argentina"] else "descartar"
+
+    # Los lotes no dependen entre sí: van de a varios (cada uno tarda unos 6 s; con 46 lotes eran casi 5 minutos).
+    with ThreadPoolExecutor(max_workers=conf["limites"].get("filtros_en_paralelo", 4)) as ex:
+        list(ex.map(filtrar_lote, range(0, len(items), tam)))
     cuenta = {c: sum(1 for it in items if it.get("filtro") == c) for c in (*CATEGORIAS, "sin_evaluar")}
     log(f"Filtro: {cuenta['siniestro']} siniestros, {cuenta['contexto']} de contexto, "
         f"{cuenta['descartar']} descartadas, {cuenta['sin_evaluar']} sin evaluar (de {len(items)}).")

@@ -75,5 +75,13 @@ limites:
   notas_por_lote_filtro: 40
   # Llamadas de extracción en paralelo
   extracciones_en_paralelo: 4
+  # Lotes del filtro que se consultan a la vez (no cambia el resultado ni el costo, solo la duración: en serie
+  # eran hasta 5 minutos por corrida)
+  filtros_en_paralelo: 4
+  # Casos dudosos de la agrupación que se consultan a la vez. Con 1 van en serie, que es lo más barato: de a
+  # varios se pregunta antes de saber qué se fusionó y hay que repetir preguntas (simulado con los datos del
+  # 26-11-2026: hasta 72% más consultas pagas para ahorrar unos 3 minutos). Subirlo solo si el tiempo importa
+  # más que el costo.
+  desempates_en_paralelo: 1
   # Caracteres del texto de la nota que se mandan a la extracción (las notas largas se cortan al final)
   max_caracteres_texto: 12000

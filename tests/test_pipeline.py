@@ -11,17 +11,19 @@ from radar_vial.claude import Claude
 from radar_vial.historial import Historial, clave_url
 from radar_vial.notas import Notas
 
-FICHA = {"fecha_hecho": "2026-11-18", "fecha_aproximada": False, "hora_franja": "noche", "provincia": "Salta",
+# Fechas relativas al momento de la prueba, no fijas. La cola descarta lo que tiene más de DIAS_EN_COLA días
+# contados desde hoy, y la extracción no cuenta hechos muy anteriores a la publicación: con "2026-11-18" fijo,
+# estas pruebas empezaron a fallar solas una semana después y frenaron la corrida programada del 26-11-2026
+# (que corre las pruebas antes del radar). Para comprobarlo: correr las pruebas con el reloj adelantado.
+PUBLICADA = datetime.now(timezone.utc) - timedelta(hours=6)
+HECHO = (PUBLICADA - timedelta(days=1)).date().isoformat()
+
+FICHA = {"fecha_hecho": HECHO, "fecha_aproximada": False, "hora_franja": "noche", "provincia": "Salta",
          "departamento": None, "localidad": "Cafayate", "via": "RN 40", "tipo_via": "ruta_nacional",
          "tipo_siniestro": "vuelco", "vehiculos": ["camion"], "fallecidos": 0, "heridos_graves": 1, "heridos_leves": None,
          "heridos_sin_detalle": None, "factores_mencionados": [], "grupos_etarios": [],
          "resumen": "Vuelco de un camión en la RN 40, cerca de Cafayate: una persona resultó gravemente herida.",
          "confianza": "alta"}
-
-# Publicación relativa al momento de la prueba, no una fecha fija: la cola descarta lo que tiene más de
-# DIAS_EN_COLA días contados desde hoy y, con "2026-11-18", estas pruebas empezaron a fallar solas una semana
-# después (y frenaron la corrida programada del 26-11-2026, que corre las pruebas antes del radar).
-PUBLICADA = datetime.now(timezone.utc) - timedelta(hours=6)
 
 
 def _items():
@@ -274,6 +276,43 @@ def test_la_cola_avisa_lo_que_vence_sin_procesarse(entorno):
     cola = pipeline.cargar_pendientes(log=mensajes.append)
     assert [p["id"] for p in cola] == ["n_c"]
     assert len(mensajes) == 1 and "2 notas" in mensajes[0] and "1 de siniestros" in mensajes[0]
+
+
+def test_la_primera_extraccion_va_sola_y_el_resto_de_a_varias(entorno, monkeypatch):
+    """La primera llamada deja escrita la caché de la consigna; si arrancan cuatro juntas, la escriben (y la pagan)
+    las cuatro. Después siguen en paralelo."""
+    import threading
+    import time
+
+    otras = [{**_items()[0], "id": f"n_x{i}", "titulo": f"Chocaron un auto y una moto en la avenida {i} de Orán",
+              "gn_id": f"X{i}", "url": f"https://news.google.com/rss/articles/X{i}", "hash_titulo": f"hx{i}",
+              "sitio": f"medio-x{i}.com.ar"} for i in range(3)]
+    monkeypatch.setattr(pipeline, "recolectar", lambda red, log=None: (_items() + otras, []))
+    real = pipeline.extraer_nota
+    en_curso, al_empezar, candado = [0], [], threading.Lock()
+
+    def lenta(claude, it, texto):
+        with candado:
+            al_empezar.append(en_curso[0])
+            en_curso[0] += 1
+        time.sleep(0.15)
+        try:
+            return real(claude, it, texto)
+        finally:
+            with candado:
+                en_curso[0] -= 1
+
+    monkeypatch.setattr(pipeline, "extraer_nota", lenta)
+    r = pipeline.correr_diario(log=lambda *a: None)
+    assert r["extraidas"] == 5
+    assert al_empezar[:2] == [0, 0]        # la segunda empieza cuando la primera ya terminó
+    assert max(al_empezar) >= 1            # y las demás van juntas
+
+
+def test_el_resumen_trae_cuanto_tardo_cada_etapa(entorno):
+    r = pipeline.correr_diario(log=lambda *a: None)
+    assert set(r["tiempos_min"]) == {"recoleccion", "filtro", "resolucion", "extraccion", "geografia_y_eventos", "tablero"}
+    assert all(v >= 0 for v in r["tiempos_min"].values())
 
 
 def test_con_un_tope_chico_igual_entran_siniestros():
