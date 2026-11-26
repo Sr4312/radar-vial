@@ -36,6 +36,20 @@
    "https://www.0264noticias.com.ar/news_sitemap.xml"
   ]
  },
+ "0343.com.ar": {
+  "base": "https://www.0343.com.ar",
+  "dominio": "0343.com.ar",
+  "error": null,
+  "feeds": [
+   "https://0343.com.ar/rss/",
+   "https://0343.com.ar/feed",
+   "https://0343.com.ar/rss/portada.xml"
+  ],
+  "revisado": "2026-11-26T14:49:11.730999+00:00",
+  "sitemaps_noticias": [
+   "https://0343.com.ar/sitemap-news.xml"
+  ]
+ },
  "11noticias.com": {
   "base": "https://www.11noticias.com",
   "dominio": "11noticias.com",
@@ -106,6 +120,16 @@
    "https://7paginas.com.ar/feed/"
   ],
   "revisado": "2026-11-22T17:24:36.039379+00:00",
+  "sitemaps_noticias": []
+ },
+ "9digital.com.ar": {
+  "base": "https://www.9digital.com.ar",
+  "dominio": "9digital.com.ar",
+  "error": null,
+  "feeds": [
+   "https://9digital.com.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:53:49.972066+00:00",
   "sitemaps_noticias": []
  },
  "a24.com": {
@@ -291,12 +315,32 @@
    "https://www.alertadigital.ar/news_sitemap.xml"
   ]
  },
+ "alertastransito.com": {
+  "base": "https://www.alertastransito.com",
+  "dominio": "alertastransito.com",
+  "error": null,
+  "feeds": [
+   "https://feeds.feedburner.com/Alertastransito"
+  ],
+  "revisado": "2026-11-26T14:53:37.191888+00:00",
+  "sitemaps_noticias": []
+ },
  "alertaurbana.com.ar": {
   "base": "",
   "dominio": "alertaurbana.com.ar",
   "error": "la portada no responde",
   "feeds": [],
   "revisado": "2026-11-21T17:01:18.126534+00:00",
+  "sitemaps_noticias": []
+ },
+ "altagracianoticias.com": {
+  "base": "https://www.altagracianoticias.com",
+  "dominio": "altagracianoticias.com",
+  "error": null,
+  "feeds": [
+   "https://www.altagracianoticias.com/feed/"
+  ],
+  "revisado": "2026-11-26T14:58:21.168623+00:00",
   "sitemaps_noticias": []
  },
  "ambito.com": {
@@ -491,6 +535,26 @@
   "revisado": "2026-11-20T14:42:29.325307+00:00",
   "sitemaps_noticias": []
  },
+ "barilocheopina.com": {
+  "base": "https://www.barilocheopina.com",
+  "dominio": "barilocheopina.com",
+  "error": null,
+  "feeds": [
+   "https://www.barilocheopina.com/rss/noticias"
+  ],
+  "revisado": "2026-11-26T14:59:31.081576+00:00",
+  "sitemaps_noticias": [
+   "https://www.barilocheopina.com/news_sitemap.xml"
+  ]
+ },
+ "bhinfo.com.ar": {
+  "base": "https://www.bhinfo.com.ar",
+  "dominio": "bhinfo.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:52:11.833224+00:00",
+  "sitemaps_noticias": []
+ },
  "borderperiodismo.com": {
   "base": "https://www.borderperiodismo.com",
   "dominio": "borderperiodismo.com",
@@ -511,6 +575,30 @@
   ],
   "revisado": "2026-11-20T15:49:41.812005+00:00",
   "sitemaps_noticias": []
+ },
+ "bragadotv.com.ar": {
+  "base": "https://www.bragadotv.com.ar",
+  "dominio": "bragadotv.com.ar",
+  "error": null,
+  "feeds": [
+   "https://www.bragadotv.com.ar/rss/noticias"
+  ],
+  "revisado": "2026-11-26T14:48:44.747499+00:00",
+  "sitemaps_noticias": [
+   "https://www.bragadotv.com.ar/news_sitemap.xml"
+  ]
+ },
+ "bvcnoticias.com.ar": {
+  "base": "https://www.bvcnoticias.com.ar",
+  "dominio": "bvcnoticias.com.ar",
+  "error": null,
+  "feeds": [
+   "https://bvcnoticias.com.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:54:26.283160+00:00",
+  "sitemaps_noticias": [
+   "https://bvcnoticias.com.ar/sitemap_index.xml"
+  ]
  },
  "c5n.com": {
   "base": "https://www.c5n.com",
@@ -655,6 +743,16 @@
   "revisado": "2026-11-20T13:27:32.157636+00:00",
   "sitemaps_noticias": []
  },
+ "capital24.com.ar": {
+  "base": "https://www.capital24.com.ar",
+  "dominio": "capital24.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:49:19.027357+00:00",
+  "sitemaps_noticias": [
+   "https://capital24.com.ar/news_sitemap.xml"
+  ]
+ },
  "caras.perfil.com": {
   "base": "https://caras.perfil.com",
   "dominio": "caras.perfil.com",
@@ -697,6 +795,16 @@
   "feeds": [],
   "revisado": "2026-11-20T13:37:27.781347+00:00",
   "sitemaps_noticias": []
+ },
+ "catamarcaencana.com.ar": {
+  "base": "https://www.catamarcaencana.com.ar",
+  "dominio": "catamarcaencana.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:51:13.017749+00:00",
+  "sitemaps_noticias": [
+   "https://catamarcaencana.com.ar/news_sitemap.xml"
+  ]
  },
  "catamarcaya.com.ar": {
   "base": "https://www.catamarcaya.com.ar",
@@ -819,6 +927,14 @@
    "http://chacoonline.com.ar/news_sitemap.xml"
   ]
  },
+ "chajarialdia.com.ar": {
+  "base": "",
+  "dominio": "chajarialdia.com.ar",
+  "error": "SSLError: HTTPSConnectionPool(host='chajarialdia.com.ar', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate veri",
+  "feeds": [],
+  "revisado": "2026-11-26T14:50:52.871322+00:00",
+  "sitemaps_noticias": []
+ },
  "chavesdigital.com.ar": {
   "base": "https://www.chavesdigital.com.ar",
   "dominio": "chavesdigital.com.ar",
@@ -895,6 +1011,19 @@
    "https://www.cipollettidigital.com.ar/sitemap-news.xml"
   ]
  },
+ "ciudadano.news": {
+  "base": "https://www.ciudadano.news",
+  "dominio": "ciudadano.news",
+  "error": null,
+  "feeds": [
+   "https://ciudadano.news/feed/"
+  ],
+  "revisado": "2026-11-26T14:53:58.254386+00:00",
+  "sitemaps_noticias": [
+   "https://ciudadano.news/sitemap.xml",
+   "https://ciudadano.news/sitemapNews.xml"
+  ]
+ },
  "clarin.com": {
   "base": "https://www.clarin.com",
   "dominio": "clarin.com",
@@ -963,6 +1092,14 @@
   "error": null,
   "feeds": [],
   "revisado": "2026-11-20T00:14:15.560774+00:00",
+  "sitemaps_noticias": []
+ },
+ "confirmadonecochea.com": {
+  "base": "https://www.confirmadonecochea.com",
+  "dominio": "confirmadonecochea.com",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:58:23.868705+00:00",
   "sitemaps_noticias": []
  },
  "contactoradio.com": {
@@ -1043,6 +1180,14 @@
    "https://crhoy.com/sitemaps/sitemap-news.xml"
   ]
  },
+ "cristalurdi.com.ar": {
+  "base": "https://www.cristalurdi.com.ar",
+  "dominio": "cristalurdi.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:54:51.284690+00:00",
+  "sitemaps_noticias": []
+ },
  "criterioonline.com": {
   "base": "https://www.criterioonline.com",
   "dominio": "criterioonline.com",
@@ -1063,6 +1208,18 @@
   ],
   "revisado": "2026-11-23T21:40:22.997710+00:00",
   "sitemaps_noticias": []
+ },
+ "croniosv.com": {
+  "base": "https://www.croniosv.com",
+  "dominio": "croniosv.com",
+  "error": null,
+  "feeds": [
+   "https://croniosv.com/feed/"
+  ],
+  "revisado": "2026-11-26T14:52:47.220909+00:00",
+  "sitemaps_noticias": [
+   "https://croniosv.com/news-sitemap.xml"
+  ]
  },
  "cronista.com": {
   "base": "https://www.cronista.com",
@@ -1106,6 +1263,17 @@
    "https://cuartopodersalta.com.ar/comments/feed/"
   ],
   "revisado": "2026-11-22T17:29:00.345220+00:00",
+  "sitemaps_noticias": []
+ },
+ "cuestionentrerriana.com.ar": {
+  "base": "https://www.cuestionentrerriana.com.ar",
+  "dominio": "cuestionentrerriana.com.ar",
+  "error": null,
+  "feeds": [
+   "https://cuestionentrerriana.com.ar/feed/",
+   "https://cuestionentrerriana.com.ar/comments/feed/"
+  ],
+  "revisado": "2026-11-26T14:51:40.904884+00:00",
   "sitemaps_noticias": []
  },
  "damenoticias.com": {
@@ -1188,6 +1356,14 @@
    "https://www.desarrollozonal.com/news-sitemap.xml"
   ]
  },
+ "desdeentrerios.com.ar": {
+  "base": "https://www.desdeentrerios.com.ar",
+  "dominio": "desdeentrerios.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:58:42.164816+00:00",
+  "sitemaps_noticias": []
+ },
  "despertarentrerriano.com": {
   "base": "https://www.despertarentrerriano.com",
   "dominio": "despertarentrerriano.com",
@@ -1254,6 +1430,14 @@
   "revisado": "2026-11-20T14:50:01.506122+00:00",
   "sitemaps_noticias": []
  },
+ "diariocambio22.mx": {
+  "base": "",
+  "dominio": "diariocambio22.mx",
+  "error": "la portada no responde",
+  "feeds": [],
+  "revisado": "2026-11-26T14:50:11.922618+00:00",
+  "sitemaps_noticias": []
+ },
  "diariocastellanos.com.ar": {
   "base": "https://www.diariocastellanos.com.ar",
   "dominio": "diariocastellanos.com.ar",
@@ -1310,6 +1494,18 @@
   "revisado": "2026-11-22T17:30:08.883177+00:00",
   "sitemaps_noticias": []
  },
+ "diariodebatepregon.com": {
+  "base": "https://www.diariodebatepregon.com",
+  "dominio": "diariodebatepregon.com",
+  "error": null,
+  "feeds": [
+   "https://debatepregonapiv3.eleco.com.ar/feed-notes"
+  ],
+  "revisado": "2026-11-26T14:50:22.639059+00:00",
+  "sitemaps_noticias": [
+   "https://www.diariodebatepregon.com/sitemap-news.xml"
+  ]
+ },
  "diariodecuyo.com.ar": {
   "base": "https://www.diariodecuyo.com.ar",
   "dominio": "diariodecuyo.com.ar",
@@ -1329,6 +1525,14 @@
    "http://www.diariodeloeste.com.ar/feed/"
   ],
   "revisado": "2026-11-21T17:03:55.070524+00:00",
+  "sitemaps_noticias": []
+ },
+ "diariodelsur.com.co": {
+  "base": "https://www.diariodelsur.com.co",
+  "dominio": "diariodelsur.com.co",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:52:47.356484+00:00",
   "sitemaps_noticias": []
  },
  "diariodemocracia.com": {
@@ -1587,6 +1791,14 @@
   "revisado": "2026-11-22T17:30:02.630086+00:00",
   "sitemaps_noticias": []
  },
+ "diarionecochea.com": {
+  "base": "https://www.diarionecochea.com",
+  "dominio": "diarionecochea.com",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:56:06.750489+00:00",
+  "sitemaps_noticias": []
+ },
  "diarioneuquino.com.ar": {
   "base": "https://www.diarioneuquino.com.ar",
   "dominio": "diarioneuquino.com.ar",
@@ -1638,6 +1850,17 @@
    "https://www.diariopopular.com.ar/sitemap-news.xml"
   ]
  },
+ "diarioprimerahora.com": {
+  "base": "https://www.diarioprimerahora.com",
+  "dominio": "diarioprimerahora.com",
+  "error": null,
+  "feeds": [
+   "https://www.diarioprimerahora.com/?format=feed&amp;type=rss",
+   "https://www.diarioprimerahora.com/?format=feed&amp;type=atom"
+  ],
+  "revisado": "2026-11-26T14:57:06.134881+00:00",
+  "sitemaps_noticias": []
+ },
  "diarioprimeralinea.com.ar": {
   "base": "https://www.diarioprimeralinea.com.ar",
   "dominio": "diarioprimeralinea.com.ar",
@@ -1678,6 +1901,16 @@
   "revisado": "2026-11-20T00:12:43.910511+00:00",
   "sitemaps_noticias": [
    "https://www.diariosigloxxi.com/sitemap/news"
+  ]
+ },
+ "diariosumario.com.ar": {
+  "base": "https://www.diariosumario.com.ar",
+  "dominio": "diariosumario.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:54:11.267717+00:00",
+  "sitemaps_noticias": [
+   "https://diariosumario.com.ar/news_sitemap.xml"
   ]
  },
  "diariotag.com": {
@@ -1740,6 +1973,19 @@
   ],
   "revisado": "2026-11-23T21:45:14.054677+00:00",
   "sitemaps_noticias": []
+ },
+ "distritointerior.com.ar": {
+  "base": "https://www.distritointerior.com.ar",
+  "dominio": "distritointerior.com.ar",
+  "error": null,
+  "feeds": [
+   "https://www.distritointerior.com.ar/feed",
+   "https://www.distritointerior.com.ar/comments/feed"
+  ],
+  "revisado": "2026-11-26T14:52:55.679667+00:00",
+  "sitemaps_noticias": [
+   "https://www.distritointerior.com.ar/news-sitemap.xml"
+  ]
  },
  "ecodiario.mx": {
   "base": "https://www.ecodiario.mx",
@@ -1932,6 +2178,18 @@
   "revisado": "2026-11-22T17:30:00.431204+00:00",
   "sitemaps_noticias": []
  },
+ "elcomercioonline.com.ar": {
+  "base": "https://www.elcomercioonline.com.ar",
+  "dominio": "elcomercioonline.com.ar",
+  "error": null,
+  "feeds": [
+   "https://www.elcomercioonline.com.ar/rss/"
+  ],
+  "revisado": "2026-11-26T14:56:40.941911+00:00",
+  "sitemaps_noticias": [
+   "https://www.elcomercioonline.com.ar/sitemaps/noticias.xml"
+  ]
+ },
  "elcomodorense.net": {
   "base": "https://www.elcomodorense.net",
   "dominio": "elcomodorense.net",
@@ -2055,6 +2313,16 @@
   "feeds": [],
   "revisado": "2026-11-25T04:24:59.370018+00:00",
   "sitemaps_noticias": []
+ },
+ "eldiadehigueras.com.ar": {
+  "base": "https://www.eldiadehigueras.com.ar",
+  "dominio": "eldiadehigueras.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:56:11.378228+00:00",
+  "sitemaps_noticias": [
+   "https://eldiadehigueras.com.ar/news_sitemap.xml"
+  ]
  },
  "eldiaonline.com": {
   "base": "https://www.eldiaonline.com",
@@ -2191,6 +2459,18 @@
   "feeds": [],
   "revisado": "2026-11-19T23:59:24.894049+00:00",
   "sitemaps_noticias": []
+ },
+ "eleco.com.ar": {
+  "base": "https://www.eleco.com.ar",
+  "dominio": "eleco.com.ar",
+  "error": null,
+  "feeds": [
+   "https://articapiv3.eleco.com.ar/feed-notes"
+  ],
+  "revisado": "2026-11-26T14:59:02.259400+00:00",
+  "sitemaps_noticias": [
+   "https://www.eleco.com.ar/sitemap-news.xml"
+  ]
  },
  "elecodesunchales.com.ar": {
   "base": "https://www.elecodesunchales.com.ar",
@@ -2440,6 +2720,16 @@
    "http://elobjetivo.com.ar/news_sitemap.xml"
   ]
  },
+ "elobservador.com.uy": {
+  "base": "https://www.elobservador.com.uy",
+  "dominio": "elobservador.com.uy",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:49:30.946355+00:00",
+  "sitemaps_noticias": [
+   "https://www.elobservador.com.uy/sitemap-news.xml"
+  ]
+ },
  "elojoenlinea.com.ar": {
   "base": "https://www.elojoenlinea.com.ar",
   "dominio": "elojoenlinea.com.ar",
@@ -2459,6 +2749,34 @@
   "sitemaps_noticias": [
    "https://www.elonce.com/sitemap-news.xml"
   ]
+ },
+ "elpatagonico.com": {
+  "base": "https://www.elpatagonico.com",
+  "dominio": "elpatagonico.com",
+  "error": null,
+  "feeds": [
+   "https://www.elpatagonico.com/rss/home.xml"
+  ],
+  "revisado": "2026-11-26T14:52:18.847033+00:00",
+  "sitemaps_noticias": [
+   "https://www.elpatagonico.com/sitemap-news.xml"
+  ]
+ },
+ "elpinero.mx": {
+  "base": "",
+  "dominio": "elpinero.mx",
+  "error": "la portada no responde",
+  "feeds": [],
+  "revisado": "2026-11-26T14:58:30.221415+00:00",
+  "sitemaps_noticias": []
+ },
+ "elrosalenio.com.ar": {
+  "base": "https://www.elrosalenio.com.ar",
+  "dominio": "elrosalenio.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:54:15.526374+00:00",
+  "sitemaps_noticias": []
  },
  "elsello.info": {
   "base": "https://www.elsello.info",
@@ -2857,6 +3175,16 @@
   "revisado": "2026-11-21T17:03:33.266920+00:00",
   "sitemaps_noticias": []
  },
+ "guardianocturna.mx": {
+  "base": "https://www.guardianocturna.mx",
+  "dominio": "guardianocturna.mx",
+  "error": null,
+  "feeds": [
+   "https://guardianocturna.mx/feed/"
+  ],
+  "revisado": "2026-11-26T14:49:50.365797+00:00",
+  "sitemaps_noticias": []
+ },
  "guauformosa.com.ar": {
   "base": "https://www.guauformosa.com.ar",
   "dominio": "guauformosa.com.ar",
@@ -2949,6 +3277,19 @@
   "revisado": "2026-11-20T00:17:04.155193+00:00",
   "sitemaps_noticias": []
  },
+ "imagentv.com": {
+  "base": "https://www.imagentv.com",
+  "dominio": "imagentv.com",
+  "error": null,
+  "feeds": [
+   "https://www.imagentv.com/rss",
+   "https://www.imagentv.com/rss/"
+  ],
+  "revisado": "2026-11-26T14:52:40.431546+00:00",
+  "sitemaps_noticias": [
+   "https://www.imagentv.com/sitemap-google-news.xml"
+  ]
+ },
  "impactocastex.com.ar": {
   "base": "https://www.impactocastex.com.ar",
   "dominio": "impactocastex.com.ar",
@@ -2973,6 +3314,18 @@
   "sitemaps_noticias": [
    "https://www.infobae.com/arc/outboundfeeds/news-sitemap2/",
    "https://www.infobae.com/arc/outboundfeeds/news-sitemap2/category/america/"
+  ]
+ },
+ "infoban.com.ar": {
+  "base": "https://www.infoban.com.ar",
+  "dominio": "infoban.com.ar",
+  "error": null,
+  "feeds": [
+   "https://www.infoban.com.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:57:12.194870+00:00",
+  "sitemaps_noticias": [
+   "https://www.infoban.com.ar/news-sitemap.xml"
   ]
  },
  "infobariloche.com.ar": {
@@ -3086,6 +3439,20 @@
   "revisado": "2026-11-20T12:52:04.109998+00:00",
   "sitemaps_noticias": [
    "https://infoeccos.com/news-sitemap.xml"
+  ]
+ },
+ "infoeme.com": {
+  "base": "https://www.infoeme.com",
+  "dominio": "infoeme.com",
+  "error": null,
+  "feeds": [
+   "https://www.infoeme.com/feed/",
+   "https://www.infoeme.com/feed",
+   "https://www.infoeme.com/rss/portada.xml"
+  ],
+  "revisado": "2026-11-26T14:48:53.722610+00:00",
+  "sitemaps_noticias": [
+   "https://www.infoeme.com/sitemaps_news.xml"
   ]
  },
  "infofueguina.com": {
@@ -3239,6 +3606,16 @@
   "sitemaps_noticias": [
    "https://infotecrealico.com.ar/news_sitemap.xml"
   ]
+ },
+ "infoveloz.com": {
+  "base": "https://www.infoveloz.com",
+  "dominio": "infoveloz.com",
+  "error": null,
+  "feeds": [
+   "https://www.infoveloz.com/feed"
+  ],
+  "revisado": "2026-11-26T14:50:16.624104+00:00",
+  "sitemaps_noticias": []
  },
  "infovera.com.ar": {
   "base": "https://www.infovera.com.ar",
@@ -3650,6 +4027,24 @@
   "revisado": "2026-11-20T13:35:02.112718+00:00",
   "sitemaps_noticias": []
  },
+ "laradiodetotoral.com.ar": {
+  "base": "https://www.laradiodetotoral.com.ar",
+  "dominio": "laradiodetotoral.com.ar",
+  "error": null,
+  "feeds": [
+   "https://laradiodetotoral.com.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:48:05.792864+00:00",
+  "sitemaps_noticias": []
+ },
+ "larazondechivilcoy.com.ar": {
+  "base": "",
+  "dominio": "larazondechivilcoy.com.ar",
+  "error": "la portada no responde",
+  "feeds": [],
+  "revisado": "2026-11-26T14:49:01.235189+00:00",
+  "sitemaps_noticias": []
+ },
  "lared1061.com": {
   "base": "https://www.lared1061.com",
   "dominio": "lared1061.com",
@@ -3733,6 +4128,16 @@
   "sitemaps_noticias": [
    "https://www.lateja.cr/arc/outboundfeeds/news-sitemap/?outputType=xml"
   ]
+ },
+ "latrochadigital.com.ar": {
+  "base": "https://www.latrochadigital.com.ar",
+  "dominio": "latrochadigital.com.ar",
+  "error": null,
+  "feeds": [
+   "https://www.latrochadigital.com.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:48:09.649974+00:00",
+  "sitemaps_noticias": []
  },
  "launion.com.ar": {
   "base": "https://www.launion.com.ar",
@@ -3985,6 +4390,30 @@
    "https://www.lu24.com.ar/news-sitemap.xml"
   ]
  },
+ "lu32.com.ar": {
+  "base": "https://www.lu32.com.ar",
+  "dominio": "lu32.com.ar",
+  "error": null,
+  "feeds": [
+   "https://lu32.com.ar/rss",
+   "https://lu32.com.ar/rss/",
+   "https://lu32.com.ar/rss.xml"
+  ],
+  "revisado": "2026-11-26T14:48:44.130811+00:00",
+  "sitemaps_noticias": [
+   "https://lu32.com.ar/sitemap-news.xml"
+  ]
+ },
+ "lu5am.com": {
+  "base": "https://www.lu5am.com",
+  "dominio": "lu5am.com",
+  "error": null,
+  "feeds": [
+   "https://lu5am.com/feed/"
+  ],
+  "revisado": "2026-11-26T14:53:27.294959+00:00",
+  "sitemaps_noticias": []
+ },
  "lu9mardelplata.com.ar": {
   "base": "https://www.lu9mardelplata.com.ar",
   "dominio": "lu9mardelplata.com.ar",
@@ -4031,6 +4460,16 @@
   "error": null,
   "feeds": [],
   "revisado": "2026-11-20T13:33:59.567908+00:00",
+  "sitemaps_noticias": []
+ },
+ "malargue.gov.ar": {
+  "base": "https://www.malargue.gov.ar",
+  "dominio": "malargue.gov.ar",
+  "error": null,
+  "feeds": [
+   "https://www.malargue.gov.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:59:14.586725+00:00",
   "sitemaps_noticias": []
  },
  "maracodigital.net": {
@@ -4163,6 +4602,16 @@
    "https://www.mercurionoticias.com.ar/sitemap.xml"
   ]
  },
+ "meridiano55.com": {
+  "base": "https://www.meridiano55.com",
+  "dominio": "meridiano55.com",
+  "error": null,
+  "feeds": [
+   "https://meridiano55.com/feed/"
+  ],
+  "revisado": "2026-11-26T14:50:14.544317+00:00",
+  "sitemaps_noticias": []
+ },
  "mi8.com.ar": {
   "base": "https://www.mi8.com.ar",
   "dominio": "mi8.com.ar",
@@ -4246,6 +4695,14 @@
   "sitemaps_noticias": [
    "https://www.miradorprovincial.com/news-sitemap.xml"
   ]
+ },
+ "miraelnorte.com.ar": {
+  "base": "https://www.miraelnorte.com.ar",
+  "dominio": "miraelnorte.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:49:25.748037+00:00",
+  "sitemaps_noticias": []
  },
  "misionescuatro.com": {
   "base": "",
@@ -4428,6 +4885,17 @@
   "revisado": "2026-11-22T17:26:52.115588+00:00",
   "sitemaps_noticias": []
  },
+ "nexosdigital.com.ar": {
+  "base": "https://www.nexosdigital.com.ar",
+  "dominio": "nexosdigital.com.ar",
+  "error": null,
+  "feeds": [
+   "https://nexosdigital.com.ar/feed/",
+   "https://nexosdigital.com.ar/comments/feed/"
+  ],
+  "revisado": "2026-11-26T14:55:58.385739+00:00",
+  "sitemaps_noticias": []
+ },
  "nmas.com.mx": {
   "base": "https://www.nmas.com.mx",
   "dominio": "nmas.com.mx",
@@ -4574,6 +5042,18 @@
    "https://www.noticiasdelacalle.com.ar/news_sitemap.xml"
   ]
  },
+ "noticiasdelbolson.com.ar": {
+  "base": "https://www.noticiasdelbolson.com.ar",
+  "dominio": "noticiasdelbolson.com.ar",
+  "error": null,
+  "feeds": [
+   "http://feeds.feedburner.com/NoticiasDelBolson-InfonoticiasdelbolsoncomarNoticiasdelbolsoncomar"
+  ],
+  "revisado": "2026-11-26T14:49:30.494885+00:00",
+  "sitemaps_noticias": [
+   "https://www.noticiasdelbolson.com.ar/sitemap.xml"
+  ]
+ },
  "noticiasdelparana.com.ar": {
   "base": "https://www.noticiasdelparana.com.ar",
   "dominio": "noticiasdelparana.com.ar",
@@ -4653,6 +5133,18 @@
   "revisado": "2026-11-20T13:35:56.288463+00:00",
   "sitemaps_noticias": [
    "https://www.noticiero9.com.ar/sitemap-news.xml"
+  ]
+ },
+ "notife.com": {
+  "base": "https://www.notife.com",
+  "dominio": "notife.com",
+  "error": null,
+  "feeds": [
+   "https://notifeapiv3.eleco.com.ar/feed-notes"
+  ],
+  "revisado": "2026-11-26T14:52:41.382611+00:00",
+  "sitemaps_noticias": [
+   "https://www.notife.com/sitemap-news.xml"
   ]
  },
  "novabonaerense.com": {
@@ -4806,12 +5298,32 @@
   "revisado": "2026-11-22T17:26:01.864913+00:00",
   "sitemaps_noticias": []
  },
+ "palpalainforma.com": {
+  "base": "https://www.palpalainforma.com",
+  "dominio": "palpalainforma.com",
+  "error": null,
+  "feeds": [
+   "https://palpalainforma.com/feed/"
+  ],
+  "revisado": "2026-11-26T14:48:33.611238+00:00",
+  "sitemaps_noticias": []
+ },
  "pampadiario.com": {
   "base": "https://www.pampadiario.com",
   "dominio": "pampadiario.com",
   "error": null,
   "feeds": [],
   "revisado": "2026-11-20T15:49:22.636519+00:00",
+  "sitemaps_noticias": []
+ },
+ "panamericana.pe": {
+  "base": "https://www.panamericana.pe",
+  "dominio": "panamericana.pe",
+  "error": null,
+  "feeds": [
+   "https://www.panamericana.pe/noticias.xml"
+  ],
+  "revisado": "2026-11-26T14:49:46.402785+00:00",
   "sitemaps_noticias": []
  },
  "paparazzi.com.ar": {
@@ -4910,6 +5422,16 @@
   "revisado": "2026-11-20T13:31:26.760505+00:00",
   "sitemaps_noticias": [
    "https://periodicolavoz.com.mx/sitemapnews"
+  ]
+ },
+ "periodicomovil.com": {
+  "base": "https://www.periodicomovil.com",
+  "dominio": "periodicomovil.com",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:56:17.167588+00:00",
+  "sitemaps_noticias": [
+   "https://periodicomovil.com/news_sitemap.xml"
   ]
  },
  "perspectivasur.com": {
@@ -5153,6 +5675,17 @@
   "revisado": "2026-11-23T21:44:20.832087+00:00",
   "sitemaps_noticias": []
  },
+ "pronto.com.ar": {
+  "base": "https://www.pronto.com.ar",
+  "dominio": "pronto.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:48:16.034966+00:00",
+  "sitemaps_noticias": [
+   "https://www.pronto.com.ar/sitemap-news.xml",
+   "https://www.pronto.com.ar/sitemap_news.xml"
+  ]
+ },
  "provincia23.com.ar": {
   "base": "https://www.provincia23.com.ar",
   "dominio": "provincia23.com.ar",
@@ -5161,6 +5694,14 @@
    "https://www.provincia23.com.ar/feed/"
   ],
   "revisado": "2026-11-20T13:29:04.927326+00:00",
+  "sitemaps_noticias": []
+ },
+ "pulsoslp.com.mx": {
+  "base": "https://www.pulsoslp.com.mx",
+  "dominio": "pulsoslp.com.mx",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:58:45.495683+00:00",
   "sitemaps_noticias": []
  },
  "puntal.com.ar": {
@@ -5195,6 +5736,14 @@
   "sitemaps_noticias": [
    "https://www.puntocapitalnoticias.com/sitemap_index.xml"
   ]
+ },
+ "qpaso.ar": {
+  "base": "https://www.qpaso.ar",
+  "dominio": "qpaso.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:48:24.674628+00:00",
+  "sitemaps_noticias": []
  },
  "quedigital.com.ar": {
   "base": "https://www.quedigital.com.ar",
@@ -5329,6 +5878,16 @@
    "https://radiochubut.com/news-sitemap.xml"
   ]
  },
+ "radiodecamioneros.com.ar": {
+  "base": "https://www.radiodecamioneros.com.ar",
+  "dominio": "radiodecamioneros.com.ar",
+  "error": null,
+  "feeds": [
+   "https://radiodecamioneros.com.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:54:14.313212+00:00",
+  "sitemaps_noticias": []
+ },
  "radiodon.com.ar": {
   "base": "",
   "dominio": "radiodon.com.ar",
@@ -5370,6 +5929,16 @@
    "https://www.radioestacion.com.ar/comments/feed/"
   ],
   "revisado": "2026-11-20T13:35:36.186661+00:00",
+  "sitemaps_noticias": []
+ },
+ "radiofonica.com": {
+  "base": "https://www.radiofonica.com",
+  "dominio": "radiofonica.com",
+  "error": null,
+  "feeds": [
+   "https://radiofonica.com/feed/"
+  ],
+  "revisado": "2026-11-26T14:49:09.799648+00:00",
   "sitemaps_noticias": []
  },
  "radioinfinitagoya.com.ar": {
@@ -5421,6 +5990,16 @@
   "sitemaps_noticias": [
    "https://radiomitre.cienradios.com/arc/outboundfeeds/news-sitemap/?outputType=xml"
   ]
+ },
+ "radionatagala.com": {
+  "base": "https://www.radionatagala.com",
+  "dominio": "radionatagala.com",
+  "error": null,
+  "feeds": [
+   "https://radionatagala.com/feed/"
+  ],
+  "revisado": "2026-11-26T14:48:06.678558+00:00",
+  "sitemaps_noticias": []
  },
  "radiopaulina.cl": {
   "base": "https://www.radiopaulina.cl",
@@ -5543,6 +6122,19 @@
   "revisado": "2026-11-25T04:26:57.207444+00:00",
   "sitemaps_noticias": []
  },
+ "realidadsm.com": {
+  "base": "https://www.realidadsm.com",
+  "dominio": "realidadsm.com",
+  "error": null,
+  "feeds": [
+   "https://realidadsm.com/feed/",
+   "https://realidadsm.com/comments/feed/"
+  ],
+  "revisado": "2026-11-26T14:49:12.449570+00:00",
+  "sitemaps_noticias": [
+   "https://realidadsm.com/news-sitemap.xml"
+  ]
+ },
  "reconquistahoy.com": {
   "base": "https://www.reconquistahoy.com",
   "dominio": "reconquistahoy.com",
@@ -5565,6 +6157,16 @@
   "revisado": "2026-11-23T21:41:03.851320+00:00",
   "sitemaps_noticias": []
  },
+ "redpanorama.com.ar": {
+  "base": "https://www.redpanorama.com.ar",
+  "dominio": "redpanorama.com.ar",
+  "error": null,
+  "feeds": [
+   "https://redpanorama.com.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:59:10.850292+00:00",
+  "sitemaps_noticias": []
+ },
  "reduno.com.bo": {
   "base": "https://www.reduno.com.bo",
   "dominio": "reduno.com.bo",
@@ -5578,6 +6180,17 @@
   "sitemaps_noticias": [
    "https://www.reduno.com.bo/sitemap-news.xml"
   ]
+ },
+ "reporteregional.com": {
+  "base": "https://www.reporteregional.com",
+  "dominio": "reporteregional.com",
+  "error": null,
+  "feeds": [
+   "https://reporteregional.com/feed/",
+   "https://reporteregional.com/comments/feed/"
+  ],
+  "revisado": "2026-11-26T14:48:35.359277+00:00",
+  "sitemaps_noticias": []
  },
  "republicadecorrientes.com": {
   "base": "https://www.republicadecorrientes.com",
@@ -5621,6 +6234,16 @@
   "revisado": "2026-11-20T13:29:58.979055+00:00",
   "sitemaps_noticias": []
  },
+ "rioja24.com.ar": {
+  "base": "https://www.rioja24.com.ar",
+  "dominio": "rioja24.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:55:17.294225+00:00",
+  "sitemaps_noticias": [
+   "https://rioja24.com.ar/sitemap-news.xml"
+  ]
+ },
  "rionegro.com.ar": {
   "base": "https://www.rionegro.com.ar",
   "dominio": "rionegro.com.ar",
@@ -5639,6 +6262,17 @@
   "error": null,
   "feeds": [],
   "revisado": "2026-11-20T14:48:04.763360+00:00",
+  "sitemaps_noticias": []
+ },
+ "rmeridiano.com.ar": {
+  "base": "https://www.rmeridiano.com.ar",
+  "dominio": "rmeridiano.com.ar",
+  "error": null,
+  "feeds": [
+   "https://rmeridiano.com.ar/feed/",
+   "https://rmeridiano.com.ar/comments/feed/"
+  ],
+  "revisado": "2026-11-26T14:59:12.635099+00:00",
   "sitemaps_noticias": []
  },
  "rosario.mitelefe.com": {
@@ -5683,6 +6317,20 @@
   ],
   "revisado": "2026-11-21T17:01:37.331864+00:00",
   "sitemaps_noticias": []
+ },
+ "rosarioplus.com": {
+  "base": "https://www.rosarioplus.com",
+  "dominio": "rosarioplus.com",
+  "error": null,
+  "feeds": [
+   "https://www.rosarioplus.com/rss",
+   "https://www.rosarioplus.com/rss/",
+   "https://www.rosarioplus.com/rss.xml"
+  ],
+  "revisado": "2026-11-26T14:51:48.075553+00:00",
+  "sitemaps_noticias": [
+   "https://www.rosarioplus.com/sitemap-news.xml"
+  ]
  },
  "rufinoweb.com.ar": {
   "base": "https://www.rufinoweb.com.ar",
@@ -5776,6 +6424,18 @@
   "feeds": [],
   "revisado": "2026-11-21T17:01:41.420539+00:00",
   "sitemaps_noticias": []
+ },
+ "septimaseccion.com.ar": {
+  "base": "https://www.septimaseccion.com.ar",
+  "dominio": "septimaseccion.com.ar",
+  "error": null,
+  "feeds": [
+   "https://septimaseccion.com.ar/feed/"
+  ],
+  "revisado": "2026-11-26T14:56:00.273110+00:00",
+  "sitemaps_noticias": [
+   "https://septimaseccion.com.ar/sitemap-news.xml"
+  ]
  },
  "sinmordaza.com": {
   "base": "https://www.sinmordaza.com",
@@ -5940,6 +6600,14 @@
   "revisado": "2026-11-20T14:51:37.877212+00:00",
   "sitemaps_noticias": []
  },
+ "tiempoar.com.ar": {
+  "base": "https://www.tiempoar.com.ar",
+  "dominio": "tiempoar.com.ar",
+  "error": null,
+  "feeds": [],
+  "revisado": "2026-11-26T14:54:40.517079+00:00",
+  "sitemaps_noticias": []
+ },
  "tiempodesanjuan.com": {
   "base": "https://www.tiempodesanjuan.com",
   "dominio": "tiempodesanjuan.com",
@@ -6018,6 +6686,19 @@
   "sitemaps_noticias": [
    "https://todonoticiasroca.com.ar/sitemap.xml",
    "https://todonoticiasroca.com.ar/news_sitemap.xml"
+  ]
+ },
+ "todoprovincial.com": {
+  "base": "https://www.todoprovincial.com",
+  "dominio": "todoprovincial.com",
+  "error": null,
+  "feeds": [
+   "https://www.todoprovincial.com/feed/",
+   "https://www.todoprovincial.com/comments/feed/"
+  ],
+  "revisado": "2026-11-26T14:48:04.477851+00:00",
+  "sitemaps_noticias": [
+   "https://www.todoprovincial.com/sitemap-news.xml"
   ]
  },
  "todoroca.com": {
@@ -6245,6 +6926,18 @@
   "sitemaps_noticias": [
    "https://www.virasorovirtual.com/sitemap-news.xml"
   ]
+ },
+ "vive.click": {
+  "base": "https://www.vive.click",
+  "dominio": "vive.click",
+  "error": null,
+  "feeds": [
+   "https://vive.click/feed/",
+   "https://vive.click/comments/feed/",
+   "https://vive.click/sitemap.rss"
+  ],
+  "revisado": "2026-11-26T14:49:38.315067+00:00",
+  "sitemaps_noticias": []
  },
  "vivelaplata.com.ar": {
   "base": "https://www.vivelaplata.com.ar",
